@@ -202,7 +202,7 @@ const ProductDetails = () => {
                 <button className='border-2 border-red-600 rounded px-3 py-1 min-w-[120px] text-white bg-red-600 hover:text-red-600 hover:bg-transparent' onClick={(e)=>handleAddToCart(e,data?._id)}>Add To Cart</button>
               </div> 
 
-              <div className="mt-4">
+              {/* <div className="mt-4">
                 <h2 className="perfect-heading">Package Includes:</h2>
                 <ul className="feature-list">
                   <li>Upto 10 Static Pages Website</li>
@@ -219,7 +219,7 @@ const ProductDetails = () => {
               <span className="tag"> Job seekers</span>
               <span className="tag"> Freelancers</span>
               <span className="tag"> Entrepreneurs</span>
-            </div>
+            </div> */}
 
 
                 <div className='additional-info'>
@@ -228,7 +228,7 @@ const ProductDetails = () => {
                 <p>{data?.description}</p>
                 </div>
 
-                <div className='info-block'>
+                {/* <div className='info-block'>
                 <h4>What is a Static Website?</h4>
                 <p>A static website is a type of site with fixed content that does not change dynamically. It is simple, fast, and cost-effective, ideal for showcasing basic information.</p>
                 <h5>Key Features: </h5>
@@ -239,7 +239,7 @@ const ProductDetails = () => {
                     <li>Ideal for small-scale businesses, portfolios, or informational purposes. </li>
                     <li> Cost-friendly and time saving. </li>
                   </ul>
-                </div>
+                </div> */}
                   
                 </div>
 

@@ -134,16 +134,20 @@ const UploadProduct = ({
       }} 
         className='p-2 bg-slate-100 border rounded'>
         <option value={""}>Select Category</option>
-        {productCategory.map((el) => (
-        <option value={el.id} key={el.id}>{el.label}</option>
-      ))}
+        {
+            productCategory.map((el,index)=>{
+                return(
+                    <option value={el.value} key={el.value+index}>{el.label}</option>
+                )
+            })
+        }
         </select> 
 
           {data.category && (
               <>
                 <label htmlFor="subCategory" className="mt-3">Subcategory:</label>
                 <select
-                  required
+                  
                   value={data.subCategory}
                   name="subCategory"
                   onChange={handleOnChange}

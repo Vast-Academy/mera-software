@@ -1,24 +1,26 @@
 const productSubCategory = [
-  // Subcategories for Airpods
-  { id: 1, label: "Wireless", value: "wireless", categoryId: 1 },
-  { id: 2, label: "Wired", value: "wired", categoryId: 1 },
-  { id: 3, label: "Noise Cancelling", value: "noise-cancelling", categoryId: 1 },
-
-  // Subcategories for Camera
-  { id: 4, label: "DSLR", value: "dslr", categoryId: 2 },
-  { id: 5, label: "Mirrorless", value: "mirrorless", categoryId: 2 },
-  { id: 6, label: "Point & Shoot", value: "point-and-shoot", categoryId: 2 },
-  { id: 7, label: "Action Cameras", value: "action-cameras", categoryId: 2 },
-
-  // Subcategories for Mobiles
-  { id: 8, label: "Android", value: "android", categoryId: 3 },
-  { id: 9, label: "iOS", value: "ios", categoryId: 3 },
-  { id: 10, label: "Feature Phones", value: "feature-phones", categoryId: 3 },
-
   // Subcategories for Website Development
-  { id: 1, label: "Static", value: "static", categoryId: 4 },
-  { id: 2, label: "Standard", value: "standard", categoryId: 4 },
-  { id: 3, label: "Dynamic", value: "dynamic", categoryId: 4 },
+  { id: 1, label: "Static", value: "static", categoryId: 1 },
+  { id: 2, label: "Standard", value: "standard", categoryId: 1 },
+  { id: 3, label: "Dynamic", value: "dynamic", categoryId: 1 },
+
+  // Subcategories for Web App
+  { id: 4, label: "CRM", value: "crm", categoryId: 2 },
+  { id: 5, label: "LMS", value: "lms", categoryId: 2 },
+
+  // Subcategories for Website Content Update
+  { id: 8, label: "Content Update", value: "content update", categoryId: 3 },
+  { id: 9, label: "Section Update", value: "section update", categoryId: 3 },
+  { id: 10, label: "Page Update", value: "page update", categoryId: 3 },
+
+  // Subcategories for Website Features
+  { id: 11, label: "Live Chat", value: "live chat", categoryId: 4 },
+  { id: 12, label: "Appointment System", value: "appointment system", categoryId: 4 },
+
+   // Subcategories for Gallery Designs
+   { id: 13, label: "Static Designs", value: "static designs", categoryId: 5 },
+   { id: 14, label: "Dynamic Gallery Designs", value: "dynamic gallery designs", categoryId: 5 },
+  
 ];
 
 export default productSubCategory;
