@@ -7,9 +7,10 @@ import VerticalCardProduct from '../components/VerticalCardProduct'
 const Home = () => {
   return (
     <div>
-      <CategoryList/>
+      
       <BannerProduct/>
-
+      <CategoryList/>
+      
       <HorizontalCardProduct category={"airpodes"} heading={"Top's Airpodes"}/>
       
       <VerticalCardProduct category={"camera"} heading={"Camera & Photography"}/>

@@ -7,6 +7,7 @@ import DisplayImage from './DisplayImage';
 import { MdDelete } from "react-icons/md";
 import SummaryApi from '../common';
 import {toast} from 'react-toastify'
+import productSubCategory from '../helpers/productSubCategory';
 
 const UploadProduct = ({
     onClose,
@@ -16,6 +17,7 @@ const UploadProduct = ({
         productName : "",
         brandName : "",
         category : "",
+        subCategory: "",
         productImage : [],
         description : "",
         price : "",
@@ -34,6 +36,11 @@ const UploadProduct = ({
         }
       })
     }
+
+    const filteredSubCategories = productSubCategory.filter(
+      (subCat) => subCat.categoryId === parseInt(data.category)
+    );
+    
 
     const handleUploadProduct = async (e) => {
         const file = e.target.files[0]
@@ -112,30 +119,61 @@ const UploadProduct = ({
         required
         />
 
-        <label htmlFor='brandName' className='mt-3'>Brand Name :</label>
-        <input 
-        type='text' 
-        id='brandName'
-        placeholder='enter brand name'
-        name='brandName'
-        value={data.brandName}
-        onChange={handleOnChange}
-        className='p-2 bg-slate-100 border rounded'
-        required
-        />
-
         <label htmlFor='category' className='mt-3'>Category :</label>   
-        <select required value={data.category} name='category' onChange={handleOnChange} className='p-2 bg-slate-100 border rounded'>
+        <select 
+        required 
+        value={data.category} 
+        name='category' 
+        onChange={(e) => {
+        const { name, value } = e.target;
+        setData((prev) => ({
+          ...prev,
+          [name]: value,
+          subCategory: "", // Reset subcategory on category change
+        }));
+      }} 
+        className='p-2 bg-slate-100 border rounded'>
         <option value={""}>Select Category</option>
-        {
-            productCategory.map((el,index)=>{
-                return(
-                    <option value={el.value} key={el.value+index}>{el.label}</option>
-                )
-            })
-        }
+        {productCategory.map((el) => (
+        <option value={el.id} key={el.id}>{el.label}</option>
+      ))}
         </select> 
 
+          {data.category && (
+              <>
+                <label htmlFor="subCategory" className="mt-3">Subcategory:</label>
+                <select
+                  required
+                  value={data.subCategory}
+                  name="subCategory"
+                  onChange={handleOnChange}
+                  className="p-2 bg-slate-100 border rounded"
+                >
+                  <option value="">Select Subcategory</option>
+                  {filteredSubCategories.map((sub) => (
+                    <option value={sub.value} key={sub.id}>{sub.label}</option>
+                  ))}
+                </select>
+              </>
+            )}
+
+            {
+              data.category && (
+                <>
+                <label htmlFor='description' className='mt-3'>Package includes :</label>
+      <textarea
+       className='h-28 bg-slate-100 border p-1 resize-none' 
+       placeholder='enter Package includes' 
+       rows={3} 
+       onChange={handleOnChange}
+       name='description'
+       value={data.description}
+       >
+      </textarea>
+                </>
+              )
+            }
+            
         <label htmlFor='productImage' className='mt-3'>Product Image :</label> 
         <label htmlFor='uploadImageInput'>
 
@@ -215,7 +253,6 @@ const UploadProduct = ({
        name='description'
        value={data.description}
        >
-
       </textarea>
 
         <button className='px-3 py-2 bg-red-600 text-white mb-10 hover:bg-red-700'>Upload Product</button>

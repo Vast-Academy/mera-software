@@ -56,7 +56,7 @@ function App() {
     position='top-center'
      />
 
-    <Header/>
+    <Header />
       <main className='min-h-[calc(100vh-120px)] pt-16'>
       <Outlet/>
       </main>

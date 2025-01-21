@@ -93,9 +93,9 @@ const ProductDetails = () => {
   return (
     <div className='container mx-auto p-4'>
       
-      <div className='min-h-[200px] flex flex-col lg:flex-row gap-4'>
+      <div className='min-h-[200px] flex flex-col lg:flex-row gap-4 relative'>
          {/* product image */}
-          <div className='h-96 flex flex-col lg:flex-row-reverse gap-4' >
+          <div className='h-fit flex flex-col lg:flex-row-reverse gap-4 sticky' >
 
               <div className='h-[300px] w-[300px] lg:h-96 lg:w-96 bg-slate-200 relative p-2'>
               <img src={activeImage} className='h-full w-full object-scale-down mix-blend-multiply' onMouseMove={handleZoomImage} onMouseLeave={handleLeaveImageZoom}/>
@@ -202,12 +202,48 @@ const ProductDetails = () => {
                 <button className='border-2 border-red-600 rounded px-3 py-1 min-w-[120px] text-white bg-red-600 hover:text-red-600 hover:bg-transparent' onClick={(e)=>handleAddToCart(e,data?._id)}>Add To Cart</button>
               </div> 
 
-                <div>
-                  <p className='text-slate-600 font-medium my-1'>Description:</p>
-                  <p>{data?.description}</p>
+              <div className="mt-4">
+                <h2 className="perfect-heading">Package Includes:</h2>
+                <ul className="feature-list">
+                  <li>Upto 10 Static Pages Website</li>
+                  <li>Premium theme included</li>
+                  <li>1-month free content updates</li>
+                  <li>1-year free maintenance</li>
+                </ul>
+            </div>
+
+              <h2 className="perfect-heading">Perfect For:</h2>
+            <div className="perfect-for">
+              <span className="tag"> Professional Portfolios</span>
+              <span className="tag"> Personal branding</span>
+              <span className="tag"> Job seekers</span>
+              <span className="tag"> Freelancers</span>
+              <span className="tag"> Entrepreneurs</span>
+            </div>
+
+
+                <div className='additional-info'>
+                <div className='info-block'>
+                <h4>Description:</h4>
+                <p>{data?.description}</p>
                 </div>
 
-          </div>
+                <div className='info-block'>
+                <h4>What is a Static Website?</h4>
+                <p>A static website is a type of site with fixed content that does not change dynamically. It is simple, fast, and cost-effective, ideal for showcasing basic information.</p>
+                <h5>Key Features: </h5>
+                <ul className="feature-description">
+                    <li>Built using HTML, CSS, and sometimes JavaScript.  </li>
+                    <li>Fixed content; no interaction-based updates.  </li>
+                    <li>Quick loading and lightweight structure. </li>
+                    <li>Ideal for small-scale businesses, portfolios, or informational purposes. </li>
+                    <li> Cost-friendly and time saving. </li>
+                  </ul>
+                </div>
+                  
+                </div>
+
+      </div>
             )
           }
 

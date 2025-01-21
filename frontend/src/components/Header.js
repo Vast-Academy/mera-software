@@ -53,6 +53,7 @@ if(value){
   }
 }
   return (
+    <>
     <header className='h-16 shadow-md bg-white fixed w-full z-40'>
        <div className="h-full flex items-center px-4 container mx-auto justify-between">
        <div className=''>
@@ -62,12 +63,14 @@ if(value){
        </div>
 
 
-       <div className='hidden lg:flex items-center w-full justify-between max-w-sm border rounded-full focus-within:shadow pl-2'>
+       <div className='hidden
+       lg:flex items-center w-full justify-between max-w-sm border rounded-full focus-within:shadow pl-2'>
        <input type='text' placeholder='search product here...' className='w-full outline-none' onChange={handleSearch} value={search}/>
            <div className="text-lg min-w-[50px] h-8 bg-red-600 flex items-center justify-center rounded-r-full text-white">
               <GrSearch />
             </div>
        </div>
+
 
        <div className="flex items-center gap-7">
 
@@ -131,6 +134,25 @@ if(value){
 
        </div>
     </header>
+
+     <div className='lg:hidden fixed top-16 left-0 right-0 z-30 bg-white px-4 py-2 shadow-md'>
+        <div className='flex items-center w-full border rounded-full focus-within:shadow pl-2'>
+          <input
+            type='text'
+            placeholder='search product here...'
+            className='w-full outline-none py-2'
+            onChange={handleSearch}
+            value={search}
+          />
+          <div className="text-lg min-w-[50px] h-8 bg-red-600 flex items-center justify-center rounded-r-full text-white">
+            <GrSearch />
+          </div>
+        </div>
+      </div>
+
+      {/* Spacer for mobile search bar */}
+      <div className='lg:hidden h-[76px]'></div>
+      </>
   )
 }
 
