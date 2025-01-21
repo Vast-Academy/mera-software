@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import { setUserDetails } from '../store/userSlice';
 import ROLE from '../common/role';
 import Context from '../context';
+import { FaArrowLeft } from "react-icons/fa";
 
 
 const Header = () => {
@@ -22,6 +23,13 @@ const Header = () => {
   const URLSearch = new URLSearchParams(searchInput?.search)
   const searchQuery = URLSearch.getAll("q")
   const [search,setSearch] = useState(searchQuery)
+
+  const location = useLocation();
+  const showBackButton = location.pathname !== '/';
+
+  const onBack = () => {
+    navigate(-1); // This will navigate to the previous page
+  };
 
   const handleLogout = async () => {
     const fetchData = await fetch(SummaryApi.logout_user.url,{
@@ -54,7 +62,7 @@ if(value){
 }
   return (
     <>
-    <header className='h-16 shadow-md bg-white fixed w-full z-40'>
+    <header className='hidden md:block h-16 shadow-md bg-white fixed w-full z-40'>
        <div className="h-full flex items-center px-4 container mx-auto justify-between">
        <div className=''>
        <Link to={"/"}>
@@ -119,7 +127,7 @@ if(value){
           }
      
 
-     <div>
+     <div className='hidden md:block'>
     {
         user?._id ? (
             <button onClick={handleLogout} className='px-3 py-1 rounded-full text-white bg-red-600 hover:bg-red-700'>Logout</button>
@@ -135,23 +143,45 @@ if(value){
        </div>
     </header>
 
-     <div className='lg:hidden fixed top-16 left-0 right-0 z-30 bg-white px-4 py-2 shadow-md'>
-        <div className='flex items-center w-full border rounded-full focus-within:shadow pl-2'>
-          <input
-            type='text'
-            placeholder='search product here...'
-            className='w-full outline-none py-2'
-            onChange={handleSearch}
-            value={search}
-          />
-          <div className="text-lg min-w-[50px] h-8 bg-red-600 flex items-center justify-center rounded-r-full text-white">
-            <GrSearch />
+    {/* Mobile Search Bar with Login and Dynamic Back Button */}
+    <div className='md:hidden fixed top-0 left-0 right-0 z-40 bg-white px-4 py-3 shadow-md'>
+        <div className='flex items-center gap-3'>
+          {showBackButton && (
+            <button 
+              onClick={onBack} 
+              className='p-1 hover:bg-gray-100 rounded-full'
+              aria-label="Go back"
+            >
+              <FaArrowLeft size={24} />
+            </button>
+          )}
+          <div className='flex items-center flex-1 border rounded-full focus-within:shadow'>
+            <input
+              type='text'
+              placeholder='search product here...'
+              className='w-full outline-none py-2 px-4'
+              onChange={handleSearch}
+              value={search}
+            />
+            <div className="min-w-[40px] h-8 bg-red-600 flex items-center justify-center rounded-r-full text-white">
+              <GrSearch size={18} />
+            </div>
           </div>
+          {user?._id ? (
+            <button onClick={handleLogout} className='whitespace-nowrap px-3 py-2 rounded-full text-white bg-red-600 hover:bg-red-700 text-sm'>
+              Logout
+            </button>
+          ) : (
+            <Link to={"/login"} className='whitespace-nowrap px-3 py-2 rounded-full text-white bg-red-600 hover:bg-red-700 text-sm'>
+              Login
+            </Link>
+          )}
         </div>
       </div>
 
       {/* Spacer for mobile search bar */}
-      <div className='lg:hidden h-[76px]'></div>
+      <div className='h-[68px] md:h-16'></div>
+
       </>
   )
 }
