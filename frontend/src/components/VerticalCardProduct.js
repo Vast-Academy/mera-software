@@ -75,10 +75,10 @@ const VerticalCardProduct = ({category,heading}) => {
                 return(
                     <Link to={"product/"+product?._id} className='w-full min-w-[280px] md:min-w-[320px] max-w-[280px] md:max-w-[320px] bg-white rounded-sm shadow'>
                         <div className='bg-slate-200 h-40 p-4 min-w-[280px] md:min-w-[145px] flex justify-center items-center'>
-                            <img src={product?.productImage[0]} className='object-scale-down h-full hover:scale-110 transition-all mix-blend-multiply' />
+                            <img src={product?.serviceImage[0]} className='object-scale-down h-full hover:scale-110 transition-all mix-blend-multiply' />
                         </div>
                         <div className='p-4 grid gap-3'>
-                            <h2 className='font-medium text-base md:text-lg text-ellipis line-clamp-1 text-black'>{product?.productName}</h2>
+                            <h2 className='font-medium text-base md:text-lg text-ellipis line-clamp-1 text-black'>{product?.serviceName}</h2>
                             <p className='capitalize text-slate-500'>{product?.category}</p>
                             <div className='flex gap-3'>
                                 <p className='text-red-600 font-medium'> {displayINRCurrency(product?.sellingPrice) }</p>

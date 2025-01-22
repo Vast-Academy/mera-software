@@ -2,7 +2,7 @@ import React from 'react'
 import CategoryList from '../components/CategoryList'
 import BannerProduct from '../components/BannerProduct'
 // import HorizontalCardProduct from '../components/HorizontalCardProduct'
-// import VerticalCardProduct from '../components/VerticalCardProduct'
+import VerticalCardProduct from '../components/VerticalCardProduct'
 
 const Home = () => {
   return (
@@ -11,14 +11,10 @@ const Home = () => {
       <BannerProduct/>
       <CategoryList/>
       
-      {/* <HorizontalCardProduct category={"websites"} heading={"Top's Websites"}/>
-      <HorizontalCardProduct category={"website updates"} heading={"Website Updates"}/>
-      <HorizontalCardProduct category={"website features"} heading={"Website Features"}/>
-
-
       
-      <VerticalCardProduct category={"web apps"} heading={"Web Apps"}/>
-      <VerticalCardProduct category={"gallery designs"} heading={"Gallery Designs"}/> */}
+      <VerticalCardProduct category={"static"} heading={"Static Websites"}/>
+      <VerticalCardProduct category={"standard"} heading={"Standard Websites"}/>
+      <VerticalCardProduct category={"dynamic"} heading={"Dynamic Websites"}/>
     </div>
   )
 }
