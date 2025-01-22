@@ -11,10 +11,9 @@ import Context from '../context';
 
 const ProductDetails = () => {
   const [data,setData] = useState({
-    productName : "",
-    brandName : "",
+    serviceName : "",
     category : "",
-    productImage : [],
+    serviceImage : [],
     description : "",
     price : "",
     sellingPrice : ""
@@ -50,7 +49,7 @@ const ProductDetails = () => {
     const dataResponse = await response.json()
 
     setData(dataResponse?.data)
-    setActiveImage(dataResponse?.data?.productImage[0])
+    setActiveImage(dataResponse?.data?.serviceImage[0])
   }
   console.log("data",data);
   
@@ -136,7 +135,7 @@ const ProductDetails = () => {
                   ): (
                     <div className='flex gap-2 lg:flex-col overflow-scroll scrollbar-none h-full'>
                     {
-                      data?.productImage?.map((imgURL,index) =>{
+                      data?.serviceImage?.map((imgURL,index) =>{
                         return(
                           <div className='h-20 w-20 bg-slate-200 rounded p-1' key={imgURL}>
                           <img src={imgURL} className='w-full h-full object-scale-down mix-blend-multiply cursor-pointer' onMouseEnter={()=>handleMouseEnterProduct(imgURL)} onClick={()=>handleMouseEnterProduct(imgURL)} />
@@ -180,8 +179,8 @@ const ProductDetails = () => {
           </div>
             ): (
               <div className='flex flex-col gap-1'>
-            <p className='bg-red-200 text-red-600 px-2 rounded-full inline-block w-fit'>{data?.brandName}</p>
-            <h2 className='text-2xl lg:text-4xl font-medium'>{data?.productName}</h2>
+            {/* <p className='bg-red-200 text-red-600 px-2 rounded-full inline-block w-fit'>{data?.brandName}</p> */}
+            <h2 className='text-2xl lg:text-4xl font-medium'>{data?.serviceName}</h2>
             <p className='capitalize text-slate-400 '>{data?.category}</p>
 
             <div className='text-yellow-400 flex items-center gap-1'>
