@@ -1,0 +1,37 @@
+const perfectForOptions = [
+    { value: "professional portfolios", label: "Professional Portfolios" },
+    { value: "personal branding", label: "Personal Branding" },
+    { value: "job seekers", label: "Job Seekers" },
+    { value: "freelancers", label: "Freelancers" },
+    { value: "entrepreneurs", label: "Entrepreneurs" },
+    { value: "immigration consultants", label: "Immigration Consultants" },
+    { value: "travel agencies", label: "Travel Agencies" },
+    { value: "visa service providers", label: "Visa Service Providers" },
+    { value: "study abroad consultants", label: "Study Abroad Consultants" },
+    { value: "corporate travel management companies", label: "Corporate Travel Management Companies" },
+    { value: "tour operators", label: "Tour Operators" },
+    { value: "relocation companies", label: "Relocation Companies" },
+    { value: "travel insurance providers", label: "Travel Insurance Providers" },
+    { value: "event travel services", label: "Event Travel Services" },
+    { value: "small restaurants", label: "Small Restaurants" },
+    { value: "cafes", label: "Cafes" },
+    { value: "indian dhabas", label: "Indian Dhabas" },
+    { value: "cloud kitchens", label: "Cloud Kitchens" },
+    { value: "food chains", label: "Food Chains" },
+    { value: "fast food outlets ", label: "Fast Food Outlets " },
+    { value: "food delivery services", label: "Food Delivery Services" },
+    { value: "street food vendors", label: "Street Food Vendors" },
+    { value: "schools and colleges", label: "Schools and Colleges" },
+    { value: "universities", label: "Universities" },
+    { value: "e-learning platforms", label: "E-learning Platforms" },
+    { value: "coaching institutes", label: "Coaching Institutes" },
+    { value: "tutors and trainers", label: "Tutors and Trainers" },
+    { value: "skill development centers", label: "Skill Development Centers" },
+    { value: "corporate training programs", label: "Corporate Training Programs" },
+    { value: "language learning services", label: "Language Learning Services" },
+    { value: "exam preparation platforms", label: "Exam Preparation Platforms" },
+    { value: "education consultants", label: "Education Consultants" }
+  ];
+  
+  export default perfectForOptions;
+  

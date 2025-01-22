@@ -7,21 +7,25 @@ import DisplayImage from './DisplayImage';
 import { MdDelete } from "react-icons/md";
 import SummaryApi from '../common';
 import {toast} from 'react-toastify'
-import productSubCategory from '../helpers/productSubCategory';
+import Select from 'react-select'
+import packageOptions from '../helpers/packageOptions';
+import perfectForOptions from '../helpers/perfectForOptions';
+import defaultFields from '../helpers/defaultFields';
 
 const UploadProduct = ({
     onClose,
     fetchData
 }) => {
     const [data, setData] = useState({
-        productName : "",
-        brandName : "",
+        serviceName : "",
         category : "",
-        subCategory: "",
-        productImage : [],
+        packageIncludes : "",
+        perfectFor : "",
+        serviceImage : [],
+         price : "",
+        sellingPrice : "",
         description : "",
-        price : "",
-        sellingPrice : ""
+        websiteTypeDescription : "",   
     })
     const [openFullScreenImage, setOpenFullScreenImage] = useState(false)
     const [fullScreenImage, setFullScreenImage] = useState("")
@@ -30,17 +34,36 @@ const UploadProduct = ({
       const { name, value } = e.target
 
       setData((preve)=>{
-        return{
+         // If category changes, set defaults
+    if (name === "category" && defaultFields[value]){
+      return{
+        ...preve,
+        [name] : value,
+        websiteTypeDescription : defaultFields[value].websiteTypeDescription,
+      }
+    }
+     // Otherwise, just update the field
+        return {
           ...preve,
-          [name] : value
-        }
+          [name]: value,
+        } 
       })
     }
 
-    const filteredSubCategories = productSubCategory.filter(
-      (subCat) => subCat.categoryId === parseInt(data.category)
-    );
+    const handlePackageIncludesChange = (selectedOptions) => {
+      setData((preve) => ({
+        ...preve,
+        packageIncludes: selectedOptions.map((option) => option.value),
+      }));
+    };
     
+    // Add a new handler function for perfectFor
+    const handlePerfectForChange = (selectedOptions) => {
+      setData((preve) => ({
+        ...preve,
+        perfectFor: selectedOptions.map((option) => option.value),
+      }));
+    };
 
     const handleUploadProduct = async (e) => {
         const file = e.target.files[0]
@@ -49,7 +72,7 @@ const UploadProduct = ({
         setData((preve)=>{
           return{
             ...preve,
-            productImage : [ ...preve.productImage, uploadImageCloudinary.url]
+            serviceImage : [ ...preve.serviceImage, uploadImageCloudinary.url]
           }
         })
     }
@@ -57,13 +80,13 @@ const UploadProduct = ({
     const handleDeleteProductImage = async(index)=>{
       console.log("image index",index);
 
-      const newProductImage = [...data.productImage]
+      const newProductImage = [...data.serviceImage]
       newProductImage.splice(index,1)
 
       setData((preve)=>{
         return{
           ...preve,
-          productImage : [...newProductImage]
+          serviceImage : [...newProductImage]
         }
       })
     }
@@ -71,7 +94,6 @@ const UploadProduct = ({
     // upload product
     const handleSubmit = async (e) => {
       e.preventDefault()
-      
       
       const response = await fetch(SummaryApi.uploadProduct.url,{
         method : SummaryApi.uploadProduct.method,
@@ -100,39 +122,28 @@ const UploadProduct = ({
       <div className='bg-white p-4 rounder w-full max-w-2xl h-full max-h-[75%] overflow-hidden'>
 
       <div className='flex justify-between items-center pb-3'>
-        <h2 className='font-bold text-lg'>Upload Product</h2>
+        <h2 className='font-bold text-lg'>Upload Service</h2>
         <div className='text-2xl hover:text-red-600 cursor-pointer' onClick={onClose}>
             <CgClose/>
         </div>
       </div>
 
       <form className='grid p-4 gap-2 overflow-y-scroll h-full pb-5' onSubmit={handleSubmit}>
-        <label htmlFor='productName'>Product Name :</label>
+        <label htmlFor='serviceName'>Service Name :</label>
         <input 
         type='text' 
-        id='productName'
-        placeholder='enter product name'
-        name='productName'
-        value={data.productName}
+        id='serviceName'
+        placeholder='enter service name'
+        name='serviceName'
+        value={data.serviceName}
         onChange={handleOnChange}
         className='p-2 bg-slate-100 border rounded'
         required
         />
 
-        <label htmlFor='category' className='mt-3'>Category :</label>   
-        <select 
-        required 
-        value={data.category} 
-        name='category' 
-        onChange={(e) => {
-        const { name, value } = e.target;
-        setData((prev) => ({
-          ...prev,
-          [name]: value,
-          subCategory: "", // Reset subcategory on category change
-        }));
-      }} 
-        className='p-2 bg-slate-100 border rounded'>
+
+        <label htmlFor='category' className='mt-3'>Service Category :</label>   
+        <select required value={data.category} id='category' name='category' onChange={handleOnChange} className='p-2 bg-slate-100 border rounded'>
         <option value={""}>Select Category</option>
         {
             productCategory.map((el,index)=>{
@@ -143,42 +154,43 @@ const UploadProduct = ({
         }
         </select> 
 
-          {data.category && (
+          {
+            data.category && (
               <>
-                <label htmlFor="subCategory" className="mt-3">Subcategory:</label>
-                <select
-                  
-                  value={data.subCategory}
-                  name="subCategory"
-                  onChange={handleOnChange}
-                  className="p-2 bg-slate-100 border rounded"
-                >
-                  <option value="">Select Subcategory</option>
-                  {filteredSubCategories.map((sub) => (
-                    <option value={sub.value} key={sub.id}>{sub.label}</option>
-                  ))}
-                </select>
-              </>
+              <label htmlFor='packageIncludes' className='mt-3'>Package Includes:</label>
+          <Select
+            options={packageOptions}
+            isMulti
+            value={packageOptions.filter((option) =>
+              data.packageIncludes.includes(option.value)
             )}
+            name='packageIncludes'
+                id='packageIncludes'
+            onChange={handlePackageIncludesChange}
+            className='basic-multi-select bg-slate-100 border rounded'
+            classNamePrefix='select'
+            placeholder="Select package options"
+          />
 
-            {
-              data.category && (
-                <>
-                <label htmlFor='description' className='mt-3'>Package includes :</label>
-      <textarea
-       className='h-28 bg-slate-100 border p-1 resize-none' 
-       placeholder='enter Package includes' 
-       rows={3} 
-       onChange={handleOnChange}
-       name='description'
-       value={data.description}
-       >
-      </textarea>
-                </>
-              )
-            }
-            
-        <label htmlFor='productImage' className='mt-3'>Product Image :</label> 
+        <label htmlFor='perfectFor' className='mt-3'>Perfect For:</label>
+            <Select
+              options={perfectForOptions}
+              isMulti
+              value={perfectForOptions.filter((option) =>
+                data.perfectFor.includes(option.value)
+              )}
+               name='perfectFor'
+                id='perfectFor'
+              onChange={handlePerfectForChange}
+              className='basic-multi-select bg-slate-100 border rounded'
+              classNamePrefix='select'
+              placeholder="Select target audience"
+            />
+              </>
+            )
+          }
+
+        <label htmlFor='serviceImage' className='mt-3'>Service Image :</label> 
         <label htmlFor='uploadImageInput'>
 
         <div className='p-2 bg-slate-100 border rounded h-32 w-full flex justify-center items-center cursor-pointer'>
@@ -192,10 +204,10 @@ const UploadProduct = ({
         </label>
         <div>
         {
-          data?.productImage[0] ? (
+          data?.serviceImage[0] ? (
            <div className='flex items-center gap-2'>
             {
-              data.productImage.map((el,index)=>{
+              data.serviceImage.map((el,index)=>{
               return(
                <div className='relative group'>
                <img 
@@ -259,7 +271,19 @@ const UploadProduct = ({
        >
       </textarea>
 
-        <button className='px-3 py-2 bg-red-600 text-white mb-10 hover:bg-red-700'>Upload Product</button>
+      <label htmlFor="websiteTypeDescription" className="mt-3">Website Type Description :</label>
+      <textarea
+        className="h-28 bg-slate-100 border p-1 resize-none"
+        placeholder="enter website type details"
+        rows={4}
+        onChange={handleOnChange}
+        name="websiteTypeDescription"
+        value={data.websiteTypeDescription}
+      >
+      </textarea>
+
+       {/* Submit Button */}
+        <button className='px-3 py-2 bg-red-600 text-white mb-10 hover:bg-red-700'>Upload Service</button>
 
       </form>
       

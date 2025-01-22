@@ -1,0 +1,26 @@
+const packageOptions = [
+    { value: "upto 10 static pages", label: "Upto 10 Static Pages" },
+    { value: "premium theme included", label: "Premium theme included" },
+    { value: "1-month free content updates", label: "1-month free content updates" },
+    { value: "1-year free maintenance", label: "1-year free maintenance" },
+    { value: "Upto 12 static pages", label: "Upto 12 Static Pages" },
+    { value: "complete food menu", label: "Complete Food Menu" },
+    { value: "upto 15 static pages", label: "Upto 15 Static Pages" },
+    { value: "dynamic photo gallery", label: "Dynamic Photo Gallery" },
+    { value: "live chat support", label: "Live Chat Support" },
+    { value: "upto 22 static pages", label: "Upto 22 Static Pages" },
+    { value: "appointment booking", label: "Appointment Booking" },
+    { value: "upto 17 static pages", label: "Upto 17 Static Pages" },
+    { value: "upto 24 static pages", label: "Upto 24 Static Pages" },
+    { value: "admin panel integration", label: "Admin Panel Integration " },
+    { value: "fully customizable design", label: "Fully Customizable Design" },
+    { value: "payment gateway setup", label: "Payment Gateway Setup" },
+    { value: "product and services pages", label: "Product and Services Pages" },
+    { value: "blog and news integration", label: "Blog and News Integration" },
+    { value: "SEO optimization", label: "SEO Optimization" },
+    { value: "user management system", label: "User Management System" },
+    { value: "interactive forms and features", label: "Interactive Forms and Features" },
+    { value: "mobile optimization", label: "Mobile Optimization" },
+  ];
+
+  export default packageOptions;
