@@ -11,6 +11,8 @@ import Select from 'react-select'
 import packageOptions from '../helpers/packageOptions';
 import perfectForOptions from '../helpers/perfectForOptions';
 import defaultFields from '../helpers/defaultFields';
+import RichTextEditor from '../helpers/richTextEditor';
+
 
 const UploadProduct = ({
     onClose,
@@ -209,7 +211,7 @@ const UploadProduct = ({
             {
               data.serviceImage.map((el,index)=>{
               return(
-               <div className='relative group'>
+               <div key={index} className='relative group'>
                <img 
                   src={el} 
                   alt={el} 
@@ -260,16 +262,19 @@ const UploadProduct = ({
         required
         />
 
+
       <label htmlFor='description' className='mt-3'>Description :</label>
-      <textarea
-       className='h-28 bg-slate-100 border p-1 resize-none' 
-       placeholder='enter product description' 
-       rows={3} 
-       onChange={handleOnChange}
-       name='description'
-       value={data.description}
-       >
-      </textarea>
+      <RichTextEditor
+        name='description'
+        value={data.description}
+        onChange={(newContent) => {
+          setData(prev => ({
+            ...prev,
+            description: newContent
+          }))
+        }}
+        placeholder='Enter product description'
+      />
 
       <label htmlFor="websiteTypeDescription" className="mt-3">Website Type Description :</label>
       <textarea

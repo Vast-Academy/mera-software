@@ -34,15 +34,15 @@
 }
 .feature-list {
   list-style: none;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .feature-list li {
   display: flex;
   align-items: center;
-  margin-bottom: 0.5rem;
   color: #444;
   font-size: 15px;
+  text-transform: capitalize;
 }
 
 .feature-list li::before {
@@ -63,6 +63,7 @@
   padding: 5px 20px;
   border-radius: 10px;
   font-size: 15px;
+  text-transform: capitalize;
 }
 .additional-info {
   margin-top: 20px;
@@ -72,6 +73,7 @@
 .info-block {
   margin: 20px 0;
   padding: 15px;
+  width: 100%;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -94,8 +96,13 @@
   margin-left: 25px;
   font-size: 15px;
 }
-/* search bar in mobile */
+.feature-list-items {
+  display: flex;
+  flex-direction: row;
+  gap: 30px; 
+}
 
+/* search bar in mobile */
 /* .search-container {
   display: flex;
   justify-content: center;

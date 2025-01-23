@@ -13,8 +13,11 @@ const ProductDetails = () => {
   const [data,setData] = useState({
     serviceName : "",
     category : "",
+    packageIncludes : [],
+    perfectFor : [],
     serviceImage : [],
     description : "",
+    websiteTypeDescription : "",
     price : "",
     sellingPrice : ""
   })
@@ -179,9 +182,9 @@ const ProductDetails = () => {
           </div>
             ): (
               <div className='flex flex-col gap-1'>
-            {/* <p className='bg-red-200 text-red-600 px-2 rounded-full inline-block w-fit'>{data?.brandName}</p> */}
+            <p className='bg-red-200 text-red-600 px-2 rounded-full inline-block w-fit'>{data?.category.split('_').join(' ')}</p>
             <h2 className='text-2xl lg:text-4xl font-medium'>{data?.serviceName}</h2>
-            <p className='capitalize text-slate-400 '>{data?.category}</p>
+            {/* <p className='capitalize text-slate-400 '>{data?.category}</p> */}
 
             <div className='text-yellow-400 flex items-center gap-1'>
                 <FaStar/>
@@ -201,44 +204,34 @@ const ProductDetails = () => {
                 <button className='border-2 border-red-600 rounded px-3 py-1 min-w-[120px] text-white bg-red-600 hover:text-red-600 hover:bg-transparent' onClick={(e)=>handleAddToCart(e,data?._id)}>Add To Cart</button>
               </div> 
 
-              {/* <div className="mt-4">
-                <h2 className="perfect-heading">Package Includes:</h2>
-                <ul className="feature-list">
-                  <li>Upto 10 Static Pages Website</li>
-                  <li>Premium theme included</li>
-                  <li>1-month free content updates</li>
-                  <li>1-year free maintenance</li>
-                </ul>
+
+              <div className="package-section">
+              <h2 className="perfect-heading">Package Includes:</h2>
+              <div className={data?.packageIncludes?.length > 5 ? "grid grid-cols-2 gap-x-2" : ""}>
+                {Array.isArray(data?.packageIncludes) &&
+                  data.packageIncludes.map((item, index) => (
+                    <div className="feature-list" key={`feature-list-${index}`}>
+                      <li>{item}</li>
+                    </div>
+                  ))}
+              </div>
             </div>
+
+
 
               <h2 className="perfect-heading">Perfect For:</h2>
             <div className="perfect-for">
-              <span className="tag"> Professional Portfolios</span>
-              <span className="tag"> Personal branding</span>
-              <span className="tag"> Job seekers</span>
-              <span className="tag"> Freelancers</span>
-              <span className="tag"> Entrepreneurs</span>
-            </div> */}
-
+              {data?.perfectFor?.map((tag, index) => (
+                <span className="tag" key={index}>{tag}</span>
+                 ))}
+            </div>
 
                 <div className='additional-info'>
-                <div className='info-block'>
-                <h4>Description:</h4>
-                <p>{data?.description}</p>
+                <div className='info-block' dangerouslySetInnerHTML={{ __html: data?.description }}>
                 </div>
 
-                {/* <div className='info-block'>
-                <h4>What is a Static Website?</h4>
-                <p>A static website is a type of site with fixed content that does not change dynamically. It is simple, fast, and cost-effective, ideal for showcasing basic information.</p>
-                <h5>Key Features: </h5>
-                <ul className="feature-description">
-                    <li>Built using HTML, CSS, and sometimes JavaScript.  </li>
-                    <li>Fixed content; no interaction-based updates.  </li>
-                    <li>Quick loading and lightweight structure. </li>
-                    <li>Ideal for small-scale businesses, portfolios, or informational purposes. </li>
-                    <li> Cost-friendly and time saving. </li>
-                  </ul>
-                </div> */}
+                <div className='info-block' dangerouslySetInnerHTML={{ __html: data?.websiteTypeDescription }}>
+                </div>
                   
                 </div>
 

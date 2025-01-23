@@ -12,9 +12,9 @@ const Home = () => {
       <CategoryList/>
       
       
-      <VerticalCardProduct category={"static"} heading={"Static Websites"}/>
-      <VerticalCardProduct category={"standard"} heading={"Standard Websites"}/>
-      <VerticalCardProduct category={"dynamic"} heading={"Dynamic Websites"}/>
+      <VerticalCardProduct category={"static_websites"} heading={"Static Websites"}/>
+      <VerticalCardProduct category={"standard_websites"} heading={"Standard Websites"}/>
+      <VerticalCardProduct category={"dynamic_websites"} heading={"Dynamic Websites"}/>
     </div>
   )
 }
