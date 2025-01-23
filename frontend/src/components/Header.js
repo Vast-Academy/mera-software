@@ -149,9 +149,16 @@ if(value){
 
     <div className="md:hidden w-full max-w-lg mx-auto bg-white">
       {/* Header */}
-      <header className="bg-gray-900 p-4 flex justify-between items-center">
-        <span className="text-white text-2xl font-bold">Logo</span>
+      <header className="bg-gray-900 px-4 flex justify-between items-center">
+      <div className=''>
+       <Link to={"/"}>
+            <Logo w={50} h={70} />
+        </Link>
+        </div>
+        
+        <div>
         <FiUser className="text-white w-8 h-8" />
+        </div>
       </header>
 
       {/* Search Bar */}

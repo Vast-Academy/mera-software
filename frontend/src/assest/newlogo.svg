@@ -1,9 +1,7 @@
-import React from 'react'
-
-const Logo = ({w,h}) => {
-  return (
-    <svg width={w} height={h} viewBox="0 0 200 300">
-<g transform="translate(25, 30)">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300">
+  <!-- Logo Section -->
+  <g transform="translate(25, 30)">
+    <!-- Code Bracket Symbols -->
     <path d="M70,60 L50,100 L70,140" 
           stroke="#4a90e2" 
           stroke-width="12" 
@@ -16,9 +14,11 @@ const Logo = ({w,h}) => {
           stroke-linecap="round" 
           fill="none"/>
     
+    <!-- Binary Dots -->
     <circle cx="100" cy="80" r="8" fill="#4a90e2"/>
     <circle cx="100" cy="120" r="8" fill="#2ecc71"/>
     
+    <!-- Connecting Lines -->
     <path d="M92,80 L70,80" 
           stroke="#4a90e2" 
           stroke-width="6" 
@@ -30,7 +30,9 @@ const Logo = ({w,h}) => {
           stroke-linecap="round"/>
   </g>
 
+  <!-- Text Section -->
   <g transform="translate(100, 230)">
+    <!-- Mera -->
     <text x="25" y="-20" 
           font-family="Arial" 
           font-size="32" 
@@ -38,6 +40,7 @@ const Logo = ({w,h}) => {
           fill="#4a90e2" 
           text-anchor="middle">Mera</text>
     
+    <!-- Software -->
     <text x="25" y="10" 
           font-family="Arial" 
           font-size="32" 
@@ -46,7 +49,3 @@ const Logo = ({w,h}) => {
           text-anchor="middle">Software</text>
   </g>
 </svg>
-  )
-}
-
-export default Logo
