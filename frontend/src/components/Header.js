@@ -10,7 +10,7 @@ import { toast } from 'react-toastify';
 import { setUserDetails } from '../store/userSlice';
 import ROLE from '../common/role';
 import Context from '../context';
-import { FaArrowLeft } from "react-icons/fa";
+// import { FaArrowLeft } from "react-icons/fa";
 import { IoIosNotifications } from "react-icons/io";
 
 const Header = () => {
@@ -24,12 +24,12 @@ const Header = () => {
   const searchQuery = URLSearch.getAll("q")
   const [search,setSearch] = useState(searchQuery)
 
-  const location = useLocation();
-  const showBackButton = location.pathname !== '/';
+  // const location = useLocation();
+  // const showBackButton = location.pathname !== '/';
 
-  const onBack = () => {
-    navigate(-1); // This will navigate to the previous page
-  };
+  // const onBack = () => {
+  //   navigate(-1); 
+  // };
 
   const handleLogout = async () => {
     const fetchData = await fetch(SummaryApi.logout_user.url,{
@@ -148,17 +148,16 @@ if(value){
 
     <div className="md:hidden w-full max-w-lg mx-auto bg-white">
       {/* Header */}
-      <header className="bg-gray-900 px-4 flex justify-between items-center">
+      <header className="bg-gray-900 px-4 h-12 flex justify-between items-center">
       <div className=''>
        <Link to={"/"}>
-            <Logo w={50} h={70} />
+            <Logo w={50} h={50} />
         </Link>
         </div>
         
         <div className='flex items-center gap-5'>
         <IoIosNotifications className='text-white text-4xl w-8 h-8'/>
-        {
-            user?._id && (
+
               <Link to={"/cart"} className='text-3xl relative'>
              <span className='text-white'><FaShoppingCart/></span>
           
@@ -166,24 +165,23 @@ if(value){
             <p className='text-sm'>{context?.cartProductCount}</p>
         </div>
           </Link>
-            )
-          }
+      
         {/* <FaShoppingCart className='text-white w-8 h-8' /> */}
         <FaRegCircleUser className="text-white w-8 h-8" />
         </div>
       </header>
 
       {/* Search Bar */}
-      <div className="p-4">
-        <div className="relative">
+      <div className="py-3 px-4">
+        <div className="relative flex items-center w-full justify-between max-w-sm border rounded-full focus-within:shadow pl-2">
           <input
             type="text"
             placeholder="Search services..."
-            className="w-full p-3 pr-12 rounded-full border border-gray-200 shadow-sm"
+            className="w-full outline-none"
           />
-          <button className="absolute right-2 top-1 bg-gray-900 text-white p-2 rounded-full">
-            <span className="text-xl">+</span>
-          </button>
+          <div className="text-lg min-w-[50px] h-8 bg-gray-900 flex items-center justify-center rounded-r-full text-white">
+              <GrSearch />
+            </div>
         </div>
       </div>
 

@@ -5,7 +5,7 @@ import { LiaCogSolid } from "react-icons/lia";
 
 const CategoryIcons = {
   static_websites: () => (
-    <svg viewBox="0 0 40 40" className="w-8 h-8 drop-shadow-sm">
+    <svg viewBox="0 0 40 40" className="w-16 h-16 drop-shadow-sm">
     <defs>
       <linearGradient id="staticWebGrad" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stopColor="#22c55e"/>
@@ -21,7 +21,7 @@ const CategoryIcons = {
   </svg>
   ),
   standard_websites: () => (
-    <svg viewBox="0 0 40 40" className="w-8 h-8 drop-shadow-sm">
+    <svg viewBox="0 0 40 40" className="w-16 h-16 drop-shadow-sm">
     <defs>
       <linearGradient id="standardWebGrad" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stopColor="#3b82f6"/>
@@ -38,7 +38,7 @@ const CategoryIcons = {
   </svg>
   ),
   dynamic_websites: () => (
-    <svg viewBox="0 0 40 40" className="w-8 h-8 drop-shadow-sm">
+    <svg viewBox="0 0 40 40" className="w-16 h-16 drop-shadow-sm">
           <defs>
             <linearGradient id="dynamicWebGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#a855f7"/>
@@ -58,7 +58,7 @@ const CategoryIcons = {
         </svg>
   ),
   web_apps: () => (
-    <svg viewBox="0 0 40 40" className="w-8 h-8 drop-shadow-sm">
+    <svg viewBox="0 0 40 40" className="w-16 h-16 drop-shadow-sm">
     <defs>
       <linearGradient id="webAppGrad" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stopColor="#4f46e5"/>
@@ -75,7 +75,7 @@ const CategoryIcons = {
   </svg>
   ),
   mobile_apps: () => (
-    <svg viewBox="0 0 40 40" className="w-8 h-8 drop-shadow-sm">
+    <svg viewBox="0 0 40 40" className="w-16 h-16 drop-shadow-sm">
     <defs>
       <linearGradient id="mobileAppGrad" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stopColor="#ec4899"/>
@@ -92,7 +92,7 @@ const CategoryIcons = {
   </svg>
   ),
   website_updates: () => (
-    <svg viewBox="0 0 40 40" className="w-8 h-8 drop-shadow-sm">
+    <svg viewBox="0 0 40 40" className="w-16 h-16 drop-shadow-sm">
           <defs>
             <linearGradient id="updateWebGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#3b82f6"/>
@@ -116,7 +116,7 @@ const CategoryIcons = {
         </svg>
   ),
   app_update: () => (
-    <svg viewBox="0 0 40 40" className="w-8 h-8 drop-shadow-sm">
+    <svg viewBox="0 0 40 40" className="w-16 h-16 drop-shadow-sm">
     <defs>
       <linearGradient id="appUpdateGrad" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stopColor="#3b82f6"/>
@@ -149,8 +149,8 @@ const CategoryList = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-2 py-6">
-      <div className="grid grid-cols-4 gap-2">
+    <div className="container mx-auto px-6 py-6">
+      <div className="flex flex-row gap-3 flex-wrap">
         {loading ? (
           categoryLoading.map((el, index) => (
             <div className="flex flex-col items-center" key={"categoryLoading"+index}>
@@ -166,14 +166,14 @@ const CategoryList = () => {
               key={product?.category}
             >
               <div className="flex flex-col items-center p-1">
-                <div className=" w-16 h-16 bg-gradient-to-br from-white to-gray-50 rounded-lg flex items-center justify-center shadow-md">
-                  <div className="relative z-10">
+                <div className="">
+                  <div className=" relative z-10">
                     {CategoryIcons[product?.category] ? 
                       CategoryIcons[product?.category]() : 
                       <img 
                         src={product?.serviceImage[0]} 
                         alt={product?.category}
-                        className=" w-10 h-8 object-contain mix-blend-multiply"
+                        className=" w-20 h-16 object-contain "
                       />
                     }
                   </div>
