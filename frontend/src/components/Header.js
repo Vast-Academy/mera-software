@@ -168,7 +168,21 @@ if(value){
           </Link>
       
         {/* <FaShoppingCart className='text-white w-8 h-8' /> */}
-        <BiSolidUser className="text-white text-2xl" />
+        <Link to={"/login"}>
+        {
+                    user?._id && (
+                      <div className='text-3xl cursor-pointer relative flex justify-center' onClick={()=>setMenuDisplay(preve => !preve)}>
+                        {
+                          user?.profilePic ? (
+                            <img src={user?.profilePic} className='w-8 h-8 rounded-full' alt={user?.name} />
+                          ) : (
+                            <BiSolidUser className="text-white text-2xl"/>
+                          )
+                        }
+                      </div>
+                    )
+                  }
+        </Link>
         </div>
       </header>
 

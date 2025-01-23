@@ -150,7 +150,7 @@ const CategoryList = () => {
 
   return (
     <div className="container mx-auto px-8 py-6">
-      <div className="flex flex-row gap-3 flex-wrap">
+      <div className="flex flex-row gap-3 flex-wrap w-full items-center justify-center">
         {loading ? (
           categoryLoading.map((el, index) => (
             <div className="flex flex-col items-center" key={"categoryLoading"+index}>
@@ -165,7 +165,7 @@ const CategoryList = () => {
               className="flex-shrink-0" 
               key={product?.category}
             >
-              <div className="flex flex-col items-center p-1">
+              <div className="flex flex-col items-center justify-center w-full">
                 <div className="">
                   <div className=" relative z-10">
                     {CategoryIcons[product?.category] ? 
