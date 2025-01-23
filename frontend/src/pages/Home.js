@@ -3,6 +3,7 @@ import CategoryList from '../components/CategoryList'
 import BannerProduct from '../components/BannerProduct'
 // import HorizontalCardProduct from '../components/HorizontalCardProduct'
 import VerticalCardProduct from '../components/VerticalCardProduct'
+import AppConvertingBanner from '../components/AppConvertingBanner'
 
 const Home = () => {
   return (
@@ -10,7 +11,7 @@ const Home = () => {
       
       <BannerProduct/>
       <CategoryList/>
-      
+      <AppConvertingBanner/>
       
       <VerticalCardProduct category={"static_websites"} heading={"Static Websites"}/>
       <VerticalCardProduct category={"standard_websites"} heading={"Standard Websites"}/>

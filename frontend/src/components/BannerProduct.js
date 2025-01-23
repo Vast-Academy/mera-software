@@ -59,7 +59,7 @@ const BannerProduct = () => {
 
   return (
     <div className='container mx-auto px-4 rounded'>
-      <div className='h-56 md:h-72 w-full bg-slate-200 relative'>
+      <div className=' h-48 md:h-72 w-full bg-slate-200 relative'>
 
             <div className='absolute z-10 h-full w-full md:flex items-center hidden'>
                 <div className='flex justify-between w-full text-2xl'>
@@ -87,7 +87,7 @@ const BannerProduct = () => {
                     mobileImages.map((imageURl,index)=>{
                         return(
                             <div className='w-full h-full min-h-full min-w-full transition-all' key={imageURl} style={{transform : `translateX(-${currentImage * 100}%)`}}>
-                                <img src={imageURl} className='w-full h-full object-cover' />
+                                <img src={imageURl} className='rounded-lg w-full h-full object-cover' />
                             </div>
                         )
                     })

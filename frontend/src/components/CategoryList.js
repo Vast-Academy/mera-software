@@ -21,7 +21,7 @@ const CategoryList = () => {
     },[])
   return (
     <div className='container mx-auto p-4'>
-        <div className='flex items-center gap-5 overflow-scroll scrollbar-none'>   
+        <div className='flex items-center gap-3 overflow-scroll scrollbar-none'>   
             {
                 loading ? (
                         categoryLoading.map((el,index)=>{
@@ -36,10 +36,12 @@ const CategoryList = () => {
                     categoryProduct.map((product,index)=>{
                     return(
                         <Link to={"/product-category?category="+product?.category} className='cursor-pointer' key={product?.category}>
-                            <div className='w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden p-4 bg-slate-200 flex items-center justify-center'>
-                                <img src={product?.serviceImage[0]} alt={product?.category} className='h-full object-scale-down mix-blend-multiply hover:scale-125 transition-all' />
-                            </div>
-                            <p className='text-center text-sm md:text-base capitalize'>{product?.category.split('_').join(' ')}</p>
+                            <div className='flex flex-col mb-4'>
+                            <div className="bg-white p-4 rounded-lg w-28 shadow-md flex-1 flex flex-col items-center">
+                             <div className="w-8 h-8 bg-gray-100 rounded-full mb-2"></div>
+                            <span className="text-sm text-gray-600">{product?.category.split('_').join(' ')}</span>
+                             </div>
+                        </div>
                         </Link>
                     )
                 })

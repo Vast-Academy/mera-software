@@ -73,19 +73,21 @@ const VerticalCardProduct = ({category,heading}) => {
             ) : (
                 data.map((product,index)=>{
                 return(
-                    <Link key={product._id} to={"product/"+product?._id} className='w-full min-w-[280px] md:min-w-[320px] max-w-[280px] md:max-w-[320px] bg-white rounded-sm shadow'>
-                        <div className='bg-slate-200 h-40 p-4 min-w-[280px] md:min-w-[145px] flex justify-center items-center'>
-                            <img src={product?.serviceImage[0]} className='object-scale-down h-full hover:scale-110 transition-all mix-blend-multiply' />
+                    <Link key={product._id} to={"product/"+product?._id} className='w-full min-w-[160px] md:min-w-[320px] max-w-[280px] md:max-w-[320px] bg-white rounded-sm shadow'>
+                    <div className="flex gap-4">
+
+                    <div key={index} className="flex-1 bg-white rounded-lg shadow-md overflow-hidden">
+                    <div className="h-24 bg-gray-100"></div>
+                    <div className="p-4">
+                        <h3 className="font-medium mb-2 text-ellipis line-clamp-1">{product?.serviceName}</h3>
+                        <div className="text-sm">
+                        <span className="text-gray-500">From </span>
+                        <span className="font-bold">{product?.price}</span>
                         </div>
-                        <div className='p-4 grid gap-3'>
-                            <h2 className='font-medium text-base md:text-lg text-ellipis line-clamp-1 text-black'>{product?.serviceName}</h2>
-                            <p className='capitalize text-slate-500'>{product?.category.split('_').join(' ')}</p>
-                            <div className='flex gap-3'>
-                                <p className='text-red-600 font-medium'> {displayINRCurrency(product?.sellingPrice) }</p>
-                                <p className='text-slate-500 line-through'>{ displayINRCurrency(product?.price)}</p>
-                            </div>
-                            <button className='text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-0.5 rounded-full' onClick={(e)=>handleAddToCart(e,product?._id)}>Add To Cart</button>
-                        </div>
+                    </div>
+                    </div>
+            
+                </div>
                     </Link>
                 )
             })

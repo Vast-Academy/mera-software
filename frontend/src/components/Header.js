@@ -11,6 +11,7 @@ import { setUserDetails } from '../store/userSlice';
 import ROLE from '../common/role';
 import Context from '../context';
 import { FaArrowLeft } from "react-icons/fa";
+import { FiUser } from "react-icons/fi";
 
 
 const Header = () => {
@@ -62,6 +63,7 @@ if(value){
 }
   return (
     <>
+
     <header className='hidden md:block h-16 shadow-md bg-white fixed w-full z-40'>
        <div className="h-full flex items-center px-4 container mx-auto justify-between">
        <div className=''>
@@ -144,43 +146,29 @@ if(value){
     </header>
 
     {/* Mobile Search Bar with Login and Dynamic Back Button */}
-    <div className='md:hidden fixed top-0 left-0 right-0 z-40 bg-white px-4 py-3 shadow-md'>
-        <div className='flex items-center gap-3'>
-          {showBackButton && (
-            <button 
-              onClick={onBack} 
-              className='p-1 hover:bg-gray-100 rounded-full'
-              aria-label="Go back"
-            >
-              <FaArrowLeft size={24} />
-            </button>
-          )}
-          <div className='flex items-center flex-1 border rounded-full focus-within:shadow'>
-            <input
-              type='text'
-              placeholder='search product here...'
-              className='w-full outline-none py-2 px-4'
-              onChange={handleSearch}
-              value={search}
-            />
-            <div className="min-w-[40px] h-8 bg-red-600 flex items-center justify-center rounded-r-full text-white">
-              <GrSearch size={18} />
-            </div>
-          </div>
-          {user?._id ? (
-            <button onClick={handleLogout} className='whitespace-nowrap px-3 py-2 rounded-full text-white bg-red-600 hover:bg-red-700 text-sm'>
-              Logout
-            </button>
-          ) : (
-            <Link to={"/login"} className='whitespace-nowrap px-3 py-2 rounded-full text-white bg-red-600 hover:bg-red-700 text-sm'>
-              Login
-            </Link>
-          )}
+
+    <div className="md:hidden w-full max-w-lg mx-auto bg-white">
+      {/* Header */}
+      <header className="bg-gray-900 p-4 flex justify-between items-center">
+        <span className="text-white text-2xl font-bold">Logo</span>
+        <FiUser className="text-white w-8 h-8" />
+      </header>
+
+      {/* Search Bar */}
+      <div className="p-4">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search services..."
+            className="w-full p-3 pr-12 rounded-full border border-gray-200 shadow-sm"
+          />
+          <button className="absolute right-2 top-1 bg-gray-900 text-white p-2 rounded-full">
+            <span className="text-xl">+</span>
+          </button>
         </div>
       </div>
 
-      {/* Spacer for mobile search bar */}
-      <div className='h-[68px] md:h-16'></div>
+      </div>
 
       </>
   )
