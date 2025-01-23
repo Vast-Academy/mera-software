@@ -12,6 +12,7 @@ import ROLE from '../common/role';
 import Context from '../context';
 // import { FaArrowLeft } from "react-icons/fa";
 import { IoIosNotifications } from "react-icons/io";
+import { BiSolidUser } from "react-icons/bi";
 
 const Header = () => {
   const user = useSelector(state => state?.user?.user)
@@ -156,10 +157,10 @@ if(value){
         </div>
         
         <div className='flex items-center gap-5'>
-        <IoIosNotifications className='text-white text-4xl w-8 h-8'/>
+        <IoIosNotifications className='text-white text-3xl '/>
 
-              <Link to={"/cart"} className='text-3xl relative'>
-             <span className='text-white'><FaShoppingCart/></span>
+              <Link to={"/cart"} className='text-2xl relative'>
+             <FaShoppingCart className='text-white'/>
           
           <div className='bg-red-600 text-white w-5 h-5 rounded-full p-1 flex items-center justify-center absolute -top-2 -right-3'>
             <p className='text-sm'>{context?.cartProductCount}</p>
@@ -167,7 +168,7 @@ if(value){
           </Link>
       
         {/* <FaShoppingCart className='text-white w-8 h-8' /> */}
-        <FaRegCircleUser className="text-white w-8 h-8" />
+        <BiSolidUser className="text-white text-2xl" />
         </div>
       </header>
 
