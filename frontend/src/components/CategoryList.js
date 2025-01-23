@@ -134,7 +134,7 @@ const CategoryIcons = {
 const CategoryList = () => {
   const [categoryProduct, setCategoryProduct] = useState([]);
   const [loading, setLoading] = useState(false);
-  const categoryLoading = new Array(4).fill(null);
+  const categoryLoading = new Array(7).fill(null);
 
   const fetchCategoryProduct = async() => {
     setLoading(true);
@@ -149,7 +149,7 @@ const CategoryList = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-2 py-4">
+    <div className="container mx-auto px-2 py-6">
       <div className="grid grid-cols-4 gap-2">
         {loading ? (
           categoryLoading.map((el, index) => (
@@ -166,21 +166,21 @@ const CategoryList = () => {
               key={product?.category}
             >
               <div className="flex flex-col items-center p-1">
-                <div className="w-16 h-16 bg-gradient-to-br from-white to-gray-50 rounded-lg flex items-center justify-center shadow-md">
+                <div className=" w-16 h-16 bg-gradient-to-br from-white to-gray-50 rounded-lg flex items-center justify-center shadow-md">
                   <div className="relative z-10">
                     {CategoryIcons[product?.category] ? 
                       CategoryIcons[product?.category]() : 
                       <img 
                         src={product?.serviceImage[0]} 
                         alt={product?.category}
-                        className="w-8 h-8 object-contain"
+                        className=" w-10 h-8 object-contain mix-blend-multiply"
                       />
                     }
                   </div>
                 </div>
-                <div className="text-center mt-1">
+                <div className="text-center mt-2 mb-2">
                   {product?.category.split('_').map((word, i) => (
-                    <div key={i} className="text-xs font-medium text-gray-600 leading-tight capitalize">
+                    <div key={i} className="text-xs font-medium text-gray-600 space-x-1  capitalize">
                       {word}
                     </div>
                   ))}

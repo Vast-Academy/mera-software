@@ -11,8 +11,7 @@ import { setUserDetails } from '../store/userSlice';
 import ROLE from '../common/role';
 import Context from '../context';
 import { FaArrowLeft } from "react-icons/fa";
-import { FiUser } from "react-icons/fi";
-
+import { IoIosNotifications } from "react-icons/io";
 
 const Header = () => {
   const user = useSelector(state => state?.user?.user)
@@ -156,8 +155,21 @@ if(value){
         </Link>
         </div>
         
-        <div>
-        <FiUser className="text-white w-8 h-8" />
+        <div className='flex items-center gap-5'>
+        <IoIosNotifications className='text-white text-4xl w-8 h-8'/>
+        {
+            user?._id && (
+              <Link to={"/cart"} className='text-3xl relative'>
+             <span className='text-white'><FaShoppingCart/></span>
+          
+          <div className='bg-red-600 text-white w-5 h-5 rounded-full p-1 flex items-center justify-center absolute -top-2 -right-3'>
+            <p className='text-sm'>{context?.cartProductCount}</p>
+        </div>
+          </Link>
+            )
+          }
+        {/* <FaShoppingCart className='text-white w-8 h-8' /> */}
+        <FaRegCircleUser className="text-white w-8 h-8" />
         </div>
       </header>
 
