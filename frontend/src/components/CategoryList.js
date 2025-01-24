@@ -37,11 +37,11 @@ const CategoryList = () => {
   }, []);
 
   return (
-    <div className=" my-4 bg-gray-100 mx-4">
+    <div className=" my-4  mx-4 border">
       <div className="flex flex-wrap md:flex-nowrap w-full">
         {loading ? (
           categoryLoading.map((el, index) => (
-            <div className="w-1/4 flex items-center justify-center border h-20" key={`loading-${index}`}>
+            <div className="w-1/4 flex items-center justify-center border h-24" key={`loading-${index}`}>
               <div className="flex flex-col items-center w-full">
                 <div className="w-8 h-8 bg-slate-200 rounded-lg animate-pulse" />
                 <div className="w-12 h-3 bg-slate-200 rounded mt-1 animate-pulse" />
@@ -53,7 +53,7 @@ const CategoryList = () => {
             <Link
               to={`/product-category?category=${product?.category}`}
               key={product?.category}
-              className="w-1/4 flex items-center justify-center border h-20 py-2"
+              className="w-1/4 flex items-center justify-center border h-24 px-4"
             >
               <div className="flex flex-col items-center w-full hover:bg-[#F5EBE4] transition-colors">
                 <div className="relative">
