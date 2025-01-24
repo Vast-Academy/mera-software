@@ -155,7 +155,7 @@ const Cart = () => {
                        return (
                         <div key={product?._id+"Add To Cart Loading"} className='w-full h-32 bg-white my-2 border border-slate-300 rounded grid grid-cols-[128px,1fr]'>
                             <div className='w-32 h-32 bg-slate-200'>
-                                <img src={product?.productId?.productImage[0]} className='w-full h-full object-scale-down mix-blend-multiply' />
+                                <img src={product?.productId?.serviceImage[0]} className='w-full h-full object-scale-down mix-blend-multiply' />
                             </div>
                             <div className='px-4 py-2 relative'>
                                     {/* delete product */}
@@ -163,7 +163,7 @@ const Cart = () => {
                                 <MdDelete/>
                                 </div>
 
-                                <h2 className='text-lg lg:text-xl text-ellipis line-clamp-1'>{product?.productId?.productName}</h2>
+                                <h2 className='text-lg lg:text-xl text-ellipis line-clamp-1'>{product?.productId?.servicetName}</h2>
                                 <p className='capitalize text-slate-400 '>{product?.productId?.category}</p>
                                 <div className='flex items-center justify-between'>
                                     <p className='text-red-600 font-medium text-lg'>{displayINRCurrency(product?.productId?.sellingPrice)}</p>

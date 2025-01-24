@@ -2,49 +2,25 @@ import React from 'react'
 
 const Logo = ({w,h}) => {
   return (
-    <svg width={w} height={h} viewBox="0 0 200 300">
-<g transform="translate(25, 30)">
-    <path d="M70,60 L50,100 L70,140" 
-          stroke="#4a90e2" 
-          stroke-width="12" 
-          stroke-linecap="round" 
-          fill="none"/>
-    
-    <path d="M130,60 L150,100 L130,140" 
-          stroke="#2ecc71" 
-          stroke-width="12" 
-          stroke-linecap="round" 
-          fill="none"/>
-    
-    <circle cx="100" cy="80" r="8" fill="#4a90e2"/>
-    <circle cx="100" cy="120" r="8" fill="#2ecc71"/>
-    
-    <path d="M92,80 L70,80" 
-          stroke="#4a90e2" 
-          stroke-width="6" 
-          stroke-linecap="round"/>
-    
-    <path d="M108,120 L130,120" 
-          stroke="#2ecc71" 
-          stroke-width="6" 
-          stroke-linecap="round"/>
+    <svg width={w} height={h} viewBox="0 0 45.57 36.96"
+     style={{shapeRendering:'geometricPrecision', textRendering:'geometricPrecision', imageRendering:'optimizeQuality', 
+      fillRule:'evenodd', clipRule:'evenodd'}} space="preserve" xlink="http://www.w3.org/1999/xlink"
+      xodm="http://www.corel.com/coreldraw/odm/2003">
+ <g id="Layer_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <polyline class="fil0 str0" points="10.73,2.41 2.7,18.48 10.73,34.55 "/>
+  <polyline class="fil0 str1" points="34.84,2.41 42.87,18.48 34.84,34.55 "/>
+  <circle class="fil1 str2" cx="22.78" cy="10.45" r="3.21"/>
+  <circle class="fil2 str3" cx="22.78" cy="26.52" r="3.21"/>
+  <g>
+   <path class="fil1" d="M19.57 10.45l-8.84 0 8.84 0zm0 0l0 0 0 0z"/>
+   <path id="_1" class="fil3 str4" d="M19.57 10.45l-8.84 0m8.84 0l0 0 0 0z"/>
   </g>
-
-  <g transform="translate(100, 230)">
-    <text x="25" y="-20" 
-          font-family="Arial" 
-          font-size="32" 
-          font-weight="bold" 
-          fill="#4a90e2" 
-          text-anchor="middle">Mera</text>
-    
-    <text x="25" y="10" 
-          font-family="Arial" 
-          font-size="32" 
-          font-weight="bold" 
-          fill="#2ecc71" 
-          text-anchor="middle">Software</text>
+  <g>
+   <path class="fil4" d="M26 26.52l8.84 0 -8.84 0zm0 0l0 0 0 0z"/>
+   <path id="_1_0" class="fil3 str5" d="M26 26.52l8.84 0m-8.84 0l0 0 0 0z"/>
   </g>
+ </g>
 </svg>
   )
 }

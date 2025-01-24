@@ -8,6 +8,8 @@ import mobileApp from '../assest/services/mobile-app.png';
 import appUpdate from '../assest/services/app-update.png';
 import webApp from '../assest/services/web-app.png'
 import websiteUpdate from '../assest/services/website-update.png'
+import featureUpgrade from '../assest/services/upgrade.png'
+import productCategory from '../helpers/productCategory';
 
 const CategoryImages = {
   static_websites: staticWeb,
@@ -15,21 +17,35 @@ const CategoryImages = {
   dynamic_websites: dynamicWeb,
   mobile_apps: mobileApp,
   app_update: appUpdate,
-  web_apps: webApp,
+  web_applications: webApp,
   website_updates: websiteUpdate,
+  feature_upgrades: featureUpgrade,
 };
 
 const CategoryList = () => {
   const [categoryProduct, setCategoryProduct] = useState([]);
   const [loading, setLoading] = useState(false);
-  const categoryLoading = new Array(7).fill(null);
+  const categoryLoading = new Array(8).fill(null);
 
   const fetchCategoryProduct = async () => {
     setLoading(true);
-    const response = await fetch(SummaryApi.categoryProduct.url);
-    const dataResponse = await response.json();
-    setLoading(false);
-    setCategoryProduct(dataResponse.data);
+    try {
+      const response = await fetch(SummaryApi.categoryProduct.url);
+      const dataResponse = await response.json();
+      
+      // Sort based on predefined order
+      const sortedProducts = dataResponse.data.sort((a, b) => {
+        const aIndex = productCategory.findIndex(p => p.value === a.category);
+        const bIndex = productCategory.findIndex(p => p.value === b.category);
+        return aIndex - bIndex;
+      });
+      
+      setCategoryProduct(sortedProducts);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -37,7 +53,7 @@ const CategoryList = () => {
   }, []);
 
   return (
-    <div className=" my-4  mx-4 border">
+    <div className=" my-8  mx-4 border">
       <div className="flex flex-wrap md:flex-nowrap w-full">
         {loading ? (
           categoryLoading.map((el, index) => (
@@ -78,8 +94,8 @@ const CategoryList = () => {
                     </span>
                   )}
                 </div>
-                <div className="mt-1 h-8 flex items-center justify-center">
-                  <span className="text-xs text-gray-700 capitalize leading-1 text-center">
+                <div className="mt-2 flex items-center justify-center">
+                  <span className="text-xs text-gray-700 capitalize text-center" style={{ lineHeight: '14px' }}>
                     {product?.category.split('_').join(' ')}
                   </span>
                 </div>

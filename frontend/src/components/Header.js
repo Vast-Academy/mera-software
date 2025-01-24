@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react'
-import Logo from './Logo'
+import Logo from '../assest/newlogo.png'
 import { GrSearch } from "react-icons/gr";
 import { FaRegCircleUser } from "react-icons/fa6";
 import { FaShoppingCart } from "react-icons/fa";
@@ -68,7 +68,8 @@ if(value){
        <div className="h-full flex items-center px-4 container mx-auto justify-between">
        <div className=''>
        <Link to={"/"}>
-            <Logo w={90} h={50} />
+       <img src={Logo} className='w-8 h-8'/>
+            {/* <Logo w={90} h={50} /> */}
         </Link>
        </div>
 
@@ -152,7 +153,7 @@ if(value){
       <header className="bg-gray-900 px-4 h-12 flex justify-between items-center">
       <div className=''>
        <Link to={"/"}>
-            <Logo w={50} h={50} />
+       <img src={Logo} className=' h-8'/>
         </Link>
         </div>
         
@@ -163,7 +164,7 @@ if(value){
              <FaShoppingCart className='text-white'/>
           
           <div className='bg-red-600 text-white w-5 h-5 rounded-full p-1 flex items-center justify-center absolute -top-2 -right-3'>
-            <p className='text-sm'>{context?.cartProductCount}</p>
+            <p className='text-sm'>{context?.cartProductCount || 0}</p>
         </div>
           </Link>
       

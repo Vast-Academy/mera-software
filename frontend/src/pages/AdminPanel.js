@@ -15,7 +15,7 @@ const AdminPanel = () => {
     },[user])
 
   return (
-    <div className='min-h-[calc(100vh-120px)] md:flex hidden'>
+    <div className='min-h-[calc(100vh-100px)] md:flex hidden'>
        <aside className='bg-white min-h-full w-full max-w-60'>
         <div className='h-40 flex justify-center items-center flex-col'>
              <div className='text-5xl cursor-pointer relative flex justify-center '>
