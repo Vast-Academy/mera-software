@@ -149,38 +149,40 @@ const CategoryList = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-8 py-6">
-      <div className="flex flex-row gap-3 flex-wrap w-full px-8">
+    <div className="container mx-auto px-8 py-8">
+    <div className="flex justify-center w-full">
+      <div className="grid grid-cols-4 gap-4 place-items-center w-full max-w-4xl">
         {loading ? (
           categoryLoading.map((el, index) => (
-            <div className="flex flex-col items-center" key={"categoryLoading"+index}>
-              <div className="w-16 h-16 bg-slate-200 rounded-lg animate-pulse" />
-              <div className="w-12 h-8 bg-slate-200 rounded mt-1 animate-pulse" />
+            <div className="flex flex-col items-center justify-center" key={"categoryLoading"+index}>
+              <div className="w-12 h-12 bg-slate-200 rounded-lg animate-pulse" />
+              <div className="w-10 h-6 bg-slate-200 rounded mt-1 animate-pulse" />
             </div>
           ))
         ) : (
           categoryProduct.map((product) => (
-            <Link 
-              to={"/product-category?category="+product?.category} 
-              className="flex-shrink-0" 
+            <Link
+              to={"/product-category?category="+product?.category}
+              className="flex flex-col items-center justify-center w-full"
               key={product?.category}
             >
-              <div className="flex flex-col items-center justify-center w-full">
-                <div className="">
-                  <div className=" relative z-10">
-                    {CategoryIcons[product?.category] ? 
-                      CategoryIcons[product?.category]() : 
-                      <img 
-                        src={product?.serviceImage[0]} 
-                        alt={product?.category}
-                        className=" w-20 h-16 object-contain "
-                      />
-                    }
-                  </div>
+              <div className="flex flex-col items-center justify-center w-16">
+                <div className="flex items-center justify-center">
+                  {CategoryIcons[product?.category] ? (
+                    <div className="w-16 h-16 flex items-center justify-center">
+                      {CategoryIcons[product?.category]()}
+                    </div>
+                  ) : (
+                    <img
+                      src={product?.serviceImage[0]}
+                      alt={product?.category}
+                      className="w-12 h-12 object-contain"
+                    />
+                  )}
                 </div>
-                <div className="text-center mt-2 mb-2">
+                <div className="text-center mt-1">
                   {product?.category.split('_').map((word, i) => (
-                    <div key={i} className="text-xs font-medium text-gray-600 space-x-1  capitalize">
+                    <div key={i} className="text-xs font-medium text-gray-600 capitalize">
                       {word}
                     </div>
                   ))}
@@ -191,6 +193,7 @@ const CategoryList = () => {
         )}
       </div>
     </div>
+</div>
   );
 };
 
