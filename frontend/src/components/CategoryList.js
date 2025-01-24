@@ -33,7 +33,7 @@ const CategoryList = () => {
   }, []);
 
   return (
-    <div className="bg-[hsla(0,0%,91.8%,.56)] container my-4 mx-4">
+    <div className="bg-[hsla(0,0%,91.8%,.56)] container my-4 mx-4 ">
  <div className="grid grid-cols-4">
    {loading ? (
      categoryLoading.map((el, index) => (
@@ -47,11 +47,11 @@ const CategoryList = () => {
        <Link 
          to={`/product-category?category=${product?.category}`}
          key={product?.category}
-         className={`relative ${index < categoryProduct.length - 4 ? 'border-b' : ''} ${(index + 1) % 4 !== 0 ? 'border-r' : ''} border-gray-300`}
+        className='flex flex-col items-center justify-center w-full border'
        >
-         <div className="flex flex-col items-center px-8 py-2 hover:bg-[#F5EBE4] transition-colors">
+         <div className="flex flex-col items-center w-28 h-28 hover:bg-[#F5EBE4] transition-colors">
            <div className="relative">
-             <div className=" w-14 h-14">
+             <div className=" w-12 h-12">
                {CategoryImages[product?.category] ? (
                  <img
                    src={CategoryImages[product?.category]}
@@ -73,11 +73,7 @@ const CategoryList = () => {
              )}
            </div>
            <div className="text-center mt-1">
-             {product?.category.split('_').map((word, i) => (
-               <span key={i} className="text-sm text-gray-700 capitalize font-medium">
-                 {word} {i !== product?.category.split('_').length - 1 && ' '}
-               </span>
-             ))}
+           <span className='text-sm text-gray-700 capitalize font-medium'>{product?.category.split('_').join(' ')}</span>
            </div>
          </div>
        </Link>
