@@ -1,132 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import SummaryApi from '../common';
+import staticWeb from '../assest/services/static-website.png';
+import standardWeb from '../assest/services/Standard-website.png';
+import dynamicWeb from '../assest/services/dynamic-website.png';
+import mobileApp from '../assest/services/mobile-app.png'
+import appUpdate from '../assest/services/app-update.png'
 
-const CategoryIcons = {
-  static_websites: () => (
-    <svg viewBox="0 0 40 40" className="w-16 h-16 drop-shadow-sm">
-      <defs>
-        <linearGradient id="staticWebGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#15803d"/>
-          <stop offset="100%" stopColor="#166534"/>
-        </linearGradient>
-      </defs>
-      <rect width="40" height="40" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
-      <rect x="5" y="5" width="30" height="6" rx="1" fill="url(#staticWebGrad)" stroke="#000" strokeWidth="0.5"/>
-      <rect x="5" y="13" width="20" height="4" rx="1" fill="#e2e8f0" stroke="#000" strokeWidth="0.5"/>
-      <rect x="5" y="19" width="30" height="4" rx="1" fill="#e2e8f0" stroke="#000" strokeWidth="0.5"/>
-      <rect x="5" y="25" width="15" height="4" rx="1" fill="#e2e8f0" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="33" cy="15" r="2" fill="url(#staticWebGrad)" stroke="#000" strokeWidth="0.5"/>
-    </svg>
-  ),
-  standard_websites: () => (
-    <svg viewBox="0 0 40 40" className="w-16 h-16 drop-shadow-sm">
-      <defs>
-        <linearGradient id="standardWebGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#1d4ed8"/>
-          <stop offset="100%" stopColor="#1e40af"/>
-        </linearGradient>
-      </defs>
-      <rect width="40" height="40" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
-      <rect x="5" y="5" width="30" height="8" rx="1" fill="url(#standardWebGrad)" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="8" cy="9" r="1.5" fill="#fff" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="13" cy="9" r="1.5" fill="#fff" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="18" cy="9" r="1.5" fill="#fff" stroke="#000" strokeWidth="0.5"/>
-      <rect x="5" y="15" width="14" height="20" rx="1" fill="#e2e8f0" stroke="#000" strokeWidth="0.5"/>
-      <rect x="21" y="15" width="14" height="20" rx="1" fill="url(#standardWebGrad)" fillOpacity="0.3" stroke="#000" strokeWidth="0.5"/>
-    </svg>
-  ),
-  dynamic_websites: () => (
-    <svg viewBox="0 0 40 40" className="w-16 h-16 drop-shadow-sm">
-      <defs>
-        <linearGradient id="dynamicWebGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#7e22ce"/>
-          <stop offset="100%" stopColor="#6b21a8"/>
-        </linearGradient>
-      </defs>
-      <rect width="40" height="40" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
-      <rect x="5" y="5" width="30" height="8" rx="1" fill="url(#dynamicWebGrad)" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="8" cy="9" r="1.5" fill="#fff" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="13" cy="9" r="1.5" fill="#fff" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="18" cy="9" r="1.5" fill="#fff" stroke="#000" strokeWidth="0.5"/>
-      <rect x="5" y="15" width="30" height="20" rx="1" fill="url(#dynamicWebGrad)" fillOpacity="0.1" stroke="#000" strokeWidth="0.5"/>
-      <path d="M10 22h20M10 28h15" stroke="url(#dynamicWebGrad)" strokeWidth="2" strokeLinecap="round"/>
-      <circle cx="32" cy="25" r="3" fill="url(#dynamicWebGrad)" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="25" cy="25" r="2" fill="url(#dynamicWebGrad)" fillOpacity="0.6" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="18" cy="25" r="1" fill="url(#dynamicWebGrad)" fillOpacity="0.3" stroke="#000" strokeWidth="0.5"/>
-    </svg>
-  ),
-  web_apps: () => (
-    <svg viewBox="0 0 40 40" className="w-16 h-16 drop-shadow-sm">
-      <defs>
-        <linearGradient id="webAppGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#3730a3"/>
-          <stop offset="100%" stopColor="#1e40af"/>
-        </linearGradient>
-      </defs>
-      <rect width="40" height="40" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
-      <rect x="5" y="5" width="30" height="20" rx="2" fill="url(#webAppGrad)" stroke="#000" strokeWidth="0.5"/>
-      <rect x="8" y="8" width="24" height="14" rx="1" fill="#fff" fillOpacity="0.1" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="11" cy="11" r="1" fill="#fff" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="15" cy="11" r="1" fill="#fff" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="19" cy="11" r="1" fill="#fff" stroke="#000" strokeWidth="0.5"/>
-      <rect x="10" y="28" width="20" height="8" rx="1" fill="#e2e8f0" stroke="#000" strokeWidth="0.5"/>
-    </svg>
-  ),
-  mobile_apps: () => (
-    <svg viewBox="0 0 40 40" className="w-16 h-16 drop-shadow-sm">
-      <defs>
-        <linearGradient id="mobileAppGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#be185d"/>
-          <stop offset="100%" stopColor="#be123c"/>
-        </linearGradient>
-      </defs>
-      <rect width="40" height="40" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
-      <rect x="12" y="5" width="16" height="30" rx="2" fill="url(#mobileAppGrad)" stroke="#000" strokeWidth="0.5"/>
-      <rect x="14" y="8" width="12" height="22" rx="1" fill="#fff" fillOpacity="0.1" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="20" cy="32" r="2" fill="#fff" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="17" cy="12" r="1" fill="#fff" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="20" cy="12" r="1" fill="#fff" stroke="#000" strokeWidth="0.5"/>
-      <circle cx="23" cy="12" r="1" fill="#fff" stroke="#000" strokeWidth="0.5"/>
-    </svg>
-  ),
-  website_updates: () => (
-    <svg viewBox="0 0 40 40" className="w-16 h-16 drop-shadow-sm">
-      <defs>
-        <linearGradient id="updateWebGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#1d4ed8"/>
-          <stop offset="100%" stopColor="#1e40af"/>
-        </linearGradient>
-      </defs>
-      <rect width="40" height="40" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
-      <rect x="5" y="5" width="30" height="22" rx="2" fill="url(#updateWebGrad)" fillOpacity="0.1" stroke="#000" strokeWidth="0.5"/>
-      <path d="M20,10 A8,8 0 1,0 20,26 A8,8 0 1,0 20,10" 
-            fill="none" 
-            stroke="url(#updateWebGrad)" 
-            strokeWidth="2"
-            strokeLinecap="round"/>
-      <path d="M20,14 L20,19 L24,21" 
-            fill="none" 
-            stroke="#000"
-            strokeWidth="1"
-            strokeLinecap="round"/>
-      <circle cx="20" cy="18" r="1.5" fill="url(#updateWebGrad)" stroke="#000" strokeWidth="0.5"/>
-    </svg>
-  ),
-  app_update: () => (
-    <svg viewBox="0 0 40 40" className="w-16 h-16 drop-shadow-sm">
-      <defs>
-        <linearGradient id="appUpdateGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#1d4ed8"/>
-          <stop offset="100%" stopColor="#0369a1"/>
-        </linearGradient>
-      </defs>
-      <rect width="40" height="40" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
-      <rect x="12" y="5" width="16" height="30" rx="2" fill="url(#appUpdateGrad)" stroke="#000" strokeWidth="0.5"/>
-      <rect x="14" y="8" width="12" height="22" rx="1" fill="#fff" fillOpacity="0.1" stroke="#000" strokeWidth="0.5"/>
-      <path d="M16,20 L24,20 M20,16 L20,24" stroke="#000" strokeWidth="1" strokeLinecap="round"/>
-    </svg>
-  )
+const CategoryImages = {
+  static_websites: staticWeb,
+  standard_websites: standardWeb,
+  dynamic_websites: dynamicWeb,
+  mobile_apps : mobileApp,
+  app_update: appUpdate,
 };
 
 const CategoryList = () => {
@@ -147,51 +33,58 @@ const CategoryList = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-8 py-8">
-      <div className="flex justify-center w-full">
-        <div className="grid grid-cols-4 gap-4 place-items-center w-full max-w-4xl">
-          {loading ? (
-            categoryLoading.map((el, index) => (
-              <div className="flex flex-col items-center justify-center" key={"categoryLoading"+index}>
-                <div className="w-12 h-12 bg-slate-200 rounded-lg animate-pulse" />
-                <div className="w-10 h-6 bg-slate-200 rounded mt-1 animate-pulse" />
-              </div>
-            ))
-          ) : (
-            categoryProduct.map((product) => (
-              <Link
-                to={"/product-category?category="+product?.category}
-                className="flex flex-col items-center justify-center w-full"
-                key={product?.category}
-              >
-                <div className="flex flex-col items-center justify-center w-16">
-                  <div className="flex items-center justify-center">
-                    {CategoryIcons[product?.category] ? (
-                      <div className="w-16 h-16 flex items-center justify-center">
-                        {CategoryIcons[product?.category]()}
-                      </div>
-                    ) : (
-                      <img
-                        src={product?.serviceImage[0]}
-                        alt={product?.category}
-                        className="w-12 h-12 object-contain"
-                      />
-                    )}
-                  </div>
-                  <div className="text-center mt-1">
-                    {product?.category.split('_').map((word, i) => (
-                      <div key={i} className="text-xs font-medium text-gray-600 capitalize">
-                        {word}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Link>
-            ))
-          )}
-        </div>
-      </div>
-    </div>
+    <div className="bg-[hsla(0,0%,91.8%,.56)] container my-4 mx-4">
+ <div className="grid grid-cols-4">
+   {loading ? (
+     categoryLoading.map((el, index) => (
+       <div className="flex flex-col items-center p-4" key={`loading-${index}`}>
+         <div className="w-16 h-16 bg-slate-200 rounded-lg animate-pulse" />
+         <div className="w-20 h-4 bg-slate-200 rounded mt-2 animate-pulse" />
+       </div>
+     ))
+   ) : (
+     categoryProduct.map((product, index) => (
+       <Link 
+         to={`/product-category?category=${product?.category}`}
+         key={product?.category}
+         className={`relative ${index < categoryProduct.length - 4 ? 'border-b' : ''} ${(index + 1) % 4 !== 0 ? 'border-r' : ''} border-gray-300`}
+       >
+         <div className="flex flex-col items-center px-8 py-2 hover:bg-[#F5EBE4] transition-colors">
+           <div className="relative">
+             <div className=" w-14 h-14">
+               {CategoryImages[product?.category] ? (
+                 <img
+                   src={CategoryImages[product?.category]}
+                   alt={product?.category}
+                   className="w-full h-full object-contain"
+                 />
+               ) : (
+                 <img
+                   src={product?.serviceImage[0]}
+                   alt={product?.category} 
+                   className="w-full h-full object-contain"
+                 />
+               )}
+             </div>
+             {product?.category === 'periodic_services' && (
+               <span className="absolute -top-2 -left-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-sm whitespace-nowrap">
+                 Heavy Discount
+               </span>
+             )}
+           </div>
+           <div className="text-center mt-1">
+             {product?.category.split('_').map((word, i) => (
+               <span key={i} className="text-sm text-gray-700 capitalize font-medium">
+                 {word} {i !== product?.category.split('_').length - 1 && ' '}
+               </span>
+             ))}
+           </div>
+         </div>
+       </Link>
+     ))
+   )}
+ </div>
+</div>
   );
 };
 
