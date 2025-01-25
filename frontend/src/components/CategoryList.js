@@ -22,12 +22,26 @@ const CategoryImages = {
   feature_upgrades: featureUpgrade,
 };
 
+// Cache key for localStorage
+const CACHE_KEY = 'category_products';
+const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
+
 const CategoryList = () => {
   const [categoryProduct, setCategoryProduct] = useState([]);
   const [loading, setLoading] = useState(false);
   const categoryLoading = new Array(8).fill(null);
 
   const fetchCategoryProduct = async () => {
+    // Check cache first
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp < CACHE_DURATION) {
+        setCategoryProduct(data);
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const response = await fetch(SummaryApi.categoryProduct.url);
@@ -40,9 +54,21 @@ const CategoryList = () => {
         return aIndex - bIndex;
       });
       
+      // Cache the sorted data
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        data: sortedProducts,
+        timestamp: Date.now()
+      }));
+      
       setCategoryProduct(sortedProducts);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      // On error, try to use cached data even if expired
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { data } = JSON.parse(cached);
+        setCategoryProduct(data);
+      }
     } finally {
       setLoading(false);
     }
@@ -55,7 +81,7 @@ const CategoryList = () => {
   return (
     <div className=" my-8  mx-4 border">
       <div className="flex flex-wrap md:flex-nowrap w-full">
-        {loading ? (
+        {loading && categoryProduct.length === 0 ? (
           categoryLoading.map((el, index) => (
             <div className="w-1/4 flex items-center justify-center border h-24" key={`loading-${index}`}>
               <div className="flex flex-col items-center w-full">
