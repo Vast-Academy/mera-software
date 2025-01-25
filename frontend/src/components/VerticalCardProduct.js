@@ -9,7 +9,7 @@ import Context from '../context'
 const VerticalCardProduct = ({category,heading}) => {
     const [data,setData] = useState([])
     const [loading,setLoading] = useState(true)
-    const loadingList = new Array(3).fill(null)
+    const loadingList = new Array(8).fill(null)
 
     const [scroll,setScroll] = useState(0)
     const scrollElement = useRef()
@@ -77,12 +77,14 @@ const VerticalCardProduct = ({category,heading}) => {
                     <div className="flex gap-4">
 
                     <div key={index} className="flex-1 bg-white rounded-lg shadow-md overflow-hidden">
-                    <div className="h-24 bg-gray-100"></div>
+                    <div className="h-24 bg-gray-100">
+                    <img src={product?.serviceImage[0]} className='w-full h-full object-cover object-top hover:scale-110 transition-all mix-blend-multiply' />
+                    </div>
                     <div className="p-4">
                         <h3 className="font-medium mb-2 text-ellipis line-clamp-1">{product?.serviceName}</h3>
                         <div className="text-sm">
                         <span className="text-gray-500">From </span>
-                        <span className="font-bold">{product?.price}</span>
+                        <span className="font-bold">{displayINRCurrency(product?.sellingPrice) }</span>
                         </div>
                     </div>
                     </div>

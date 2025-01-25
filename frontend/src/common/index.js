@@ -88,7 +88,11 @@ const SummaryApi = {
     allOrder : {
         url : `${backendDomain}/api/all-order`,
         method : "get"
-    }
+    },
+    uploadCategory : {
+        url : `${backendDomain}/api/upload-category`,
+        method : "post"
+    },
 }
 
 export default SummaryApi;

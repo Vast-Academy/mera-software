@@ -15,6 +15,7 @@ import Cancel from "../pages/Cancel";
 import Success from "../pages/Success";
 import OrderPage from "../pages/OrderPage";
 import AllOrder from "../pages/AllOrder";
+import AllCategory from "../pages/AllCategory";
 
 
 const router = createBrowserRouter([
@@ -73,6 +74,10 @@ const router = createBrowserRouter([
                     {
                         path: "all-users",
                         element : <AllUsers/>
+                    },
+                    {
+                        path: "all-categories",
+                        element : <AllCategory/>
                     },
                     {
                         path: "all-products",
