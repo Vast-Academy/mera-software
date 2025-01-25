@@ -16,13 +16,13 @@ const VerticalCard = ({loading, data = []}) => {
         fetchUserAddToCart() 
     }
   return (
-    <div className='grid grid-cols-1 gap-4 px-2 pb-4'>
+    <div className='grid grid-cols-1 gap-6 px-2 pb-4 mb-28'>
 
     {
         loading ? (
             loadingList.map((product,index)=>{
             return(
-                <div className='w-full min-w-[280px] md:min-w-[320px] max-w-[280px] md:max-w-[320px] bg-white rounded-sm shadow'>
+                <div className='w-full min-w-[280px] md:min-w-[320px] max-w-[280px] md:max-w-[320px] bg-white rounded-sm'>
                     <div className='bg-slate-200 h-40 p-4 min-w-[280px] md:min-w-[145px] flex justify-center items-center animate-pulse'>
 
                     </div>
@@ -41,7 +41,7 @@ const VerticalCard = ({loading, data = []}) => {
         ) : (
             data.map((product,index)=>{
             return(
-                <Link key={product._id} to={"/product/"+product?._id} className="bg-white p-3 rounded-lg shadow block">
+                <Link key={product._id} to={"/product/"+product?._id} className="bg-white p-3 rounded-lg block border border-gray-200">
    <div className="space-y-2.5">
        <div className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full w-fit">
            MOST POPULAR  
