@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import image1 from '../assest/banner/test-image.jpg'
+import image1 from '../assest/banner/ad-img1.jpg'
 import image2 from '../assest/banner/img2.webp'
 import image3 from '../assest/banner/img3.jpg'
 import image4 from '../assest/banner/img4.jpg'
