@@ -23,23 +23,43 @@ const CategoryProduct = () => {
 
     const [sortBy,setSortBy] = useState("")
 
-    const fetchData = async()=>{
-      const response = await fetch(SummaryApi.filterProduct.url,{
-        method : SummaryApi.filterProduct.method,
-        headers : {
-          "content-type" : "application/json"
-        },
-        body : JSON.stringify({
-          category : filterCategoryList
-        })
-      })
+    useEffect(() => {
+      let isSubscribed = true;
+      
+      const fetchData = async () => {
+        try {
+          setLoading(true);
+          const response = await fetch(SummaryApi.filterProduct.url, {
+            method: SummaryApi.filterProduct.method,
+            headers: {
+              "content-type": "application/json"
+            },
+            body: JSON.stringify({
+              category: filterCategoryList
+            })
+          });
+    
+          const dataResponse = await response.json();
+          if (isSubscribed) {
+            setData(dataResponse?.data || []);
+            console.log(dataResponse);
+            setLoading(false);
+          }
+        } catch (error) {
+          console.error(error);
+          if (isSubscribed) {
+            setLoading(false);
+          }
+        }
+      };
+    
+      fetchData();
+    
+      return () => {
+        isSubscribed = false;
+      };
+    }, [filterCategoryList]);
 
-      const dataResponse = await response.json()
-
-      setData(dataResponse?.data || [])
-        console.log(dataResponse);
-        
-    }
 
     const handleSelectCategory = (e) =>{
       const { name, value, checked } = e.target
@@ -51,11 +71,8 @@ const CategoryProduct = () => {
         }
       })
     }
-    
-    useEffect(()=>{
-      fetchData()
-    },[filterCategoryList])
- 
+
+
     useEffect(()=>{
       const arrayOfCategory = Object.keys(selectCategory).map(categoryKeyName=>{
         if(selectCategory[categoryKeyName]){
