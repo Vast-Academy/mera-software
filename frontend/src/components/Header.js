@@ -10,7 +10,7 @@ import { toast } from 'react-toastify';
 import { setUserDetails } from '../store/userSlice';
 import ROLE from '../common/role';
 import Context from '../context';
-// import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft } from "react-icons/fa";
 import { IoIosNotifications } from "react-icons/io";
 import { BiSolidUser } from "react-icons/bi";
 
@@ -25,12 +25,12 @@ const Header = () => {
   const searchQuery = URLSearch.getAll("q")
   const [search,setSearch] = useState(searchQuery)
 
-  // const location = useLocation();
-  // const showBackButton = location.pathname !== '/';
+  const location = useLocation();
+  const showBackButton = location.pathname !== '/';
 
-  // const onBack = () => {
-  //   navigate(-1); 
-  // };
+  const onBack = () => {
+    navigate(-1); 
+  };
 
   const handleLogout = async () => {
     const fetchData = await fetch(SummaryApi.logout_user.url,{
@@ -190,17 +190,30 @@ if(value){
 
       {/* Search Bar */}
       <div className="py-3 px-4">
-        <div className="relative flex items-center w-full justify-between max-w-sm border rounded-full focus-within:shadow pl-2">
-          <input
-            type="text"
-            placeholder="Search services..."
-            className="w-full outline-none"
-          />
-          <div className="text-lg min-w-[50px] h-8 bg-gray-900 flex items-center justify-center rounded-r-full text-white">
-              <GrSearch />
-            </div>
-        </div>
-      </div>
+ <div className="relative flex items-center w-full justify-between max-w-sm">
+   {showBackButton && (
+     <button 
+       onClick={onBack} 
+       className='p-2 hover:bg-gray-100 rounded-full mr-2'
+       aria-label="Go back"
+     >
+       <FaArrowLeft size={24} />
+     </button>
+   )}
+   <div className="flex-1 flex items-center border rounded-full focus-within:shadow">
+     <input
+       type="text"
+       placeholder="Search services..."
+       className="w-full outline-none px-4"
+       onChange={handleSearch}
+       value={search}
+     />
+     <div className="text-lg min-w-[50px] h-8 bg-gray-900 flex items-center justify-center rounded-r-full text-white">
+       <GrSearch />
+     </div>
+   </div>
+ </div>
+</div>
 
       </div>
 
