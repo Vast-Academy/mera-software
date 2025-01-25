@@ -25,6 +25,7 @@ const filterProductController = require('../controller/product/filterProduct')
 const paymentController = require('../controller/order/paymentController')
 const orderController = require('../controller/order/order.controller')
 const allOrderController = require('../controller/order/allOrder.controller')
+const UploadCategoryController = require('../controller/product/uploadCategory')
 
 
 router.post("/signup", userSignUpController)
@@ -46,6 +47,7 @@ router.post("/category-product",getCategoryWiseProduct)
 router.post("/product-details", getProductDetails)
 router.get("/search", searchProduct)
 router.post("/filter-product", filterProductController)
+router.post("/upload-category",authToken, UploadCategoryController)
 
 //user add to cart
 router.post("/addtocart", authToken, addToCartController)
