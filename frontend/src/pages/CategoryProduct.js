@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { replace, useLocation, useNavigate } from 'react-router-dom'
-// import productCategory from '../helpers/productCategory'
+import productCategory from '../helpers/productCategory'
 import VerticalCard from '../components/VerticalCard'
 import SummaryApi from '../common'
 
