@@ -50,7 +50,7 @@ const VerticalCard = ({loading, data = []}) => {
        <div className="flex justify-between items-start gap-2">
            <div>
                <h3 className="font-bold text-lg">{product?.serviceName}</h3>
-               <p className="text-gray-600 text-sm">{product?.category.split('_').join(' ')}</p>
+               <p className="text-gray-600 text-sm capitalize">{product?.category.split('_').join(' ')}</p>
            </div>
            <button className="shrink-0 border border-blue-500 text-blue-500 px-3 py-1 rounded-lg text-sm">
                ADD +
@@ -58,19 +58,13 @@ const VerticalCard = ({loading, data = []}) => {
        </div>
 
        <ul className="space-y-1.5 text-gray-600 text-sm">
-           {/* Static bullet points if no details */}
-           {(!product?.details ? [
-               "3 Pages",
-               "SEO Configuration", 
-               "Custom Design",
-               "1 Month Support"
-           ] : product.details).map((detail, idx) => (
-               <li key={idx} className="flex items-center gap-2">
-                   <span className="w-1 h-1 bg-red-500 rounded-full"></span>
-                   {detail}
-               </li>
-           ))}
-       </ul>
+   {product?.packageIncludes?.map((detail, idx) => (
+       <li key={idx} className="flex items-center gap-2 capitalize">
+           <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+           {detail}
+       </li>
+   ))}
+</ul>
 
        <div className="flex items-baseline gap-2">
            <span className="text-lg">₹</span>

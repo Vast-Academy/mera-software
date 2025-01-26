@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import image1 from '../assest/banner/ad-img1.svg'
-import image2 from '../assest/banner/ad-img2.svg'
-// import image3 from '../assest/banner/img3.jpg'
+import image1 from '../assest/banner/ad-img1.jpg'
+import image2 from '../assest/banner/ad-img2.jpg'
+// import image3 from '../assest/banner/ad-img3.jpg'
 // import image4 from '../assest/banner/img4.jpg'
 // import image5 from '../assest/banner/img5.webp'
 
@@ -56,7 +56,7 @@ const BannerProduct = () => {
 
   return (
     <div className='container mx-auto px-4 md:mt-5 rounded'>
-      <div className=' h-40 md:h-64 w-full bg-slate-200 relative'>
+      <div className=' h-40 md:h-auto w-full bg-slate-200 relative'>
 
             <div className='absolute z-10 h-full w-full md:flex items-center hidden'>
                 <div className='flex justify-between w-full text-2xl'>

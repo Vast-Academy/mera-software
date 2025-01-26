@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { CgClose } from "react-icons/cg";
-import productCategory from '../helpers/productCategory';
+// import productCategory from '../helpers/productCategory';
 import { FaCloudUploadAlt } from "react-icons/fa";
 import uploadImage from '../helpers/uploadImage';
 import DisplayImage from './DisplayImage';
@@ -18,6 +18,7 @@ const UploadProduct = ({
     onClose,
     fetchData
 }) => {
+  const [categories, setCategories] = useState([]);
     const [data, setData] = useState({
         serviceName : "",
         category : "",
@@ -29,6 +30,23 @@ const UploadProduct = ({
         description : "",
         websiteTypeDescription : "",   
     })
+
+     // Fetch categories when component mounts
+     useEffect(() => {
+      const fetchCategories = async () => {
+          try {
+              const response = await fetch(SummaryApi.allCategory.url);
+              const result = await response.json();
+              if (result.success) {
+                  setCategories(result.data);
+              }
+          } catch (error) {
+              console.error("Error fetching categories:", error);
+          }
+      };
+      fetchCategories();
+  }, []);
+
     const [openFullScreenImage, setOpenFullScreenImage] = useState(false)
     const [fullScreenImage, setFullScreenImage] = useState("")
 
@@ -146,14 +164,15 @@ const UploadProduct = ({
 
         <label htmlFor='category' className='mt-3'>Service Category :</label>   
         <select required value={data.category} id='category' name='category' onChange={handleOnChange} className='p-2 bg-slate-100 border rounded'>
-        <option value={""}>Select Category</option>
-        {
-            productCategory.map((el,index)=>{
-                return(
-                    <option value={el.value} key={el.value+index}>{el.label}</option>
-                )
-            })
-        }
+        <option value="">Select Category</option>
+            {categories.map((cat) => (
+                <option 
+                    value={cat.categoryValue} 
+                    key={cat.categoryId}
+                >
+                    {cat.categoryName}
+                </option>
+            ))}
         </select> 
 
           {

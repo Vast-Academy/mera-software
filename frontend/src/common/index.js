@@ -37,6 +37,10 @@ const SummaryApi = {
         url : `${backendDomain}/api/update-product`,
         method : "post"
     },
+    deleteProduct : {
+        url : `${backendDomain}/api/delete-product`,
+        method : "delete" 
+    },
     categoryProduct : {
         url : `${backendDomain}/api/get-categoryProduct`,
         method : "get"
@@ -93,6 +97,14 @@ const SummaryApi = {
         url : `${backendDomain}/api/upload-category`,
         method : "post"
     },
+    allCategory : {
+        url : `${backendDomain}/api/get-categories`,
+        method : "get"
+    },
+    updateCategory : {
+        url: `${backendDomain}/api/update-category`,
+        method : "post"
+    }
 }
 
 export default SummaryApi;

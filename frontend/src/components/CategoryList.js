@@ -1,73 +1,60 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import SummaryApi from '../common';
-import staticWeb from '../assest/services/static-website.png';
-import standardWeb from '../assest/services/Standard-website.png';
-import dynamicWeb from '../assest/services/dynamic-website.png';
-import mobileApp from '../assest/services/mobile-app.png';
-import appUpdate from '../assest/services/app-update.png';
-import webApp from '../assest/services/web-app.png'
-import websiteUpdate from '../assest/services/website-update.png'
-import featureUpgrade from '../assest/services/upgrade.png'
-import productCategory from '../helpers/productCategory';
 
-const CategoryImages = {
-  static_websites: staticWeb,
-  standard_websites: standardWeb,
-  dynamic_websites: dynamicWeb,
-  mobile_apps: mobileApp,
-  app_update: appUpdate,
-  web_applications: webApp,
-  website_updates: websiteUpdate,
-  feature_upgrades: featureUpgrade,
-};
-
-// Cache key for localStorage
-const CACHE_KEY = 'category_products';
+const CACHE_KEY = 'categories_data';
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
 
 const CategoryList = () => {
-  const [categoryProduct, setCategoryProduct] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const categoryLoading = new Array(8).fill(null);
 
-  const fetchCategoryProduct = async () => {
-    // Check cache first
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (cached) {
-      const { data, timestamp } = JSON.parse(cached);
-      if (Date.now() - timestamp < CACHE_DURATION) {
-        setCategoryProduct(data);
-        return;
-      }
-    }
-
+  const fetchCategories = async () => {
     setLoading(true);
+    setError(null);
+    
     try {
-      const response = await fetch(SummaryApi.categoryProduct.url);
+      console.log('Fetching categories from:', SummaryApi.allCategory.url); // Debug log
+      
+      const response = await fetch(SummaryApi.allCategory.url);
+      console.log('API Response status:', response.status); // Debug log
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const dataResponse = await response.json();
-      
-      // Sort based on predefined order
-      const sortedProducts = dataResponse.data.sort((a, b) => {
-        const aIndex = productCategory.findIndex(p => p.value === a.category);
-        const bIndex = productCategory.findIndex(p => p.value === b.category);
-        return aIndex - bIndex;
-      });
-      
-      // Cache the sorted data
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
-        data: sortedProducts,
-        timestamp: Date.now()
-      }));
-      
-      setCategoryProduct(sortedProducts);
+      console.log('API Response data:', dataResponse); // Debug log
+
+      if (dataResponse.success && Array.isArray(dataResponse.data)) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          data: dataResponse.data,
+          timestamp: Date.now()
+        }));
+        
+        setCategories(dataResponse.data);
+      } else {
+        throw new Error('Invalid data format received from API');
+      }
     } catch (error) {
       console.error('Error fetching categories:', error);
-      // On error, try to use cached data even if expired
+      setError(error.message);
+      
+      // Try to load from cache as fallback
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
-        const { data } = JSON.parse(cached);
-        setCategoryProduct(data);
+        try {
+          const { data } = JSON.parse(cached);
+          if (Array.isArray(data) && data.length > 0) {
+            setCategories(data);
+            setError(null); // Clear error if we successfully loaded from cache
+          }
+        } catch (cacheError) {
+          console.error('Error loading from cache:', cacheError);
+        }
       }
     } finally {
       setLoading(false);
@@ -75,13 +62,21 @@ const CategoryList = () => {
   };
 
   useEffect(() => {
-    fetchCategoryProduct();
+    fetchCategories();
   }, []);
 
+  if (error && categories.length === 0) {
+    return (
+      <div className="my-8 mx-4 text-red-600">
+        Error loading categories: {error}
+      </div>
+    );
+  }
+
   return (
-    <div className=" my-8  mx-4 border">
+    <div className="my-8 mx-4">
       <div className="flex flex-wrap md:flex-nowrap w-full">
-        {loading && categoryProduct.length === 0 ? (
+        {loading && categories.length === 0 ? (
           categoryLoading.map((el, index) => (
             <div className="w-1/4 flex items-center justify-center border h-24" key={`loading-${index}`}>
               <div className="flex flex-col items-center w-full">
@@ -91,38 +86,29 @@ const CategoryList = () => {
             </div>
           ))
         ) : (
-          categoryProduct.map((product) => (
+          categories.map((category) => (
             <Link
-              to={`/product-category?category=${product?.category}`}
-              key={product?.category}
-              className="w-1/4 flex items-center justify-center border h-24 px-4"
+              to={`/product-category?category=${category.categoryValue}`}
+              key={category.categoryId}
+              className="w-1/4 flex items-center justify-center h-24 px-4"
             >
               <div className="flex flex-col items-center w-full hover:bg-[#F5EBE4] transition-colors">
                 <div className="relative">
-                  <div className="w-8 h-8">
-                    {CategoryImages[product?.category] ? (
-                      <img
-                        src={CategoryImages[product?.category]}
-                        alt={product?.category}
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <img
-                        src={product?.serviceImage[0]}
-                        alt={product?.category}
-                        className="w-full h-full object-contain"
-                      />
-                    )}
+                  <div className="w-12 h-12">
+                    <img
+                      src={category?.imageUrl}
+                      alt={category.categoryName}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'placeholder-image-url'; // Add a fallback image URL
+                      }}
+                    />
                   </div>
-                  {product?.category === 'periodic_services' && (
-                    <span className="absolute -top-1 -left-1 text-xs bg-green-100 text-green-800 px-1 py-px rounded-sm whitespace-nowrap">
-                      Heavy Discount
-                    </span>
-                  )}
                 </div>
                 <div className="mt-2 flex items-center justify-center">
-                  <span className="text-xs text-gray-700 capitalize text-center" style={{ lineHeight: '14px' }}>
-                    {product?.category.split('_').join(' ')}
+                  <span className="text-sm text-gray-700 capitalize text-center" style={{ lineHeight: '16px' }}>
+                    {category.categoryName}
                   </span>
                 </div>
               </div>
@@ -134,4 +120,4 @@ const CategoryList = () => {
   );
 };
 
-export default CategoryList;  
+export default CategoryList;

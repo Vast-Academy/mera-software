@@ -15,10 +15,7 @@ const categorySchema = new mongoose.Schema({
    required: true,
    unique: true
  },
- imageUrl: {
-   type: String,
-   required: true
- },
+ imageUrl: [],
  order: {
    type: Number,
    default: 0
