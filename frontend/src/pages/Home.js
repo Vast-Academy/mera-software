@@ -9,7 +9,7 @@ const Home = () => {
   return (
     <div>
       
-      <BannerProduct/>
+      <BannerProduct serviceName="home"/>
       <CategoryList/>
       <AppConvertingBanner/>
       

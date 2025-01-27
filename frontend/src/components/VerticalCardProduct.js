@@ -14,8 +14,42 @@ const VerticalCardProduct = ({category, heading}) => {
     const scrollElement = useRef()
     const { fetchUserAddToCart } = useContext(Context)
 
+    const colorStyles = {
+        'static_websites': {
+            bg: "from-emerald-50 via-white to-green-50",
+            border: "border-emerald-100",
+            text: "text-emerald-950",
+            textSecondary: "text-emerald-800",
+            icon: "text-emerald-600",
+            tagBg: "bg-white text-emerald-700 border-emerald-100",
+            gradient: "from-emerald-100 to-green-100"
+        },
+        'standard_websites': {
+            bg: "from-indigo-50 via-white to-purple-50",
+            border: "border-indigo-100",
+            text: "text-indigo-950",
+            textSecondary: "text-indigo-800",
+            icon: "text-indigo-600",
+            tagBg: "bg-white text-indigo-700 border-indigo-100",
+            gradient: "from-indigo-100 to-purple-100"
+        },
+        'dynamic_websites': {
+            bg: "from-amber-50 via-white to-yellow-50",
+            border: "border-amber-100",
+            text: "text-amber-950",
+            textSecondary: "text-amber-800",
+            icon: "text-amber-600",
+            tagBg: "bg-white text-amber-700 border-amber-100",
+            gradient: "from-amber-100 to-yellow-100"
+        }
+    }
+
+    const getColorStyle = (productCategory) => {
+        return colorStyles[productCategory] || colorStyles.standard_websites
+    }
+
     const handleAddToCart = async (e, id) => {
-        e.preventDefault() // Prevent navigation when clicking add to cart
+        e.preventDefault()
         await addToCart(e, id)
         fetchUserAddToCart() 
     }
@@ -39,7 +73,6 @@ const VerticalCardProduct = ({category, heading}) => {
         scrollElement.current.scrollLeft -= 300
     }
 
-    // Static tech stack since it's not in your data
     const techStack = ['HTML5', 'CSS3', 'JS']
 
     return (
@@ -91,99 +124,102 @@ const VerticalCardProduct = ({category, heading}) => {
                         </div>
                     ))
                 ) : (
-                    data.map((product) => (
-                        <div key={product?._id} className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-xl shadow-lg border border-indigo-100
-                            w-full min-w-[280px] max-w-[280px] 
-                            lg:min-w-[250px] lg:max-w-[250px]">
-                            
-                            {/* Mobile Layout (Horizontal) */}
-                            <div className="lg:hidden">
-                                <div className="flex gap-3 p-3">
-                                    <Link to={`product/${product?._id}`} className="relative w-28 flex-shrink-0">
-                                        <div className=" rounded-lg overflow-hidden bg-gradient-to-r from-indigo-100 to-purple-100">
+                    data.map((product) => {
+                        const style = getColorStyle(product?.category)
+                        return (
+                            <div key={product?._id} className={`bg-gradient-to-br ${style.bg} rounded-xl shadow-lg border ${style.border}
+                                w-full min-w-[280px] max-w-[280px] 
+                                lg:min-w-[250px] lg:max-w-[250px]`}>
+                                
+                                {/* Mobile Layout (Horizontal) */}
+                                <div className="lg:hidden">
+                                    <div className="flex gap-3 p-3">
+                                        <Link to={`product/${product?._id}`} className="relative w-28 flex-shrink-0">
+                                            <div className={`rounded-lg overflow-hidden bg-gradient-to-r ${style.gradient}`}>
+                                                <img 
+                                                    src={product?.serviceImage[0]} 
+                                                    alt={product?.serviceName}
+                                                    className="w-full h-full object-cover opacity-90"
+                                                />
+                                            </div>
+                                        </Link>
+                                        
+                                        <div className="flex-1">
+                                            <Link to={`product/${product?._id}`}>
+                                                <h3 className={`${style.text} font-bold text-base mb-0.5 line-clamp-1`}>
+                                                    {product?.serviceName}
+                                                </h3>
+                                            </Link>
+                                            <div className="flex items-center gap-1.5 mb-2">
+                                                <IoIosCode className={`w-3.5 h-3.5 ${style.icon}`} />
+                                                <span className={`text-xs ${style.textSecondary}`}>
+                                                    {product?.category || 'Static Website Development'}
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="flex flex-wrap gap-1 mb-2">
+                                                {techStack.map((tech) => (
+                                                    <span key={tech} className={`text-xs font-medium ${style.tagBg} px-1.5 py-0.5 rounded-md shadow-sm border`}>
+                                                        {tech}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            
+                                            <div className={`pt-2 border-t ${style.border}`}>
+                                                <p className={`text-base font-bold ${style.text}`}>
+                                                    {displayINRCurrency(product?.sellingPrice)}
+                                                    <span className={`text-xs font-normal ${style.icon} ml-1`}>onwards</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Desktop Layout (Vertical) */}
+                                <div className="hidden lg:block">
+                                    <Link to={`product/${product?._id}`} className="block">
+                                        <div className={`h-40 rounded-t-xl overflow-hidden bg-gradient-to-r ${style.gradient} p-4`}>
                                             <img 
                                                 src={product?.serviceImage[0]} 
                                                 alt={product?.serviceName}
-                                                className="w-full h-full object-cover opacity-90"
+                                                className="w-full h-full object-cover object-top opacity-90 hover:scale-105 transition-transform"
                                             />
                                         </div>
                                     </Link>
                                     
-                                    <div className="flex-1">
+                                    <div className="p-4">
                                         <Link to={`product/${product?._id}`}>
-                                            <h3 className="text-indigo-950 font-bold text-base mb-0.5 line-clamp-1">
+                                            <h3 className={`${style.text} font-bold text-base mb-2 line-clamp-1`}>
                                                 {product?.serviceName}
                                             </h3>
                                         </Link>
-                                        <div className="flex items-center gap-1.5 mb-2">
-                                            <IoIosCode className="w-3.5 h-3.5 text-indigo-600" />
-                                            <span className="text-xs text-indigo-800">
+                                        
+                                        <div className="flex items-center gap-1.5 mb-3">
+                                            <IoIosCode className={`w-3.5 h-3.5 ${style.icon}`} />
+                                            <span className={`text-xs ${style.textSecondary}`}>
                                                 {product?.category || 'Static Website Development'}
                                             </span>
                                         </div>
                                         
-                                        <div className="flex flex-wrap gap-1 mb-2">
+                                        <div className="flex flex-wrap gap-1 mb-3">
                                             {techStack.map((tech) => (
-                                                <span key={tech} className="text-xs font-medium bg-white text-indigo-700 px-1.5 py-0.5 rounded-md shadow-sm border border-indigo-100">
+                                                <span key={tech} className={`text-xs font-medium ${style.tagBg} px-1.5 py-0.5 rounded-md shadow-sm border`}>
                                                     {tech}
                                                 </span>
                                             ))}
                                         </div>
                                         
-                                        <div className="pt-2 border-t border-indigo-100">
-                                            <p className="text-base font-bold text-indigo-950">
+                                        <div className={`pt-3 border-t ${style.border}`}>
+                                            <p className={`text-base font-bold ${style.text}`}>
                                                 {displayINRCurrency(product?.sellingPrice)}
-                                                <span className="text-xs font-normal text-indigo-600 ml-1">onwards</span>
+                                                <span className={`text-xs font-normal ${style.icon} ml-1`}>onwards</span>
                                             </p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Desktop Layout (Vertical) */}
-                            <div className="hidden lg:block">
-                                <Link to={`product/${product?._id}`} className="block">
-                                    <div className=" h-40 rounded-t-xl overflow-hidden bg-gradient-to-r from-indigo-100 to-purple-100 p-4">
-                                        <img 
-                                            src={product?.serviceImage[0]} 
-                                            alt={product?.serviceName}
-                                            className="w-full h-full object-cover object-top opacity-90 hover:scale-105 transition-transform"
-                                        />
-                                    </div>
-                                </Link>
-                                
-                                <div className="p-4">
-                                    <Link to={`product/${product?._id}`}>
-                                        <h3 className="text-indigo-950 font-bold text-base mb-2 line-clamp-1">
-                                            {product?.serviceName}
-                                        </h3>
-                                    </Link>
-                                    
-                                    <div className="flex items-center gap-1.5 mb-3">
-                                        <IoIosCode className="w-3.5 h-3.5 text-indigo-600" />
-                                        <span className="text-xs text-indigo-800">
-                                            {product?.category || 'Static Website Development'}
-                                        </span>
-                                    </div>
-                                    
-                                    <div className="flex flex-wrap gap-1 mb-3">
-                                        {techStack.map((tech) => (
-                                            <span key={tech} className="text-xs font-medium bg-white text-indigo-700 px-1.5 py-0.5 rounded-md shadow-sm border border-indigo-100">
-                                                {tech}
-                                            </span>
-                                        ))}
-                                    </div>
-                                    
-                                    <div className="pt-3 border-t border-indigo-100">
-                                        <p className="text-base font-bold text-indigo-950">
-                                            {displayINRCurrency(product?.sellingPrice)}
-                                            <span className="text-xs font-normal text-indigo-600 ml-1">onwards</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))
+                        )
+                    })
                 )}
             </div>
         </div>

@@ -19,11 +19,6 @@ const AdminCategoryCard = ({
 
     <div>
 
-    {/* <p className='font-semibold'>
-      {
-        displayINRCurrency(data?.sellingPrice)
-      }
-    </p> */}
 
     <div className='w-fit ml-auto p-2 bg-green-100 hover:bg-green-600 rounded-full hover:text-white cursor-pointer' onClick={()=>setEditCategory(true)}>
         <MdModeEditOutline />

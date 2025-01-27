@@ -10,7 +10,7 @@ const Footer = () => {
   const user = useSelector(state => state?.user?.user)
   const [menuDisplay,setMenuDisplay] = useState(false)
   return (
-   <div>
+   <div className=' mt-32'>
      {/* Bottom Navigation */}
      <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t">
         <div className="flex justify-around py-2">

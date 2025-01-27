@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { replace, useLocation, useNavigate } from 'react-router-dom'
-import productCategory from '../helpers/productCategory'
+// import productCategory from '../helpers/productCategory'
 import VerticalCard from '../components/VerticalCard'
 import SummaryApi from '../common'
+import SingleBanner from '../components/SingleBanner'
 
 const CategoryProduct = () => {
     const [data,setData] = useState([])
@@ -111,8 +112,45 @@ const CategoryProduct = () => {
     useEffect(()=>{
 
     },[sortBy])
+
+    const generateServiceName = () => {
+      // Check for each category and return the corresponding service name
+      if (selectCategory["static_websites"]) {
+        return "static_websites";
+      }
+      if (selectCategory["standard_websites"]) {
+        return "standard_websites";
+      }
+      if (selectCategory["dynamic_websites"]) {
+        return "dynamic_websites";
+      }
+      if (selectCategory["website_updates"]) {
+        return "website_updates";
+      }
+      if (selectCategory["mobile_apps"]) {
+        return "mobile_apps";
+      }
+      if (selectCategory["web_applications"]) {
+        return "web_applications";
+      }
+      if (selectCategory["app_update"]) {
+        return "app_update";
+      }
+      if (selectCategory["feature_upgrades"]) {
+        return "feature_upgrades";
+      }
+    
+      // Default case if no category is selected
+      return "";
+    }
+    
   return (
     <div className='container mx-auto p-4'>
+    <SingleBanner
+     serviceName={generateServiceName()}
+     bannerType="top"
+      />
+
       
       {/* Desktop Version */}
        {/* <div className='hidden lg:grid grid-cols-[200px,1fr]'> */}
@@ -160,7 +198,7 @@ const CategoryProduct = () => {
         <div >
         {
           data.length !== 0 && (
-            <VerticalCard data={data} loading={loading}/>
+            <VerticalCard data={data} loading={loading} currentCategory={generateServiceName()}/>
           )
         }
         </div>

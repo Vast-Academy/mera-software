@@ -1,20 +1,59 @@
-import React, { useContext } from 'react'
-import scrollTop from '../helpers/scrollTop'
-import displayINRCurrency from '../helpers/displayCurrency'
+import React, { useContext, useEffect, useState } from 'react'
+// import scrollTop from '../helpers/scrollTop'
+// import displayINRCurrency from '../helpers/displayCurrency'
 import Context from '../context'
 import addToCart from '../helpers/addToCart'
 import { Link } from 'react-router-dom'
-// import { GoPlus } from "react-icons/go";
+import SummaryApi from '../common'
+import SingleBanner from './SingleBanner'
 
-const VerticalCard = ({loading, data = []}) => {
-    const loadingList = new Array(8).fill(null)
+const VerticalCard = ({loading, data = [], currentCategory = ''}) => {
+    const loadingList = new Array(8).fill(null);
+    const [banners, setBanners] = useState({});
+    // const { fetchUserAddToCart } = useContext(Context);
 
-    const { fetchUserAddToCart } = useContext(Context)
+    useEffect(() => {
+        const fetchBanners = async () => {
+            try {
+                const response = await fetch(SummaryApi.allBanner.url);
+                const responseData = await response.json();
+                if (responseData.success && responseData.data) {
+                    const activeBanners = responseData.data.filter(banner => banner.isActive);
+                    
+                    const groupedBanners = {};
+                    activeBanners.forEach(banner => {
+                        if (!groupedBanners[banner.serviceName]) {
+                            groupedBanners[banner.serviceName] = [];
+                        }
+                        groupedBanners[banner.serviceName].push(banner);
+                    });
+                    
+                    setBanners(groupedBanners);
+                }
+            } catch (error) {
+                console.error("Error fetching banners:", error);
+            }
+        };
 
-    const handleAddToCart = async (e,id)=>{
-        await addToCart(e,id)
-        fetchUserAddToCart() 
-    }
+        fetchBanners();
+    }, []);
+
+    const getBannerForPosition = (index) => {
+        if (!banners || !currentCategory) return null;
+        
+        const categoryBanners = banners[currentCategory];
+        if (!categoryBanners || !Array.isArray(categoryBanners)) return null;
+        
+        const inBetweenBanners = categoryBanners.filter(
+            banner => banner.bannerType === 'inBetween' && banner.isActive
+        );
+        
+        if (inBetweenBanners.length === 0) return null;
+        
+        return inBetweenBanners[index % inBetweenBanners.length];
+    };
+
+
   return (
     <div className='grid grid-cols-1 gap-6 px-2 pb-4 mb-28'>
 
@@ -39,8 +78,8 @@ const VerticalCard = ({loading, data = []}) => {
             )
         })
         ) : (
-            data.map((product,index)=>{
-            return(
+            data.map((product,index)=>(
+                <React.Fragment key={product._id || index}>
                 <Link key={product._id} to={"/product/"+product?._id} className="bg-white p-3 rounded-lg block border border-gray-200">
    <div className="space-y-2.5">
        <div className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full w-fit">
@@ -75,12 +114,18 @@ const VerticalCard = ({loading, data = []}) => {
            </div>
        </div>
    </div>
-</Link>
-            )
-        })
-        )
-       
-    }
+                </Link>
+
+              {/* Show banner after every 2 products */}
+              {(index + 1) % 2 === 0 && index < data.length - 1 && (
+                            <SingleBanner 
+                                serviceName={currentCategory}
+                                bannerType="inBetween"
+                            />
+                        )}
+                </React.Fragment>
+            ))
+        )}
     </div>
   )
 }

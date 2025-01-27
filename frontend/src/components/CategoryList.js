@@ -17,10 +17,8 @@ const CategoryList = () => {
     setError(null);
     
     try {
-      console.log('Fetching categories from:', SummaryApi.allCategory.url); // Debug log
       
       const response = await fetch(SummaryApi.allCategory.url);
-      console.log('API Response status:', response.status); // Debug log
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

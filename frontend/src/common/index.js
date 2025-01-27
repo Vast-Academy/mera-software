@@ -104,6 +104,22 @@ const SummaryApi = {
     updateCategory : {
         url: `${backendDomain}/api/update-category`,
         method : "post"
+    },
+    uploadAd : {
+        url : `${backendDomain}/api/upload-ad`,
+        method : "post"
+    },
+    uploadBanner : {
+        url : `${backendDomain}/api/upload-banner`,
+        method : "post"
+    },
+    allBanner : {
+        url : `${backendDomain}/api/get-banner`,
+        method : "get"
+    },
+    updateBanner : {
+        url : `${backendDomain}/api/update-banner`,
+        method : "post"
     }
 }
 

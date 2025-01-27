@@ -1,99 +1,105 @@
-import React, { useEffect, useState } from 'react'
-import image1 from '../assest/banner/ad-img1.jpg'
-import image2 from '../assest/banner/ad-img2.jpg'
-// import image3 from '../assest/banner/ad-img3.jpg'
-// import image4 from '../assest/banner/img4.jpg'
-// import image5 from '../assest/banner/img5.webp'
-
-import image1Mobile from '../assest/banner/img1_mobile.jpg'
-import image2Mobile from '../assest/banner/img2_mobile.webp'
-import image3Mobile from '../assest/banner/img3_mobile.jpg'
-import image4Mobile from '../assest/banner/img4_mobile.jpg'
-import image5Mobile from '../assest/banner/img5_mobile.png'
-
+import React, { useEffect, useState } from 'react';
 import { FaAngleRight } from "react-icons/fa6";
 import { FaAngleLeft } from "react-icons/fa6";
+import SummaryApi from '../common';
 
-const BannerProduct = () => {
-    const [currentImage,setCurrentImage] = useState(0)
+const BannerProduct = ({ serviceName = "home" }) => {
+    const [currentImage, setCurrentImage] = useState(0);
+    const [banners, setBanners] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const desktopImages = [
-        image1,
-        image2,
-    ]
+    // Fetch banners from API
+    const fetchBanners = async () => {
+        try {
+            const response = await fetch(SummaryApi.allBanner.url);
+            const data = await response.json();
+            if (data.success) {
+                // Filter banners for home page
+                const filteredBanners = data.data.filter(banner => 
+                    banner.position === "home" && banner.isActive
+                );
+                // Sort banners by order if needed
+                const sortedBanners = filteredBanners.sort((a, b) => a.order - b.order);
+                setBanners(sortedBanners);
+            }
+        } catch (error) {
+            console.error("Error fetching banners:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    // const mobileImages = [
-    //     image1Mobile,
-    //     image2Mobile,
-    //     image3Mobile,
-    //     image4Mobile,
-    //     image5Mobile
-    // ]
+    useEffect(() => {
+        fetchBanners();
+    }, [serviceName]);
 
     const nextImage = () => {
-        if(desktopImages.length - 1 > currentImage){
-            setCurrentImage(preve => preve + 1)
-        } 
-    }
+        if (banners.length - 1 > currentImage) {
+            setCurrentImage(prev => prev + 1);
+        }
+    };
 
-    const preveImage = () => {
-        if(currentImage !== 0){
-            setCurrentImage(preve => preve - 1)
-        } 
-    }
+    const prevImage = () => {
+        if (currentImage !== 0) {
+            setCurrentImage(prev => prev - 1);
+        }
+    };
 
-    useEffect(()=>{
-        const interval = setInterval(()=>{
-            if(desktopImages.length - 1 > currentImage){
-                nextImage()
-            }else{
-                setCurrentImage(0)
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (banners.length - 1 > currentImage) {
+                nextImage();
+            } else {
+                setCurrentImage(0);
             }
-        },4000)
+        }, 4000);
+        return () => clearInterval(interval);
+    }, [currentImage, banners.length]);
 
-        return ()=> clearInterval(interval)
-    },[currentImage])
+    if (loading) {
+        return (
+            <div className='container mx-auto px-4 md:mt-5 rounded'>
+                <div className='h-40 md:h-[400px] w-full bg-slate-200 animate-pulse'></div>
+            </div>
+        );
+    }
 
-  return (
-    <div className='container mx-auto px-4 md:mt-5 rounded'>
-      <div className=' h-40 md:h-auto w-full bg-slate-200 relative'>
+    if (banners.length === 0) {
+        return null; // No banners to show
+    }
 
-            <div className='absolute z-10 h-full w-full md:flex items-center hidden'>
-                <div className='flex justify-between w-full text-2xl'>
-                    <button onClick={preveImage} className='bg-white shadow-md rounded-full p-1'><FaAngleLeft/></button>
-                    <button onClick={nextImage} className='bg-white shadow-md rounded-full p-1'><FaAngleRight/></button>
+    return (
+        <div className='container mx-auto px-4 md:mt-5 rounded'>
+            <div className='h-40 md:h-auto w-full bg-slate-200 relative'>
+                <div className='absolute z-10 h-full w-full md:flex items-center hidden'>
+                    <div className='flex justify-between w-full text-2xl'>
+                        <button onClick={prevImage} className='bg-white shadow-md rounded-full p-1'><FaAngleLeft /></button>
+                        <button onClick={nextImage} className='bg-white shadow-md rounded-full p-1'><FaAngleRight /></button>
+                    </div>
+                </div>
+                {/* desktop and tablet version */}
+                <div className='hidden md:flex h-full w-full overflow-hidden'>
+                    {banners.map((banner) => (
+                        <div className='w-full h-full min-h-full min-w-full transition-all' 
+                             key={banner._id} 
+                             style={{ transform: `translateX(-${currentImage * 100}%)` }}>
+                            <img src={banner.images[0]} className='w-full h-full object-cover' alt="Banner" />
+                        </div>
+                    ))}
+                </div>
+                {/* mobile version */}
+                <div className='flex h-full w-full overflow-hidden md:hidden'>
+                    {banners.map((banner) => (
+                        <div className='w-full h-full min-h-full min-w-full transition-all' 
+                             key={banner._id} 
+                             style={{ transform: `translateX(-${currentImage * 100}%)` }}>
+                            <img src={banner.images[0]} className='rounded-lg w-full h-full object-cover' alt="Banner" />
+                        </div>
+                    ))}
                 </div>
             </div>
+        </div>
+    );
+};
 
-            {/* desktop and tablet version */}
-            <div className='hidden md:flex h-full w-full overflow-hidden'>
-            {
-                    desktopImages.map((imageURl,index)=>{
-                        return(
-                            <div className='w-full h-full min-h-full min-w-full transition-all' key={imageURl} style={{transform : `translateX(-${currentImage * 100}%)`}}>
-                                <img src={imageURl} className='w-full h-full' />
-                            </div>
-                        )
-                    })
-                }
-            </div>
-
-            {/* mobile version */}
-            <div className='flex h-full w-full overflow-hidden md:hidden'>
-                 {
-                    desktopImages.map((imageURl,index)=>{
-                        return(
-                            <div className='w-full h-full min-h-full min-w-full transition-all' key={imageURl} style={{transform : `translateX(-${currentImage * 100}%)`}}>
-                                <img src={imageURl} className='rounded-lg w-full h-full object-cover' />
-                            </div>
-                        )
-                    })
-                }
-            </div>
-
-      </div>
-    </div>
-  )
-}
-
-export default BannerProduct
+export default BannerProduct;
