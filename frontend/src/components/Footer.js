@@ -14,10 +14,12 @@ const Footer = () => {
      {/* Bottom Navigation */}
      <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t">
         <div className="flex justify-around py-2">
+          <Link to={"/"}>
           <div className="flex flex-col text-white items-center">
             <FaHome className="w-6 h-6 " />
             <span className="text-xs">Home</span>
           </div>
+          </Link>
           <div className="flex flex-col text-white items-center">
             <FiFileText className="w-6 h-6" />
             <span className="text-xs">Orders</span>
