@@ -9,13 +9,38 @@ async function updateBannerController(req, res) {
         }
 
         // Extract _id and rest of the body
-        const { _id, ...resBody } = req.body
+        const { _id, ...updateData } = req.body
+
+        // Validate required fields
+        if (!updateData.serviceName) {
+            throw new Error("Service name is required")
+        }
+        if (!updateData.position) {
+            throw new Error("Position is required")
+        }
+        if (typeof updateData.displayOrder !== 'number') {
+            throw new Error("Display order must be a number")
+        }
+
+        // Check for existing banner with same position and display order
+        const existingBanner = await bannerModel.findOne({
+            position: updateData.position,
+            displayOrder: updateData.displayOrder,
+            _id: { $ne: _id }  // Exclude current banner
+        });
+
+        if (existingBanner) {
+            throw new Error(`Banner with display order ${updateData.displayOrder} already exists for this position`);
+        }
 
         // Update banner
         const updatedBanner = await bannerModel.findByIdAndUpdate(
             _id,
-            resBody,
-            { new: true } // यह option updated document return करेगा
+            {
+                ...updateData,
+                displayOrder: updateData.displayOrder || 0  // Ensure displayOrder is set
+            },
+            { new: true }
         )
 
         if (!updatedBanner) {

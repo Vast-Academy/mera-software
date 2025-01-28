@@ -72,7 +72,7 @@ const CategoryList = () => {
   }
 
   return (
-    <div className="my-8 mx-4">
+    <div className="mt-8 mx-4">
       <div className="flex flex-wrap md:flex-nowrap w-full">
         {loading && categories.length === 0 ? (
           categoryLoading.map((el, index) => (
@@ -88,7 +88,7 @@ const CategoryList = () => {
             <Link
               to={`/product-category?category=${category.categoryValue}`}
               key={category.categoryId}
-              className="w-1/4 flex items-center justify-center h-24 px-4"
+              className="w-1/4 flex items-center justify-center h-24 px-4 mb-6"
             >
               <div className="flex flex-col items-center w-full hover:bg-[#F5EBE4] transition-colors">
                 <div className="relative">
@@ -105,7 +105,7 @@ const CategoryList = () => {
                   </div>
                 </div>
                 <div className="mt-2 flex items-center justify-center">
-                  <span className="text-sm text-gray-700 capitalize text-center" style={{ lineHeight: '16px' }}>
+                  <span className="text-xs text-gray-700 capitalize text-center" style={{ lineHeight: '16px' }}>
                     {category.categoryName}
                   </span>
                 </div>

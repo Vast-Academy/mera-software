@@ -15,9 +15,38 @@ const AdminEditBanner = ({
     // Initialize state with bannerData
     const [data, setData] = useState(bannerData || {
         images: [],
-        order: 0,
-        isActive: true
+        displayOrder: 0,
+        isActive: true,
+        serviceName: '',
+        position: ''
     });
+
+    const [existingOrders, setExistingOrders] = useState([]);
+
+    // Fetch existing orders for the current position
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const response = await fetch(SummaryApi.allBanner.url);
+                const responseData = await response.json();
+                if (responseData.success && responseData.data) {
+                    const orders = responseData.data
+                        .filter(banner => 
+                            banner.position === data.position && 
+                            banner._id !== data._id
+                        )
+                        .map(banner => banner.displayOrder);
+                    setExistingOrders(orders);
+                }
+            } catch (error) {
+                console.error("Error fetching orders:", error);
+            }
+        };
+
+        if (data.position) {
+            fetchOrders();
+        }
+    }, [data.position, data._id]);
 
     // Update state if bannerData changes
     useEffect(() => {
@@ -33,7 +62,8 @@ const AdminEditBanner = ({
         const { name, value, type, checked } = e.target;
         setData((prev) => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: type === 'checkbox' ? checked : 
+                    type === 'number' ? parseInt(value) || 0 : value
         }));
     };
 
@@ -66,6 +96,21 @@ const AdminEditBanner = ({
             return;
         }
 
+        if (!data.serviceName.trim()) {
+            toast.error("Service name is required");
+            return;
+        }
+
+        if (!data.position) {
+            toast.error("Position is required");
+            return;
+        }
+
+        if (existingOrders.includes(data.displayOrder)) {
+            toast.error("This display order is already taken for the selected position");
+            return;
+        }
+
         try {
             const response = await fetch(`${SummaryApi.updateBanner.url}/${data._id}`, {
                 method: SummaryApi.updateBanner.method,
@@ -73,7 +118,10 @@ const AdminEditBanner = ({
                 headers: {
                     "content-type": "application/json"
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify({
+                    ...data,
+                    order: undefined,  // Remove old order field
+                })
             });
 
             const responseData = await response.json();
@@ -106,18 +154,64 @@ const AdminEditBanner = ({
                 </div>
 
                 <form className='grid p-4 gap-4 overflow-y-scroll h-full pb-5' onSubmit={handleSubmit}>
-                    {/* Order Input */}
+
+                {/* Service Name Input */}
+                <div>
+                        <label htmlFor='serviceName'>Service Name:</label>
+                        <input
+                            type='text'
+                            id='serviceName'
+                            name='serviceName'
+                            value={data.serviceName || ''}
+                            onChange={handleOnChange}
+                            className='w-full p-2 bg-slate-100 border rounded'
+                            placeholder="Enter service name"
+                        />
+                    </div>
+
+                     {/* Position Selection */}
+                     <div>
+                        <label htmlFor='position'>Position:</label>
+                        <select
+                            id='position'
+                            name='position'
+                            value={data.position || ''}
+                            onChange={handleOnChange}
+                            className='w-full p-2 bg-slate-100 border rounded'
+                        >
+                            <option value="">Select Position</option>
+                            <option value="home">Home Page</option>
+                            <option value="static_websites">Static Websites</option>
+                            <option value="standard_websites">Standard Websites</option>
+                            <option value="dynamic_websites">Dynamic Websites</option>
+                            <option value="website_updates">Website Updates</option>
+                            <option value="mobile_apps">Mobile Apps</option>
+                            <option value="web_applications">Web Applications</option>
+                            <option value="app_update">App Update</option>
+                            <option value="feature_upgrades">Feature Upgrades</option>
+                        </select>
+                    </div>
+
+                     {/* Display Order Input */}
                     <div>
-                        <label htmlFor='order'>Display Order:</label>
+                        <label htmlFor='displayOrder'>Display Order:</label>
                         <input
                             type='number'
-                            id='order'
-                            name='order'
-                            value={data.order || 0}
+                            id='displayOrder'
+                            name='displayOrder'
+                            value={data.displayOrder || 0}
                             onChange={handleOnChange}
                             className='w-full p-2 bg-slate-100 border rounded'
                             min="0"
                         />
+                        <p className="text-sm text-gray-500 mt-1">
+                            Enter 0 for top banner, or number (1, 2, 3...) to show after that many cards
+                        </p>
+                        {existingOrders.length > 0 && (
+                            <p className="text-sm text-red-500 mt-1">
+                                Already used orders: {existingOrders.sort((a,b) => a-b).join(', ')}
+                            </p>
+                        )}
                     </div>
 
                     {/* Active Status */}
@@ -135,14 +229,17 @@ const AdminEditBanner = ({
 
                     {/* Image Upload */}
                     <div>
-                        <label htmlFor='uploadImageInput' className='block mb-2'>Banner Images:</label>
+                        <label className='block mb-2'>Banner Images:</label>
+                        <label htmlFor="uploadImageInput">
                         <div className='p-2 bg-slate-100 border rounded h-32 w-full flex justify-center items-center cursor-pointer'>
                             <div className='text-slate-500 flex justify-center items-center flex-col gap-2'>
                                 <span className='text-4xl'><FaCloudUploadAlt /></span>
                                 <p className='text-sm'>Upload Banner Image</p>
-                                <input type='file' id='uploadImageInput' className='hidden' onChange={handleUploadImage} />
+                                <input type='file' id='uploadImageInput' className='hidden'
+                                 onChange={handleUploadImage} />
                             </div>
                         </div>
+                        </label>
 
                         {/* Image Preview */}
                         <div className='mt-2'>

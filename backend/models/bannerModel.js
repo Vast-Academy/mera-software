@@ -6,13 +6,8 @@ const bannerSchema = new mongoose.Schema({
         required: true
     }],
     serviceName: {
-        type: String, 
-        required : true,
-    },
-    bannerType: {
         type: String,
-        enum: ['top', 'inBetween'],
-        required: true
+        required: true,
     },
     position: {
         type: String,
@@ -29,18 +24,27 @@ const bannerSchema = new mongoose.Schema({
         ],
         required: true
     },
+    displayOrder: {
+        type: Number,
+        required: true,
+        default: 0,
+        validate: {
+            validator: function(v) {
+                return v >= 0;
+            },
+            message: 'Display order must be a non-negative number'
+        }
+    },
     isActive: {
         type: Boolean,
         default: true
-    },
-    order: {
-        type: Number,
-        default: 0
     }
 }, {
     timestamps: true
 });
 
-const bannerModel = mongoose.model('Banner', bannerSchema);
+// Add compound index to ensure unique display order per position
+bannerSchema.index({ position: 1, displayOrder: 1 }, { unique: true });
 
-module.exports = bannerModel
+const bannerModel = mongoose.model('Banner', bannerSchema);
+module.exports = bannerModel;

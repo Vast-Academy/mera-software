@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CgClose } from "react-icons/cg";
 import { FaCloudUploadAlt } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
@@ -9,23 +9,46 @@ import { toast } from 'react-toastify';
 
 const UploadBanner = ({ onClose, fetchData }) => {
     const [data, setData] = useState({
-        serviceName: '', // Added serviceName
-        bannerType: '',
+        serviceName: '', 
         position: '',
         images: [],
         isActive: true,
-        order: 0,
+        displayOrder: 0,
     });
 
+    const [availableOrders, setAvailableOrders] = useState([]);
     const [uploading, setUploading] = useState(false);
     const [openFullScreenImage, setOpenFullScreenImage] = useState(false);
     const [fullScreenImage, setFullScreenImage] = useState("");
 
+    // Fetch existing orders for selected position
+    useEffect(() => {
+        if (data.position) {
+            fetchExistingOrders();
+        }
+    }, [data.position]);
+
+    const fetchExistingOrders = async () => {
+        try {
+            const response = await fetch(SummaryApi.allBanner.url);
+            const responseData = await response.json();
+            if (responseData.success && responseData.data) {
+                const existingOrders = responseData.data
+                    .filter(banner => banner.position === data.position)
+                    .map(banner => banner.displayOrder);
+                setAvailableOrders(existingOrders);
+            }
+        } catch (error) {
+            console.error("Error fetching orders:", error);
+        }
+    };
+
     const handleOnChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setData((prev) => ({
+        setData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value,
+            [name]: type === 'checkbox' ? checked : 
+                    type === 'number' ? parseInt(value) || 0 : value
         }));
     };
 
@@ -77,7 +100,7 @@ const UploadBanner = ({ onClose, fetchData }) => {
             toast.error("Please upload at least one banner image.");
             return;
         }
-        if (!data.serviceName.trim()) {
+        if (!data.serviceName.trim()) {    // Validate serviceName
             toast.error("Service name is required.");
             return;
         }
@@ -85,20 +108,18 @@ const UploadBanner = ({ onClose, fetchData }) => {
             toast.error("Position is required.");
             return;
         }
-        if (!data.bannerType) {
-            toast.error("Banner type is required.");
+        if (availableOrders.includes(data.displayOrder)) {
+            toast.error("This display order is already taken for the selected position.");
             return;
         }
     
         try {
-            // Schema ke according data prepare karein
             const bannerData = {
                 images: data.images,
-                serviceName: data.serviceName,
+                serviceName: data.serviceName,   // Include serviceName in API request
                 position: data.position,
-                bannerType: data.bannerType,
-                isActive: data.isActive,
-                order: data.order || 0
+                displayOrder: data.displayOrder,
+                isActive: data.isActive
             };
     
             const response = await fetch(SummaryApi.uploadBanner.url, {
@@ -152,24 +173,8 @@ const UploadBanner = ({ onClose, fetchData }) => {
                         />
                     </div>
 
-                    {/* Banner Type Selection */}
-                    <div>
-                        <label htmlFor="bannerType" className="block mb-2">Banner Type:</label>
-                        <select
-                            id="bannerType"
-                            name="bannerType"
-                            value={data.bannerType}
-                            onChange={handleOnChange}
-                            className="w-full p-2 border rounded bg-slate-50"
-                        >
-                            <option value="">Select Type</option>
-                            <option value="top">Top Banner</option>
-                            <option value="inBetween">In-Between Banner</option>
-                        </select>
-                    </div>
-
-                    {/* Position/Service Selection */}
-                    <div>
+                     {/* Position Selection */}
+                     <div>
                         <label htmlFor="position" className="block mb-2">Position:</label>
                         <select
                             id="position"
@@ -178,8 +183,8 @@ const UploadBanner = ({ onClose, fetchData }) => {
                             onChange={handleOnChange}
                             className="w-full p-2 border rounded bg-slate-50"
                         >
-                            <option value="">Select Service</option>
-                            <option value="home">Home Page Banner</option>
+                            <option value="">Select Position</option>
+                            <option value="home">Home Page</option>
                             <option value="static_websites">Static Websites</option>
                             <option value="standard_websites">Standard Websites</option>
                             <option value="dynamic_websites">Dynamic Websites</option>
@@ -188,8 +193,32 @@ const UploadBanner = ({ onClose, fetchData }) => {
                             <option value="web_applications">Web Applications</option>
                             <option value="app_update">App Update</option>
                             <option value="feature_upgrades">Feature Upgrades</option>
-                            
                         </select>
+                    </div>
+
+
+                     {/* Display Order Input */}
+                     <div>
+                        <label htmlFor="displayOrder" className="block mb-2">
+                            Display Order:
+                        </label>
+                        <input
+                            type="number"
+                            id="displayOrder"
+                            name="displayOrder"
+                            value={data.displayOrder}
+                            onChange={handleOnChange}
+                            className="w-full p-2 border rounded bg-slate-50"
+                            min="0"
+                        />
+                        <p className="text-sm text-gray-500 mt-1">
+                            Enter 0 for top banner, or number (1, 2, 3...) to show after that many cards
+                        </p>
+                        {availableOrders.length > 0 && (
+                            <p className="text-sm text-red-500 mt-1">
+                                Already used orders: {availableOrders.sort((a,b) => a-b).join(', ')}
+                            </p>
+                        )}
                     </div>
 
                     {/* Banner Images Upload */}
@@ -252,21 +281,7 @@ const UploadBanner = ({ onClose, fetchData }) => {
                         </div>
                     </div>
 
-                    {/* Order Input */}
-                    <div>
-                        <label htmlFor="order" className="block mb-2">
-                            Display Order:
-                        </label>
-                        <input
-                            type="number"
-                            id="order"
-                            name="order"
-                            value={data.order}
-                            onChange={handleOnChange}
-                            className="w-full p-2 border rounded bg-slate-50"
-                            min="0"
-                        />
-                    </div>
+                    
 
                     {/* Active Status */}
                     <div className="flex items-center gap-2">

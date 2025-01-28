@@ -8,40 +8,45 @@ async function UploadBannerController(req, res) {
             throw new Error("Permission denied");
         }
 
-        const { images, serviceName, isActive, order, position, bannerType } = req.body;
+        const { images, serviceName, isActive, displayOrder, position } = req.body;
 
         // Validate required fields
         if (!images || images.length === 0) {
             throw new Error("At least one banner image is required");
         }
-
         if (!position) {
             throw new Error("Position is required");
         }
-
-        if (!bannerType) {
-            throw new Error("Banner type is required");
+        if (!serviceName) {
+            throw new Error("Service name is required");
+        }
+        if (typeof displayOrder !== 'number') {
+            throw new Error("Display order must be a number");
         }
 
-        // Validate serviceName if provided
-        if (serviceName && typeof serviceName !== "string") {
-            throw new Error("Invalid service name format");
+        // Check for existing banner with same position and display order
+        const existingBanner = await bannerModel.findOne({
+            position,
+            displayOrder
+        });
+
+        if (existingBanner) {
+            throw new Error(`Banner with display order ${displayOrder} already exists for this position`);
         }
 
-        // Create banner with all required fields
+        // Create banner with updated fields
         const uploadBanner = new bannerModel({
             images,
             serviceName,
-            position,        // Adding required position field
-            bannerType,      // Adding required bannerType field
+            position,
             isActive: isActive !== undefined ? isActive : true,
-            order: order !== undefined ? order : 0
+            displayOrder: displayOrder || 0
         });
 
         const saveBanner = await uploadBanner.save();
 
         res.status(201).json({
-            message: "Banner Uploaded Successfully",
+            message: "Banner uploaded successfully",
             error: false,
             success: true,
             data: saveBanner

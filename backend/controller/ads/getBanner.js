@@ -2,25 +2,44 @@ const bannerModel = require("../../models/bannerModel")
 
 const getBannersController = async (req, res) => {
     try {
-        // Only get active banners
+        // Get all active banners, sorted by position and displayOrder
         const allBanners = await bannerModel.find({ isActive: true })
-            .sort({ order: 1 })
-       
-        console.log("Sending banners:", allBanners); // Debug log
-       
+            .sort({ position: 1, displayOrder: 1 });
+
+        // Group banners by position for easier frontend handling
+        const groupedBanners = allBanners.reduce((acc, banner) => {
+            if (!acc[banner.position]) {
+                acc[banner.position] = [];
+            }
+            acc[banner.position].push(banner);
+            return acc;
+        }, {});
+
+        // Sort banners within each position by displayOrder
+        Object.keys(groupedBanners).forEach(position => {
+            groupedBanners[position].sort((a, b) => a.displayOrder - b.displayOrder);
+        });
+
+        console.log("Sending banners:", { 
+            total: allBanners.length,
+            positions: Object.keys(groupedBanners)
+        }); // Debug log
+
         res.json({
-            message: "All Banners",
+            message: "All Banners Retrieved Successfully",
             success: true,
             error: false,
-            data: allBanners
-        })
+            data: allBanners,
+            groupedData: groupedBanners
+        });
     } catch (err) {
+        console.error("Error in getBannersController:", err);
         res.status(400).json({
-            message: err.message || err,
+            message: err.message || "Error retrieving banners",
             error: true,
             success: false
-        })
+        });
     }
 }
 
-module.exports = getBannersController
+module.exports = getBannersController;
