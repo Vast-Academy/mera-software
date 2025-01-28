@@ -105,6 +105,10 @@ const SummaryApi = {
         url: `${backendDomain}/api/update-category`,
         method : "post"
     },
+    deleteCategory : {
+        url : `${backendDomain}/api/delete-category`,
+        method: "delete"
+    },
     uploadAd : {
         url : `${backendDomain}/api/upload-ad`,
         method : "post"
@@ -120,6 +124,10 @@ const SummaryApi = {
     updateBanner : {
         url : `${backendDomain}/api/update-banner`,
         method : "post"
+    },
+    deleteBanner : {
+        url : `${backendDomain}/api/delete-banner`,
+        method : "delete"
     }
 }
 

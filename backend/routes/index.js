@@ -33,6 +33,8 @@ const UploadAdController = require('../controller/ads/uploadAd')
 const UploadBannerController = require('../controller/ads/uploadBanner')
 const getBannersController = require('../controller/ads/getBanner')
 const updateBannerController = require('../controller/ads/updateBanner')
+const DeleteBannerController = require('../controller/ads/deleteBanner')
+const DeleteCategoryController = require('../controller/product/deleteCategory')
 
 
 router.post("/signup", userSignUpController)
@@ -58,6 +60,7 @@ router.post("/filter-product", filterProductController)
 router.post("/upload-category",authToken, UploadCategoryController)
 router.get("/get-categories", getCategoryController)
 router.post("/update-category/:id",authToken, updateCategoryController)
+router.delete("/delete-category", authToken, DeleteCategoryController)
 
 //user add to cart
 router.post("/addtocart", authToken, addToCartController)
@@ -76,5 +79,6 @@ router.post("/upload-ad", authToken, UploadAdController)
 router.post("/upload-banner", authToken, UploadBannerController)
 router.get("/get-banner", getBannersController)
 router.post("/update-banner/:id", authToken, updateBannerController)
+router.delete("/delete-banner", authToken, DeleteBannerController)
 
 module.exports = router;

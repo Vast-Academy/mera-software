@@ -162,15 +162,25 @@ const UploadBanner = ({ onClose, fetchData }) => {
                     {/* Service Name Input */}
                     <div>
                         <label htmlFor="serviceName" className="block mb-2">Service Name:</label>
-                        <input
-                            type="text"
+                        <select
                             id="serviceName"
                             name="serviceName"
                             value={data.serviceName}
                             onChange={handleOnChange}
                             className="w-full p-2 border rounded bg-slate-50"
-                            placeholder="Enter service name"
-                        />
+                        >
+                         <option value="">Select Service Name</option>
+                            <option value="home">Home Page</option>
+                            <option value="home_second_banner">Home Page Second Banner</option>
+                            <option value="static_websites">Static Websites</option>
+                            <option value="standard_websites">Standard Websites</option>
+                            <option value="dynamic_websites">Dynamic Websites</option>
+                            <option value="website_updates">Website Updates</option>
+                            <option value="mobile_apps">Mobile Apps</option>
+                            <option value="web_applications">Web Applications</option>
+                            <option value="app_update">App Update</option>
+                            <option value="feature_upgrades">Feature Upgrades</option>
+                        </select>
                     </div>
 
                      {/* Position Selection */}
@@ -185,6 +195,7 @@ const UploadBanner = ({ onClose, fetchData }) => {
                         >
                             <option value="">Select Position</option>
                             <option value="home">Home Page</option>
+                            <option value="home_second_banner">Home Page Second Banner</option>
                             <option value="static_websites">Static Websites</option>
                             <option value="standard_websites">Standard Websites</option>
                             <option value="dynamic_websites">Dynamic Websites</option>

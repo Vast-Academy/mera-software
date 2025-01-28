@@ -148,7 +148,7 @@ if(value){
 
     {/* Mobile Search Bar with Login and Dynamic Back Button */}
 
-    <div className="md:hidden w-full max-w-lg mx-auto bg-white">
+    <div className="md:hidden w-full max-w-lg mx-auto">
       {/* Header */}
       <header className="bg-gray-900 px-4 h-12 flex justify-between items-center">
       <div className=''>
@@ -204,7 +204,7 @@ if(value){
      <input
        type="text"
        placeholder="Search services..."
-       className="w-full outline-none px-4"
+       className="w-full outline-none px-4 rounded-l-full"
        onChange={handleSearch}
        value={search}
      />

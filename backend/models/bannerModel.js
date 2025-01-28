@@ -7,12 +7,25 @@ const bannerSchema = new mongoose.Schema({
     }],
     serviceName: {
         type: String,
+        enum: [
+            'home',
+            'home_second_banner',
+            'static_websites',
+            'standard_websites',
+            'dynamic_websites',
+            'website_updates',
+            'mobile_apps',
+            'web_applications',
+            'app_update',
+            'feature_upgrades',
+        ],
         required: true,
     },
     position: {
         type: String,
         enum: [
             'home',
+            'home_second_banner',
             'static_websites',
             'standard_websites',
             'dynamic_websites',
