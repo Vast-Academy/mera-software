@@ -88,7 +88,7 @@ const CategoryList = () => {
             <Link
               to={`/product-category?category=${category.categoryValue}`}
               key={category.categoryId}
-              className="w-1/4 flex items-center justify-center h-28 px-4  bg-white border-2 rounded-2xl border-blue-50"
+              className="w-1/4 flex items-center justify-center h-28 px-4  bg-white border-2 border-blue-50"
             >
               <div className="flex flex-col items-center w-full hover:bg-[#F5EBE4] transition-colors">
                 <div className="relative">
