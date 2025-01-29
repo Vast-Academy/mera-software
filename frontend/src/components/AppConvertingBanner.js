@@ -10,7 +10,7 @@ const AppConvertingBanner = () => {
     {
       title: "Welcome Dear Client",
       subtitle: "Track Your Project Progress",
-      description: "Login to view your website development progress in real-time",
+      description: "Login to view your website development progress",
       icon: <BsFillBarChartFill  className="w-12 h-12 text-blue-500" />,
     },
     {
@@ -42,13 +42,13 @@ const AppConvertingBanner = () => {
           {slides.map((slide, index) => (
             <div 
               key={index}
-              className="w-full flex-shrink-0 flex flex-col items-center  px-3"
+              className="w-full flex-shrink-0 flex flex-col items-center  px-2"
             >
             {/* <div className="mb-4 p-3 bg-blue-50 rounded-full">
                 {slide.icon}
               </div> */}
 
-              <div className='mt-2'>
+              <div className=''>
               <h2 className="text-xl font-bold text-gray-800 mb-2 text-left">
                 {slide.title}
               </h2>
@@ -74,8 +74,11 @@ const AppConvertingBanner = () => {
           ))}
         </div>
 
-        {/* Slide Indicators */}
-        <div className="flex justify-center mt-6 gap-2">
+       
+      </div>
+    </div>
+ {/* Slide Indicators */}
+ <div className="flex justify-center mt-6 gap-2">
           {slides.map((_, index) => (
             <button
               key={index}
@@ -86,9 +89,6 @@ const AppConvertingBanner = () => {
             />
           ))}
         </div>
-      </div>
-    </div>
-
     </div>
    
   );
