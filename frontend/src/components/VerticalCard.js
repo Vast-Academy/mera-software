@@ -160,7 +160,9 @@ const getBannerForPosition = useCallback((index) => {
                                         <span className="text-gray-400 text-sm line-through">
                                             ₹{(product?.price || 34000).toLocaleString()}
                                         </span>
-                                        <span className="text-green-600 text-sm">25% OFF</span>
+                                        <span className="text-green-600 text-sm">
+                                        {Math.round(((product.price - product.sellingPrice) / product.price) * 100)}% OFF
+                                        </span>
                                     </div>
                                 </div>
                             </div>
