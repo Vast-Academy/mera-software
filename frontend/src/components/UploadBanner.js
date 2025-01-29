@@ -14,6 +14,7 @@ const UploadBanner = ({ onClose, fetchData }) => {
         images: [],
         isActive: true,
         displayOrder: 0,
+        duration: 5,
     });
 
     const [availableOrders, setAvailableOrders] = useState([]);
@@ -48,7 +49,7 @@ const UploadBanner = ({ onClose, fetchData }) => {
         setData(prev => ({
             ...prev,
             [name]: type === 'checkbox' ? checked : 
-                    type === 'number' ? parseInt(value) || 0 : value
+                    type === 'number' ? Number(value) || 0 : value
         }));
     };
 
@@ -119,7 +120,8 @@ const UploadBanner = ({ onClose, fetchData }) => {
                 serviceName: data.serviceName,   // Include serviceName in API request
                 position: data.position,
                 displayOrder: data.displayOrder,
-                isActive: data.isActive
+                isActive: data.isActive,
+                duration: data.serviceName === 'home' ? data.duration : undefined
             };
     
             const response = await fetch(SummaryApi.uploadBanner.url, {
@@ -206,7 +208,29 @@ const UploadBanner = ({ onClose, fetchData }) => {
                             <option value="feature_upgrades">Feature Upgrades</option>
                         </select>
                     </div>
+                    
 
+                     {/* Duration Input - Only show for home page service */}
+                     {data.serviceName === 'home' && (
+                            <div>
+                                <label htmlFor="duration" className="block mb-2">
+                                    Slide Duration (seconds):
+                                </label>
+                                <input
+                                    type="number"
+                                    id="duration"
+                                    name="duration"
+                                    value={data.duration || 5}  // Default 8 seconds
+                                    onChange={handleOnChange}
+                                    className="w-full p-2 border rounded bg-slate-50"
+                                    min="1"
+                                    max="30"
+                                />
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Enter duration in seconds for how long each banner should display
+                                </p>
+                            </div>
+                        )}
 
                      {/* Display Order Input */}
                      <div>

@@ -51,6 +51,18 @@ const bannerSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true
+    },
+    duration: {
+        type: Number,
+        min: 1,
+        max: 30,
+        default: 5,
+        validate: {
+            validator: function(v) {
+                return this.position === 'home' ? v >= 1 : true;
+            },
+            message: 'Duration is required for home position banners'
+        }
     }
 }, {
     timestamps: true

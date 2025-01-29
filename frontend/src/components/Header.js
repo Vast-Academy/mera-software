@@ -148,7 +148,7 @@ if(value){
 
     {/* Mobile Search Bar with Login and Dynamic Back Button */}
 
-    <div className="md:hidden w-full max-w-lg mx-auto">
+    <div className="md:hidden w-full max-w-lg mx-auto bg-blue-100">
       {/* Header */}
       <header className="bg-gray-900 px-4 h-12 flex justify-between items-center">
       <div className=''>

@@ -8,7 +8,12 @@ async function UploadBannerController(req, res) {
             throw new Error("Permission denied");
         }
 
-        const { images, serviceName, isActive, displayOrder, position } = req.body;
+        const { images, serviceName, isActive, displayOrder, position, duration  } = req.body;
+
+        // Add duration validation for home position
+        if (position === 'home' && (!duration || duration < 1 || duration > 30)) {
+            throw new Error("Valid duration (1-30 seconds) is required for home banners");
+        }
 
         // Validate required fields
         if (!images || images.length === 0) {
@@ -40,7 +45,8 @@ async function UploadBannerController(req, res) {
             serviceName,
             position,
             isActive: isActive !== undefined ? isActive : true,
-            displayOrder: displayOrder || 0
+            displayOrder: displayOrder || 0,
+            duration: position === 'home' ? duration : undefined
         });
 
         const saveBanner = await uploadBanner.save();

@@ -18,7 +18,8 @@ const AdminEditBanner = ({
         displayOrder: 0,
         isActive: true,
         serviceName: '',
-        position: ''
+        position: '',
+        duration: 5
     });
 
     const [existingOrders, setExistingOrders] = useState([]);
@@ -121,6 +122,7 @@ const AdminEditBanner = ({
                 body: JSON.stringify({
                     ...data,
                     order: undefined,  // Remove old order field
+                    duration: data.position === 'home' ? data.duration : undefined
                 })
             });
 
@@ -191,6 +193,26 @@ const AdminEditBanner = ({
                             <option value="feature_upgrades">Feature Upgrades</option>
                         </select>
                     </div>
+
+                        {/* Duration Input - Only for home page */}
+                        {data.position === 'home' && (
+                            <div>
+                                <label htmlFor="duration">Slide Duration (seconds):</label>
+                                <input
+                                    type="number"
+                                    id="duration"
+                                    name="duration"
+                                    value={data.duration || 5}
+                                    onChange={handleOnChange}
+                                    className="w-full p-2 bg-slate-100 border rounded"
+                                    min="1"
+                                    max="30"
+                                />
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Set how long each banner should display (in seconds)
+                                </p>
+                            </div>
+                        )}
 
                      {/* Display Order Input */}
                     <div>

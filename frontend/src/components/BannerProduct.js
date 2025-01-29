@@ -45,16 +45,23 @@ const BannerProduct = ({ serviceName = "home" }) => {
         }
     };
 
+    // Updated useEffect for auto-slide with dynamic duration
     useEffect(() => {
+        const currentBanner = banners[currentImage];
+        // Default to 5 seconds if no duration specified
+        const slideDuration = (currentBanner?.duration || 5) * 1000;
+    
         const interval = setInterval(() => {
             if (banners.length - 1 > currentImage) {
                 nextImage();
             } else {
                 setCurrentImage(0);
             }
-        }, 8000);
+        }, slideDuration);
+        
         return () => clearInterval(interval);
-    }, [currentImage, banners.length]);
+    }, [currentImage, banners]);
+
 
     if (loading) {
         return (

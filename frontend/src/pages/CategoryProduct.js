@@ -145,7 +145,7 @@ const CategoryProduct = () => {
     }
     
   return (
-    <div className='container mx-auto p-4'>
+    <div className='container mx-auto px-4'>
     <SingleBanner
      serviceName={generateServiceName()}
      bannerType="top"

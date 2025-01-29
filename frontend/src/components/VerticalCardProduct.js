@@ -2,17 +2,17 @@ import React, { useContext, useEffect, useRef, useState } from 'react'
 import fetchCategoryWiseProduct from '../helpers/fetchCategoryWiseProduct'
 import displayINRCurrency from '../helpers/displayCurrency'
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
-import { IoIosCode } from "react-icons/io";
+// import { IoIosCode } from "react-icons/io";
 import { Link } from 'react-router-dom'
-import addToCart from '../helpers/addToCart'
-import Context from '../context'
+// import addToCart from '../helpers/addToCart'
+// import Context from '../context'
 
 const VerticalCardProduct = ({category, heading}) => {
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true)
     const loadingList = new Array(8).fill(null)
     const scrollElement = useRef()
-    const { fetchUserAddToCart } = useContext(Context)
+    // const { fetchUserAddToCart } = useContext(Context)
 
     const colorStyles = {
         'static_websites': {
@@ -48,11 +48,11 @@ const VerticalCardProduct = ({category, heading}) => {
         return colorStyles[productCategory] || colorStyles.standard_websites
     }
 
-    const handleAddToCart = async (e, id) => {
-        e.preventDefault()
-        await addToCart(e, id)
-        fetchUserAddToCart() 
-    }
+    // const handleAddToCart = async (e, id) => {
+    //     e.preventDefault()
+    //     await addToCart(e, id)
+    //     fetchUserAddToCart() 
+    // }
 
     const fetchData = async() => {
         setLoading(true)
@@ -76,7 +76,7 @@ const VerticalCardProduct = ({category, heading}) => {
     const techStacks = {
         'static_websites': ['HTML5', 'CSS3', 'JS'],
         'standard_websites': ['JS', 'Node.js', 'Express.js'],
-        'dynamic_websites': ['React.js', 'Node.js', 'MongoDB']
+        'dynamic_websites': ['React.js', 'Tailwind CSS', 'Node.js', 'MongoDB']
     }
 
     return (
@@ -156,7 +156,7 @@ const VerticalCardProduct = ({category, heading}) => {
                                             </Link>
 
                                             <div className=" mb-3">
-                                            <span className={`text-xs capitalize line-clamp-1 ${style.textSecondary}`}>Suitable For: {product?.perfectFor?.join(' ')}</span>
+                                            <span className={`text-xs capitalize line-clamp-1 ${style.textSecondary}`}>{product?.packageIncludes?.[0]}</span>
                                             </div>
                                             
                                             <div className="flex flex-wrap gap-1 mb-2">

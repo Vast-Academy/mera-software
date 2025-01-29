@@ -157,9 +157,11 @@ const AdminEditProduct = ({
               <Select
                 options={packageOptions}
                 isMulti
-                value={packageOptions.filter((option) =>
-                  data.packageIncludes.includes(option.value)
-                )}
+                value={data.packageIncludes.map(value => {
+              // Find the full option object for each selected value
+              const option = packageOptions.find(opt => opt.value === value);
+              return option;
+            })}
                 name='packageIncludes'
                 id='packageIncludes'
                 onChange={handlePackageIncludesChange}
@@ -172,9 +174,11 @@ const AdminEditProduct = ({
               <Select
                 options={perfectForOptions}
                 isMulti
-                value={perfectForOptions.filter((option) =>
-                  data.perfectFor.includes(option.value)
-                )}
+                value={data.perfectFor.map(value => {
+                  // Find the full option object for each selected value
+                  const option = perfectForOptions.find(opt => opt.value === value);
+                  return option;
+                })}
                 name='perfectFor'
                 id='perfectFor'
                 onChange={handlePerfectForChange}
