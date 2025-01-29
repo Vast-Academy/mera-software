@@ -137,6 +137,12 @@ const UploadProduct = ({
       }
     }
 
+    // Add this helper function
+const shouldShowWebsiteFields = (category) => {
+  const websiteCategories = ['static_websites', 'standard_websites', 'dynamic_websites'];
+  return category && websiteCategories.includes(category);
+};
+
   return (
     <div className='fixed w-full h-full bg-slate-200 bg-opacity-40 top-0 left-0 right-0 bottom-0 flex justify-center items-center'>
       <div className='bg-white p-4 rounder w-full max-w-2xl h-full max-h-[75%] overflow-hidden'>
@@ -176,7 +182,7 @@ const UploadProduct = ({
         </select> 
 
           {
-            data.category && (
+            shouldShowWebsiteFields(data.category) && (
               <>
               <label htmlFor='packageIncludes' className='mt-3'>Package Includes:</label>
           <Select
@@ -295,7 +301,10 @@ const UploadProduct = ({
         placeholder='Enter product description'
       />
 
-      <label htmlFor="websiteTypeDescription" className="mt-3">Website Type Description :</label>
+      {
+        shouldShowWebsiteFields(data.category) && (
+          <>
+        <label htmlFor="websiteTypeDescription" className="mt-3">Website Type Description :</label>
       <textarea
         className="h-28 bg-slate-100 border p-1 resize-none"
         placeholder="enter website type details"
@@ -305,6 +314,9 @@ const UploadProduct = ({
         value={data.websiteTypeDescription}
       >
       </textarea>
+        </>
+        )   
+      }
 
        {/* Submit Button */}
         <button className='px-3 py-2 bg-red-600 text-white mb-10 hover:bg-red-700'>Upload Service</button>

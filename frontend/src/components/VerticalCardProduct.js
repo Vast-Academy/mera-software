@@ -73,7 +73,11 @@ const VerticalCardProduct = ({category, heading}) => {
         scrollElement.current.scrollLeft -= 300
     }
 
-    const techStack = ['HTML5', 'CSS3', 'JS']
+    const techStacks = {
+        'static_websites': ['HTML5', 'CSS3', 'JS'],
+        'standard_websites': ['JS', 'Node.js', 'Express.js'],
+        'dynamic_websites': ['React.js', 'Node.js', 'MongoDB']
+    }
 
     return (
         <div className='container mx-auto px-4 my-6 relative'>
@@ -128,7 +132,7 @@ const VerticalCardProduct = ({category, heading}) => {
                         const style = getColorStyle(product?.category)
                         return (
                             <div key={product?._id} className={`bg-gradient-to-br ${style.bg} rounded-xl shadow-lg border ${style.border}
-                                w-full min-w-[280px] max-w-[280px] 
+                                w-full min-w-[320px] max-w-[320px] 
                                 lg:min-w-[250px] lg:max-w-[250px]`}>
                                 
                                 {/* Mobile Layout (Horizontal) */}
@@ -150,15 +154,13 @@ const VerticalCardProduct = ({category, heading}) => {
                                                     {product?.serviceName}
                                                 </h3>
                                             </Link>
-                                            <div className="flex items-center gap-1.5 mb-2">
-                                                <IoIosCode className={`w-3.5 h-3.5 ${style.icon}`} />
-                                                <span className={`text-xs ${style.textSecondary}`}>
-                                                    {product?.category || 'Static Website Development'}
-                                                </span>
+
+                                            <div className=" mb-3">
+                                            <span className={`text-xs capitalize line-clamp-1 ${style.textSecondary}`}>Suitable For: {product?.perfectFor?.join(' ')}</span>
                                             </div>
                                             
                                             <div className="flex flex-wrap gap-1 mb-2">
-                                                {techStack.map((tech) => (
+                                                {techStacks[product?.category]?.map((tech) => (
                                                     <span key={tech} className={`text-xs font-medium ${style.tagBg} px-1.5 py-0.5 rounded-md shadow-sm border`}>
                                                         {tech}
                                                     </span>
@@ -194,20 +196,17 @@ const VerticalCardProduct = ({category, heading}) => {
                                             </h3>
                                         </Link>
                                         
-                                        <div className="flex items-center gap-1.5 mb-3">
-                                            <IoIosCode className={`w-3.5 h-3.5 ${style.icon}`} />
-                                            <span className={`text-xs ${style.textSecondary}`}>
-                                                {product?.category || 'Static Website Development'}
-                                            </span>
-                                        </div>
+                                        <div className=" mb-3">
+                                            <span className={`text-xs capitalize line-clamp-1 ${style.textSecondary}`}>Suitable For: {product?.perfectFor?.join(', ')}</span>
+                                            </div>
                                         
-                                        <div className="flex flex-wrap gap-1 mb-3">
-                                            {techStack.map((tech) => (
-                                                <span key={tech} className={`text-xs font-medium ${style.tagBg} px-1.5 py-0.5 rounded-md shadow-sm border`}>
-                                                    {tech}
-                                                </span>
-                                            ))}
-                                        </div>
+                                        <div className="flex flex-wrap gap-1 mb-2">
+                                                {techStacks[product?.category]?.map((tech) => (
+                                                    <span key={tech} className={`text-xs font-medium ${style.tagBg} px-1.5 py-0.5 rounded-md shadow-sm border`}>
+                                                        {tech}
+                                                    </span>
+                                                ))}
+                                            </div>
                                         
                                         <div className={`pt-3 border-t ${style.border}`}>
                                             <p className={`text-base font-bold ${style.text}`}>
