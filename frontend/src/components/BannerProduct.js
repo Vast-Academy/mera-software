@@ -52,7 +52,7 @@ const BannerProduct = ({ serviceName = "home" }) => {
             } else {
                 setCurrentImage(0);
             }
-        }, 4000);
+        }, 8000);
         return () => clearInterval(interval);
     }, [currentImage, banners.length]);
 
