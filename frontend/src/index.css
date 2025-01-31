@@ -9,7 +9,15 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  @apply bg-slate-200;
+  background: linear-gradient(
+    to bottom,
+    rgb(194, 194, 194) 0%,      /* Start with bright blue */
+    /* gray 0%,     */
+    #f3f4f5 40%,     /* Transition to lighter blue */
+    #f3f4f5 100%     /* End with light grey background */
+  );
+  min-height: 100vh;
+  /* background-attachment: fixed; */
 }
 
 code {

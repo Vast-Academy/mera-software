@@ -168,9 +168,9 @@ if(value){
 
     {/* Mobile Search Bar with Login and Dynamic Back Button */}
 
-    <div className="md:hidden w-full max-w-lg mx-auto bg-blue-100">
+    <div className="md:hidden w-full max-w-lg mx-auto ">
       {/* Header */}
-      <header className="bg-gray-900 px-4 h-12 flex justify-between items-center">
+      {/* <header className="bg-gray-900 px-4 h-12 flex justify-between items-center">
       <div className=''>
        <Link to={"/"}>
        <img src={Logo} className=' h-8'/>
@@ -178,7 +178,6 @@ if(value){
         </div>
         
         <div className='flex items-center gap-5'>
-         {/* Add Wallet for Mobile */}
          {user?._id && (
               <div className='flex items-center gap-1 bg-gray-800 px-2 py-1 rounded-full'>
                 <IoWalletOutline className="text-white" />
@@ -196,7 +195,6 @@ if(value){
         </div>
           </Link>
       
-        {/* <FaShoppingCart className='text-white w-8 h-8' /> */}
         <Link to={"/login"}>
         {
                     user?._id && (
@@ -214,7 +212,7 @@ if(value){
                   
         </Link>
         </div>
-      </header>
+      </header> */}
 
       {/* Search Bar */}
       <div className="py-3 px-4">

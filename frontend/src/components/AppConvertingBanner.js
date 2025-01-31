@@ -89,10 +89,13 @@ const AppConvertingBanner = () => {
                     Login
                     <FiArrowRight className="w-4 h-4 ml-2" />
                   </button>
-                  <button className="px-6 py-2 border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-50 transition-colors">
+                  {index === 1 && (
+                    <button className="px-6 py-2 border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-50 transition-colors">
                     Sign Up
                   </button>
+                  )}
                 </div>
+                
               </div>
             ))}
           </div>
