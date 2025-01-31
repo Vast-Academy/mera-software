@@ -11,10 +11,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: linear-gradient(
     to bottom,
-    rgb(194, 194, 194) 0%,      /* Start with bright blue */
+    rgb(255, 123, 0) 0%,      /* Start with bright blue */
     /* gray 0%,     */
     #f3f4f5 40%,     /* Transition to lighter blue */
-    #f3f4f5 100%     /* End with light grey background */
+    #caf4ff 100%     /* End with light grey background */
   );
   min-height: 100vh;
   /* background-attachment: fixed; */

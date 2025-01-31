@@ -11,8 +11,8 @@ import { setUserDetails } from '../store/userSlice';
 import ROLE from '../common/role';
 import Context from '../context';
 import { FaArrowLeft } from "react-icons/fa";
-import { IoIosNotifications } from "react-icons/io";
-import { BiSolidUser } from "react-icons/bi";
+// import { IoIosNotifications } from "react-icons/io";
+// import { BiSolidUser } from "react-icons/bi";
 import { IoWalletOutline } from "react-icons/io5";
 
 const Header = () => {

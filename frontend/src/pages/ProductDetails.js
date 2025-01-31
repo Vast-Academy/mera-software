@@ -8,6 +8,7 @@ import displayINRCurrency from '../helpers/displayCurrency';
 import CategoryWiseProductDisplay from '../components/CategoryWiseProductDisplay';
 import addToCart from '../helpers/addToCart';
 import Context from '../context';
+import CartPopup from '../components/CartPopup';
 
 const ProductDetails = () => {
   const [data,setData] = useState({
@@ -26,6 +27,7 @@ const ProductDetails = () => {
   const [loading,setLoading] = useState(true)
   const productImageListLoading = new Array(4).fill(null)
   const [activeImage,setActiveImage] = useState("")
+  const [showCartPopup, setShowCartPopup] = useState(false);
 
   const [zoomImageCoordinate,setZoomImageCoordinate] = useState({
     x : 0,
@@ -83,8 +85,17 @@ const ProductDetails = () => {
   }
 
   const handleAddToCart = async(e,id) => {
-    await addToCart(e,id)
-    fetchUserAddToCart()
+    try {
+      const result = await addToCart(e, id);
+      // Only show popup and update cart if product was successfully added
+      if (result && !result.error) {
+        fetchUserAddToCart();
+        setShowCartPopup(true);
+      }
+      // If there was an error, the toast notification will be shown by the addToCart function
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    }
   }
 
   const handleBuyProduct = async(e,id) => {
@@ -247,7 +258,15 @@ const ProductDetails = () => {
         )
       }
 
+      <CartPopup 
+        isOpen={showCartPopup}
+        onClose={() => setShowCartPopup(false)}
+        product={data}
+      />
+
     </div>
+
+    
   )
 }
 

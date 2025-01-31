@@ -3,9 +3,12 @@ import SummaryApi from '../common'
 import Context from '../context'
 import displayINRCurrency from '../helpers/displayCurrency'
 import { MdDelete } from "react-icons/md";
-import {loadStripe} from '@stripe/stripe-js'
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+// import {loadStripe} from '@stripe/stripe-js'
 
 const Cart = () => {
+    const navigate = useNavigate();
     const [data,setData] = useState([])
     const [loading,setLoading] = useState(false)
     const context = useContext(Context)
@@ -105,24 +108,47 @@ const Cart = () => {
         }
     }
 
-    const handlePayment = async()=>{
-
-        const stripePromise = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY)
-        const response = await fetch(SummaryApi.payment.url,{
-            method : SummaryApi.payment.method,
+    const handlePayment = async () => {
+        try {
+          // First check if user has sufficient balance
+          if (context.walletBalance < totalPrice) {
+            toast.error("Insufficient wallet balance!");
+            return;
+          }
+      
+          // Deduct from wallet
+          const deductResponse = await fetch(SummaryApi.wallet.deduct.url, {
+            method: SummaryApi.wallet.deduct.method,
             credentials: 'include',
-            headers : {
-                "content-type" : 'application/json'
+            headers: {
+              "content-type": 'application/json'
             },
-            body : JSON.stringify(data)
-        })
-
-        const responseData = await response.json()
-
-        if(responseData?.id){
-            stripePromise.redirectToCheckout({ sessionId : responseData.id })
+            body: JSON.stringify({
+              amount: totalPrice
+            })
+          });
+      
+          const deductData = await deductResponse.json();
+      
+          if (deductData.success) {
+            // Update wallet balance in context
+            context.fetchWalletBalance();
+            
+            // Clear cart
+            await Promise.all(data.map(item => 
+              deleteCartProduct(item._id)
+            ));
+      
+            // Redirect to success page
+            navigate('/success');
+          } else {
+            toast.error(deductData.message || "Payment failed!");
+          }
+        } catch (error) {
+          console.error("Payment error:", error);
+          toast.error("Payment failed!");
         }
-    }
+      };
 
     const totalQty = data.reduce((previousValue,currentValue)=> previousValue + currentValue.quantity, 0)
     const totalPrice = data.reduce((preve,curr)=>preve + (curr.quantity * curr?.productId?.sellingPrice), 0)

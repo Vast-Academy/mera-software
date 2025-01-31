@@ -137,6 +137,10 @@ const SummaryApi = {
         addBalance: {
             url : `${backendDomain}/api/wallet/add-balance`,
             method: "post"
+        },
+        deduct : {
+            url : `${backendDomain}/api/wallet/deduct`,
+            method : "post"
         }
     }
 }
