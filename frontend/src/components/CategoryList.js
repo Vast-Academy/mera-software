@@ -88,11 +88,11 @@ const CategoryList = () => {
             <Link
               to={`/product-category?category=${category.categoryValue}`}
               key={category.categoryId}
-              className="w-1/4 flex items-center justify-center h-36 px-4  bg-white border border-gray-50"
+              className="w-1/4 flex items-center justify-center h-32 px-4  bg-white border border-gray-50"
             >
               <div className="flex flex-col items-center w-full hover:bg-[#F5EBE4] transition-colors">
-                <div className="relative">
-                  <div className="w-12 h-12">
+                <div className="relative mb-3">
+                  <div className="" style={{ width: '55px', height: '55px' }}>
                     <img
                       src={category?.imageUrl}
                       alt={category.categoryName}
