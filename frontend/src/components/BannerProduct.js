@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { FaAngleRight } from "react-icons/fa6";
 import { FaAngleLeft } from "react-icons/fa6";
 import SummaryApi from '../common';
@@ -7,6 +7,11 @@ const BannerProduct = ({ serviceName = "home" }) => {
     const [currentImage, setCurrentImage] = useState(0);
     const [banners, setBanners] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [touchStart, setTouchStart] = useState(null);
+    const [touchEnd, setTouchEnd] = useState(null);
+    
+    // Minimum swipe distance (in px)
+    const minSwipeDistance = 50;
 
     // Fetch banners from API
     const fetchBanners = async () => {
@@ -14,11 +19,9 @@ const BannerProduct = ({ serviceName = "home" }) => {
             const response = await fetch(SummaryApi.allBanner.url);
             const data = await response.json();
             if (data.success) {
-                // Filter banners for home page
                 const filteredBanners = data.data.filter(banner => 
                     banner.position === "home" && banner.isActive
                 );
-                // Sort banners by order if needed
                 const sortedBanners = filteredBanners.sort((a, b) => a.order - b.order);
                 setBanners(sortedBanners);
             }
@@ -45,10 +48,33 @@ const BannerProduct = ({ serviceName = "home" }) => {
         }
     };
 
-    // Updated useEffect for auto-slide with dynamic duration
+    // Touch event handlers
+    const onTouchStart = (e) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+        
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe && currentImage < banners.length - 1) {
+            nextImage();
+        } else if (isRightSwipe && currentImage > 0) {
+            prevImage();
+        }
+    };
+
+    // Auto slide effect
     useEffect(() => {
         const currentBanner = banners[currentImage];
-        // Default to 5 seconds if no duration specified
         const slideDuration = (currentBanner?.duration || 5) * 1000;
     
         const interval = setInterval(() => {
@@ -62,7 +88,6 @@ const BannerProduct = ({ serviceName = "home" }) => {
         return () => clearInterval(interval);
     }, [currentImage, banners]);
 
-
     if (loading) {
         return (
             <div className='container mx-auto px-4 md:mt-5 rounded'>
@@ -72,7 +97,7 @@ const BannerProduct = ({ serviceName = "home" }) => {
     }
 
     if (banners.length === 0) {
-        return null; // No banners to show
+        return null;
     }
 
     return (
@@ -94,8 +119,13 @@ const BannerProduct = ({ serviceName = "home" }) => {
                         </div>
                     ))}
                 </div>
-                {/* mobile version */}
-                <div className='flex h-full w-full overflow-hidden md:hidden rounded-lg'>
+                {/* mobile version with touch events */}
+                <div 
+                    className='flex h-full w-full overflow-hidden md:hidden rounded-lg'
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                >
                     {banners.map((banner) => (
                         <div className='w-full h-full min-h-full min-w-full transition-all' 
                              key={banner._id} 
@@ -104,6 +134,18 @@ const BannerProduct = ({ serviceName = "home" }) => {
                         </div>
                     ))}
                 </div>
+            </div>
+            {/* Slider Indicators */}
+            <div className="flex justify-center mt-6 gap-2">
+                {banners.map((_, index) => (
+                    <button
+                        key={index}
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                            currentImage === index ? 'bg-blue-500 w-4' : 'bg-gray-300'
+                        }`}
+                        onClick={() => setCurrentImage(index)}
+                    />
+                ))}
             </div>
         </div>
     );

@@ -13,6 +13,7 @@ import Context from '../context';
 import { FaArrowLeft } from "react-icons/fa";
 import { IoIosNotifications } from "react-icons/io";
 import { BiSolidUser } from "react-icons/bi";
+import { IoWalletOutline } from "react-icons/io5";
 
 const Header = () => {
   const user = useSelector(state => state?.user?.user)
@@ -61,6 +62,12 @@ if(value){
     navigate("/search")
   }
 }
+
+// useEffect(() => {
+//   if (user?._id) {
+//     context.fetchWalletBalance();
+//   }
+// }, []); 
   return (
     <>
 
@@ -85,7 +92,15 @@ if(value){
 
        <div className="flex items-center gap-7">
 
-    <div className='relative flex justify-center'>
+       {/* Add Wallet Balance Display */}
+       {user?._id && (
+              <div className='flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full'>
+                <IoWalletOutline className="text-xl text-gray-600" />
+                <span className='font-medium'>₹{context.walletBalance}</span>
+              </div>
+            )}
+
+          <div className='relative flex justify-center'>
                {
                     user?._id && (
                       <div className='text-3xl cursor-pointer relative flex justify-center' onClick={()=>setMenuDisplay(preve => !preve)}>
@@ -110,6 +125,11 @@ if(value){
                 )
             } 
             <Link to={'/order'} className='whitespace-nowrap hidden md:block hover:bg-slate-100 p-2' onClick={()=>setMenuDisplay(preve => !preve)}>Order</Link>  
+            {/* Add Wallet Balance in Menu too */}
+            <div className='p-2 hover:bg-slate-100 flex items-center gap-2'>
+                <IoWalletOutline />
+                <span>Balance: ₹{context.walletBalance}</span>
+              </div>
             </nav>
       </div>
     )
@@ -158,9 +178,17 @@ if(value){
         </div>
         
         <div className='flex items-center gap-5'>
+         {/* Add Wallet for Mobile */}
+         {user?._id && (
+              <div className='flex items-center gap-1 bg-gray-800 px-2 py-1 rounded-full'>
+                <IoWalletOutline className="text-white" />
+                <span className='text-white text-sm'>₹{context.walletBalance}</span>
+              </div>
+            )}
+
         <IoIosNotifications className='text-white text-3xl '/>
 
-              <Link to={"/cart"} className='text-2xl relative'>
+        <Link to={"/cart"} className='text-2xl relative'>
              <FaShoppingCart className='text-white'/>
           
           <div className='bg-red-600 text-white w-5 h-5 rounded-full p-1 flex items-center justify-center absolute -top-2 -right-3'>

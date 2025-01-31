@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema({
     password: String,
     profilePic : String,
     role : String,
+    walletBalance: {
+        type: Number,
+        default: 0    // हर नए user का initial balance 0 होगा
+    }
 },{
     timestamps: true
 })

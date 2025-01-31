@@ -128,6 +128,16 @@ const SummaryApi = {
     deleteBanner : {
         url : `${backendDomain}/api/delete-banner`,
         method : "delete"
+    },
+    wallet : {
+        balance :{
+            url : `${backendDomain}/api/wallet/balance`,
+            method: "get"
+        },
+        addBalance: {
+            url : `${backendDomain}/api/wallet/add-balance`,
+            method: "post"
+        }
     }
 }
 

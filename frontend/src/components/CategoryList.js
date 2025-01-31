@@ -92,7 +92,7 @@ const CategoryList = () => {
             >
               <div className="flex flex-col items-center w-full hover:bg-[#F5EBE4] transition-colors">
                 <div className="relative">
-                  <div className="w-10 h-10">
+                  <div className="w-12 h-12">
                     <img
                       src={category?.imageUrl}
                       alt={category.categoryName}

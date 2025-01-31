@@ -5,8 +5,15 @@ async function userDetailsController (req,res) {
         console.log("userId", req.userId);
         const user = await userModel.findById(req.userId)
 
+        if (!user) {
+            throw new Error("User not found");
+        }
+
         res.status(200).json({
-            data: user,
+            data: {
+                ...user._doc,
+                walletBalance: user.walletBalance  // Explicitly include wallet balance
+            },
             error : false,
             success: true,
             message: "User Details"

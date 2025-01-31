@@ -1,21 +1,24 @@
+// store/userSlice.js
 import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
-  user: null
+  user: null,
+  walletBalance: 0
 }
 
 export const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setUserDetails : (state,action) => {
-        state.user = action.payload
-        
+    setUserDetails: (state, action) => {
+      state.user = action.payload
+      state.walletBalance = action.payload?.walletBalance || 0
+    },
+    updateWalletBalance: (state, action) => {
+      state.walletBalance = action.payload
     }
-  },
+  }
 })
 
-// Action creators are generated for each case reducer function
-export const { setUserDetails } = userSlice.actions
-
+export const { setUserDetails, updateWalletBalance } = userSlice.actions
 export default userSlice.reducer

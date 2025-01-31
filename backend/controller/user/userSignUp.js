@@ -5,9 +5,14 @@ const bcrypt = require('bcryptjs');
 async function userSignUpController (req,res) {
     try {
         const { email, password, name } = req.body
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            throw new Error("Please provide valid email address");
+        }
         
         const user = await userModel.findOne({email})
-
         if(user){
             throw new Error("Already user exist.")
         }
@@ -22,6 +27,11 @@ async function userSignUpController (req,res) {
             throw new Error("Please provide name")
         }
 
+        // Password validation
+        if (password.length < 6) {
+            throw new Error("Password must be at least 6 characters long");
+        }
+
         const salt = bcrypt.genSaltSync(10);
         const hashPassword = await bcrypt.hashSync(password, salt);
 
@@ -30,9 +40,11 @@ async function userSignUpController (req,res) {
         }
 
         const payload = {
-            ...req.body,
-            role : "GENERAL",
-            password : hashPassword
+            email,
+            name,
+            password: hashPassword,
+            role: "GENERAL",
+            walletBalance: 0
         }
 
         const userData = new userModel(payload)

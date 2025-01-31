@@ -35,6 +35,9 @@ const getBannersController = require('../controller/ads/getBanner')
 const updateBannerController = require('../controller/ads/updateBanner')
 const DeleteBannerController = require('../controller/ads/deleteBanner')
 const DeleteCategoryController = require('../controller/product/deleteCategory')
+const addWalletBalanceController = require('../controller/admin/addWalletBalanceController')
+const getWalletBalanceController = require('../controller/admin/getWalletBalanceController')
+const deductWalletController = require('../controller/admin/deductWalletController ')
 
 
 router.post("/signup", userSignUpController)
@@ -46,6 +49,9 @@ router.get("/userLogout", userLogout)
 //admin panel
 router.get("/all-user", authToken, allUsers)
 router.post("/update-user", authToken, updateUser)
+router.post("/wallet/add-balance", authToken, addWalletBalanceController)
+router.get("/wallet/balance", authToken, getWalletBalanceController)
+router.post("/wallet/deduct", authToken, deductWalletController);
 
 // product
 router.post("/upload-product", authToken, UploadProductController )

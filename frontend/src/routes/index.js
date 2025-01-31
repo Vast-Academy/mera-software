@@ -17,6 +17,7 @@ import OrderPage from "../pages/OrderPage";
 import AllOrder from "../pages/AllOrder";
 import AllCategory from "../pages/AllCategory";
 import AllAds from "../pages/AllAds";
+import WalletManagement from "../pages/WalletManagement";
 
 
 const router = createBrowserRouter([
@@ -91,6 +92,10 @@ const router = createBrowserRouter([
                     {
                         path: "all-orders",
                         element : <AllOrder/>
+                    },
+                    {
+                        path : "wallet-management",
+                        element : <WalletManagement/>
                     }
                 ]
             },

@@ -1,4 +1,3 @@
-// import logo from './logo.svg';
 import './App.css';
 import { Outlet } from 'react-router-dom';
 import Header from './components/Header';
@@ -7,60 +6,96 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useEffect, useState } from 'react';
 import SummaryApi from './common';
-import Context from './context'
+import Context from './context';
 import { useDispatch } from 'react-redux';
-import { setUserDetails } from './store/userSlice';
+import { setUserDetails, updateWalletBalance } from './store/userSlice';
 
 function App() {
-  const dispatch = useDispatch()
-  const [cartProductCount,setCartProductCount] = useState(0)
+  const dispatch = useDispatch();
+  const [cartProductCount, setCartProductCount] = useState(0);
+  const [walletBalance, setWalletBalance] = useState(0);
 
-  const fetchUserDetails = async() => {
-    const dataResponse = await fetch(SummaryApi.current_user.url,{
-      method : SummaryApi.current_user.method,
-      credentials: 'include'
-    })
-
-    const dataApi = await dataResponse.json()
-
-    if(dataApi.success){
-      dispatch(setUserDetails(dataApi.data))
+  const fetchWalletBalance = async () => {
+    try {
+      const response = await fetch(SummaryApi.wallet.balance.url, {
+        method: SummaryApi.wallet.balance.method,
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.success) {
+        const balance = data.data.balance;
+        setWalletBalance(balance); // Update local state
+        dispatch(updateWalletBalance(balance)); // Update Redux state
+      }
+    } catch (error) {
+      console.error("Error fetching wallet balance:", error);
     }
-  }
+  };
 
-  const fetchUserAddToCart = async ()=>{
-    const dataResponse = await fetch(SummaryApi.addToCartProductCount.url,{
-      method : SummaryApi.addToCartProductCount.method,
-      credentials: 'include'
-    })
+  const fetchUserDetails = async () => {
+    try {
+      const dataResponse = await fetch(SummaryApi.current_user.url, {
+        method: SummaryApi.current_user.method,
+        credentials: 'include'
+      });
+      const dataApi = await dataResponse.json();
+      
+      if (dataApi.success && dataApi.data) {
+        dispatch(setUserDetails(dataApi.data));
+        
+        // Update wallet balance if it exists in user data
+        if (dataApi.data.walletBalance !== undefined) {
+          setWalletBalance(dataApi.data.walletBalance); // Update local state
+          dispatch(updateWalletBalance(dataApi.data.walletBalance)); // Update Redux state
+        }
+        
+        // Fetch latest wallet balance
+        await fetchWalletBalance();
+      }
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    }
+  };
 
-    const dataApi = await dataResponse.json()
+  const fetchUserAddToCart = async () => {
+    try {
+      const dataResponse = await fetch(SummaryApi.addToCartProductCount.url, {
+        method: SummaryApi.addToCartProductCount.method,
+        credentials: 'include'
+      });
+      const dataApi = await dataResponse.json();
+      setCartProductCount(dataApi?.data?.count);
+    } catch (error) {
+      console.error("Error fetching cart count:", error);
+    }
+  };
 
-    setCartProductCount(dataApi?.data?.count)
-  }
+  useEffect(() => {
+    // Fetch initial data
+    const initializeData = async () => {
+      await fetchUserDetails(); // This will also fetch wallet balance
+      await fetchUserAddToCart();
+    };
+    
+    initializeData();
+  }, []);
 
-  useEffect(()=>{
-    /** user details */
-    fetchUserDetails()
-    /** user details cart product */
-    fetchUserAddToCart()
-  },[])
   return (
     <>
-    <Context.Provider value={{
-      fetchUserDetails, //user detail fetch
-      cartProductCount, //current user add to cart product count
-      fetchUserAddToCart
-    }} >
-    <ToastContainer
-    position='top-center'
-     />
-
-    <Header />
-      <main className='min-h-[calc(100vh-120px)] pt-3 md:pt-16'>
-      <Outlet/>
-      </main>
-      <Footer/>
+      <Context.Provider value={{
+        fetchUserDetails,
+        cartProductCount,
+        fetchUserAddToCart,
+        walletBalance,
+        setWalletBalance, // Add this to allow components to update wallet balance
+        fetchWalletBalance
+      }}>
+        <ToastContainer position='top-center' />
+        <Header />
+        <main className='min-h-[calc(100vh-120px)] pt-3 md:pt-16'>
+          <Outlet />
+        </main>
+        <Footer />
       </Context.Provider>
     </>
   );

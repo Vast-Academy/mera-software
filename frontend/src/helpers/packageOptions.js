@@ -8,6 +8,7 @@ const packageOptions = [
     { value: "upto 15 static pages", label: "Upto 15 Static Pages" },
     { value: "dynamic photo gallery", label: "Dynamic Photo Gallery" },
     { value: "live chat support", label: "Live Chat Support" },
+    { value: "unlimited pages", label: "Unlimited Pages" },
     { value: "upto 22 static pages", label: "Upto 22 Static Pages" },
     { value: "appointment booking", label: "Appointment Booking" },
     { value: "upto 17 static pages", label: "Upto 17 Static Pages" },
