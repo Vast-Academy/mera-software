@@ -91,8 +91,8 @@ const CategoryList = () => {
               className="w-1/4 flex items-center justify-center h-32 px-4  bg-white border border-gray-50"
             >
               <div className="flex flex-col items-center w-full hover:bg-[#F5EBE4] transition-colors">
-                <div className="relative mb-3">
-                  <div className="" style={{ width: '55px', height: '55px' }}>
+                <div className="relative mb-1 pt-2">
+                  <div className="" style={{ width: '50px', height: '50px' }}>
                     <img
                       src={category?.imageUrl}
                       alt={category.categoryName}
