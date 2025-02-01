@@ -26,7 +26,7 @@ const VerticalCardProduct = ({category, heading}) => {
         },
         'standard_websites': {
             bg: "bg-white",
-            border: "border-indigo-100",
+            border: "border-blue-100",
             text: "text-cyan-950",
             textSecondary: "text-blue-600",
             icon: "text-blue-600",
@@ -35,7 +35,7 @@ const VerticalCardProduct = ({category, heading}) => {
         },
         'dynamic_websites': {
             bg: "bg-white",
-            border: "border-amber-100",
+            border: "border-indigo-100",
             text: "text-purple-1000",
             textSecondary: "text-indigo-800",
             icon: "text-indigo-800",
@@ -81,7 +81,7 @@ const VerticalCardProduct = ({category, heading}) => {
 
     return (
         <div className='container mx-auto px-4 my-1 mb-6 relative'>
-            <h2 className='text-2xl font-semibold py-3'>{heading}</h2>
+            <h2 className='text-xl font-semibold py-3'>{heading}</h2>
 
             <div className='flex items-center gap-4 lg:gap-6 rounded-xl overflow-x-scroll scrollbar-none transition-all' ref={scrollElement}>
                 <button className='bg-white shadow-md rounded-full p-1 absolute left-0 hidden md:block' onClick={scrollLeft}>
@@ -137,45 +137,52 @@ const VerticalCardProduct = ({category, heading}) => {
                                 
                                 {/* Mobile Layout (Horizontal) */}
                                 <div className="lg:hidden">
-                                    <div className="flex gap-3 p-3">
-                                        <Link to={`product/${product?._id}`} className="relative w-28 flex-shrink-0">
-                                            <div className={`rounded-lg overflow-hidden bg-gradient-to-r ${style.gradient}`}>
-                                                <img 
-                                                    src={product?.serviceImage[0]} 
-                                                    alt={product?.serviceName}
-                                                    className="w-full h-full object-cover opacity-90"
-                                                />
-                                            </div>
-                                        </Link>
-                                        
-                                        <div className="flex-1">
-                                            <Link to={`product/${product?._id}`}>
-                                                <h3 className={`${style.text} font-bold text-base mb-0.5 line-clamp-1`}>
-                                                    {product?.serviceName}
-                                                </h3>
-                                            </Link>
-
-                                            <div className=" mb-3">
-                                            <span className={`text-xs capitalize line-clamp-1 ${style.textSecondary}`}>{product?.packageIncludes?.[0]}</span>
-                                            </div>
-                                            
-                                            <div className="flex flex-wrap gap-1 mb-2">
-                                                {techStacks[product?.category]?.map((tech) => (
-                                                    <span key={tech} className={`text-xs font-medium ${style.tagBg} px-1.5 py-0.5 rounded-md shadow-sm border`}>
-                                                        {tech}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                            
-                                            <div className={`pt-2 border-t ${style.border}`}>
-                                                <p className={`text-base font-bold ${style.text}`}>
-                                                    {displayINRCurrency(product?.sellingPrice)}
-                                                    <span className={`text-xs font-normal ${style.icon} ml-1`}>onwards</span>
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+    <div className="flex gap-3 p-3">
+        <Link to={`product/${product?._id}`} className="relative w-28 flex-shrink-0">
+            <div className={`rounded-lg overflow-hidden bg-gradient-to-r border ${style.gradient}`}>
+                <img
+                    src={product?.serviceImage[0]}
+                    alt={product?.serviceName}
+                    className="w-full h-full object-cover opacity-90"
+                />
+            </div>
+        </Link>
+        
+        <div className="flex-1">
+            <Link to={`product/${product?._id}`}>
+                <h3 className={`${style.text} font-bold text-md mb-2.5 line-clamp-1`}>
+                    {product?.serviceName}
+                </h3>
+            </Link>
+            
+            <div className="mb-1">
+                <ul className={`space-y-1 text-xs ${style.textSecondary}`}>
+                    {product?.packageIncludes?.slice(0, 2).map((detail, idx) => (
+                        <li key={idx} className="flex items-center gap-2 capitalize line-clamp-1 overflow-hidden">
+                            <span className="w-1 h-1 bg-red-500 rounded-full flex-shrink-0"></span>
+                            <span className="truncate">{detail}</span>
+                        </li>
+                    ))}
+                </ul>
+                {product?.packageIncludes?.length > 2 && (
+                    <Link 
+                        to={`product/${product?._id}`} 
+                        className={`text-xs ${style.textSecondary} hover:underline mt-1 block`}
+                    >
+                        + {product.packageIncludes.length - 2} more
+                    </Link>
+                )}
+            </div>
+            
+            <div className={`pt-2 border-t ${style.border}`}>
+                <p className={`text-base font-bold ${style.text}`}>
+                    {displayINRCurrency(product?.sellingPrice)}
+                    <span className={`text-xs font-normal ${style.icon} ml-1`}>onwards</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
 
                                 {/* Desktop Layout (Vertical) */}
                                 <div className="hidden lg:block">

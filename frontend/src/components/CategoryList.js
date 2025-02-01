@@ -72,7 +72,7 @@ const CategoryList = () => {
   }
 
   return (
-    <div className="my-6  px-2 rounded-lg ">
+    <div className="my-6 px-2 rounded-lg ">
       <div className="flex flex-wrap md:flex-nowrap w-full rounded-lg">
         {loading && categories.length === 0 ? (
           categoryLoading.map((el, index) => (
