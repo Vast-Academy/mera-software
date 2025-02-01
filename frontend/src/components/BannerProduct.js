@@ -101,7 +101,7 @@ const BannerProduct = ({ serviceName = "home" }) => {
     }
 
     return (
-        <div className='container mx-auto  md:mt-5 '>
+        <div className='container mx-auto px-2 md:mt-5 rounded'>
             <div className='h-40 md:h-auto w-full bg-slate-200 relative rounded-lg shadow-lg'>
                 <div className='absolute z-10 h-full w-full md:flex items-center hidden'>
                     <div className='flex justify-between w-full text-2xl'>
@@ -121,7 +121,7 @@ const BannerProduct = ({ serviceName = "home" }) => {
                 </div>
                 {/* mobile version with touch events */}
                 <div 
-                    className='flex h-full w-full overflow-hidden md:hidden '
+                    className='flex h-full w-full overflow-hidden md:hidden rounded-lg'
                     onTouchStart={onTouchStart}
                     onTouchMove={onTouchMove}
                     onTouchEnd={onTouchEnd}
@@ -130,13 +130,13 @@ const BannerProduct = ({ serviceName = "home" }) => {
                         <div className='w-full h-full min-h-full min-w-full transition-all' 
                              key={banner._id} 
                              style={{ transform: `translateX(-${currentImage * 100}%)` }}>
-                            <img src={banner.images[0]} className=' w-full h-full object-cover' alt="Banner" />
+                            <img src={banner.images[0]} className='rounded-lg w-full h-full object-cover' alt="Banner" />
                         </div>
                     ))}
                 </div>
             </div>
             {/* Slider Indicators */}
-            <div className="flex justify-center mt-2 gap-2">
+            <div className="flex justify-center mt-3 gap-2">
                 {banners.map((_, index) => (
                     <button
                         key={index}

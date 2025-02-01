@@ -102,7 +102,7 @@ const AppConvertingBanner = () => {
         </div>
       </div>
       {/* Slide Indicators */}
-      <div className="flex justify-center mt-6 gap-2">
+      <div className="flex justify-center mt-3 gap-2">
         {slides.map((_, index) => (
           <button
             key={index}

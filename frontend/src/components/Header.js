@@ -227,15 +227,15 @@ if(value){
        <FaArrowLeft size={24} />
      </button>
    )}
-   <div className="flex-1 flex items-center border border-gray-500 focus-within:shadow">
+   <div className="flex-1 flex items-center border rounded-lg border-gray-500 focus-within:shadow">
      <input
        type="text"
        placeholder="Search services..."
-       className="w-full outline-none h-8  px-4 "
+       className="w-full outline-none h-10 rounded-l-lg  px-4 "
        onChange={handleSearch}
        value={search}
      />
-     <div className="text-lg min-w-[50px] h-8 bg-gray-900 flex items-center justify-center  text-white">
+     <div className="text-lg min-w-[50px] h-10 bg-gray-900 rounded-r-lg flex items-center justify-center  text-white">
        <GrSearch />
      </div>
    </div>
