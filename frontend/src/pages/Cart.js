@@ -31,14 +31,20 @@ const Cart = () => {
         }
     }
 
-    const handleLoading = async()=>{
-        await fetchData()
+    const handleLoading = async () => {
+        try {
+            setLoading(true);
+            await fetchData();
+        } catch (error) {
+            console.error("Error loading cart:", error);
+        } finally {
+            setLoading(false);
+        }
     }
-    useEffect(()=>{
-        setLoading(true)
-        handleLoading()
-        setLoading(false)
-    },[])
+    
+    useEffect(() => {
+        handleLoading();
+    }, [])
 
     const increaseQty = async(id,qty)=>{
         const response = await fetch(SummaryApi.updateCartProduct.url,{

@@ -168,7 +168,7 @@ if(value){
 
     {/* Mobile Search Bar with Login and Dynamic Back Button */}
 
-    <div className="md:hidden w-full max-w-lg mx-auto ">
+    <div className="md:hidden w-full max-w-lg mx-auto  fixed z-10 bg-gray-900 mb-10">
       {/* Header */}
       {/* <header className="bg-gray-900 px-4 h-12 flex justify-between items-center">
       <div className=''>
@@ -215,26 +215,27 @@ if(value){
       </header> */}
 
       {/* Search Bar */}
-      <div className="py-3 px-4">
+
+      <div className="py-3 pt-6 px-4">
  <div className="relative flex items-center w-full justify-between max-w-sm">
    {showBackButton && (
      <button 
        onClick={onBack} 
-       className='p-2 hover:bg-gray-100 rounded-full mr-2'
+       className='p-2 hover:bg-gray-100  mr-2'
        aria-label="Go back"
      >
        <FaArrowLeft size={24} />
      </button>
    )}
-   <div className="flex-1 flex items-center border rounded-full focus-within:shadow">
+   <div className="flex-1 flex items-center border border-gray-500 focus-within:shadow">
      <input
        type="text"
        placeholder="Search services..."
-       className="w-full outline-none px-4 rounded-l-full"
+       className="w-full outline-none h-8  px-4 "
        onChange={handleSearch}
        value={search}
      />
-     <div className="text-lg min-w-[50px] h-8 bg-gray-900 flex items-center justify-center rounded-r-full text-white">
+     <div className="text-lg min-w-[50px] h-8 bg-gray-900 flex items-center justify-center  text-white">
        <GrSearch />
      </div>
    </div>
