@@ -31,7 +31,7 @@ async function userSignInController (req,res) {
             role: user.role
         }
 
-        const token = await jwt.sign(tokenData, process.env.TOKEN_SECRET_KEY)
+        const token = await jwt.sign(tokenData, process.env.TOKEN_SECRET_KEY, { expiresIn: '365d' })
 
         const tokenOption = {
             httpOnly: true,
