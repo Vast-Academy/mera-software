@@ -2,67 +2,63 @@ const bcrypt = require('bcryptjs');
 const userModel = require("../../models/userModel")
 const jwt = require('jsonwebtoken')
 
-async function userSignInController (req,res) {
+async function userSignInController(req, res) {
     try {
+        const { email, password } = req.body;
+        if (!email) {
+            throw new Error("Please provide email");
+        }
+        if (!password) {
+            throw new Error("Please provide password");
+        }
         
-        const { email, password } = req.body
-
-        if(!email){
-            throw new Error("Please provide email")
+        const user = await userModel.findOne({ email }).select('email password name role walletBalance');
+        if (!user) {
+            throw new Error("User not found");
         }
-        if(!password){
-            throw new Error("Please provide password")
-        }
-
-        const user = await userModel.findOne({email}).select('email password name role walletBalance');
-
-        if(!user){
-            throw new Error("User not found")
-        }
-
-        const checkPassword = await bcrypt.compare(password,user.password)
         
-        console.log("checkPassword",checkPassword);
+        const checkPassword = await bcrypt.compare(password, user.password);
+        
+        if (checkPassword) {
+            const tokenData = {
+                id: user._id,
+                email: user.email,
+                role: user.role
+            };
 
-        if(checkPassword){
-        const tokenData = {
-            _id : user._id,
-            email : user.email,
-            role: user.role
+            const token = await jwt.sign(tokenData, process.env.TOKEN_SECRET_KEY, { 
+                expiresIn: '365d' 
+            });
+
+            const tokenOption = {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+                maxAge: 365 * 24 * 60 * 60 * 1000  // 365 days in milliseconds
+            };
+
+            res.cookie("token", token, tokenOption).status(200).json({
+                message: "Login Successfully",
+                data: {
+                    token,
+                    user: {
+                        ...user._doc,
+                        password: undefined
+                    },
+                    walletBalance: user.walletBalance
+                },
+                success: true,
+                error: false
+            });
+        } else {
+            throw new Error("Please check password");
         }
-
-        const token = await jwt.sign(tokenData, process.env.TOKEN_SECRET_KEY, { expiresIn: '365d' })
-
-        const tokenOption = {
-            httpOnly: true,
-            secure : true,
-            sameSite : 'None'
-        }
-
-        res.cookie("token",token,tokenOption).status(200).json({
-            message: "Login Successfully",
-            data: {
-                token,
-                user: {
-            ...user._doc,
-            password: undefined
-        },
-        walletBalance: user.walletBalance 
-            },
-            success : true,
-            error : false
-        })
-       
-    }else{
-        throw new Error("Please check password")
-    }
-
     } catch (err) {
-        res.json({
+        res.status(400).json({
             message: err.message || err,
             error: true,
             success: false,
-        })    
+        });
     }
 }
 
