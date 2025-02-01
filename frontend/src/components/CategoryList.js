@@ -72,8 +72,8 @@ const CategoryList = () => {
   }
 
   return (
-    <div className="my-6 px-2 rounded-lg ">
-      <div className="flex flex-wrap md:flex-nowrap w-full rounded-lg">
+    <div className="my-6 mx-2 rounded-lg w-auto bg-white">
+      <div className="flex flex-wrap md:flex-nowrap w-full rounded-lg overflow-hidden">
         {loading && categories.length === 0 ? (
           categoryLoading.map((el, index) => (
             <div className="w-1/4 flex items-center justify-center border h-24" key={`loading-${index}`}>
@@ -88,9 +88,9 @@ const CategoryList = () => {
             <Link
               to={`/product-category?category=${category.categoryValue}`}
               key={category.categoryId}
-              className="w-1/4 flex items-center justify-center rounded-lg h-32 px-4  bg-white border border-gray-50"
+              className="w-1/4 flex items-center justify-center h-32 px-4 bg-white border border-gray-50 active:bg-gray-100 md:hover:bg-[#F5EBE4] transition-all duration-200 touch-manipulation"
             >
-              <div className="flex flex-col items-center w-full hover:bg-[#F5EBE4] transition-colors">
+              <div className="flex flex-col items-center w-full">
                 <div className="relative mb-1 pt-2">
                   <div className="" style={{ width: '50px', height: '50px' }}>
                     <img
@@ -99,7 +99,7 @@ const CategoryList = () => {
                       className="w-full h-full object-contain"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = 'placeholder-image-url'; // Add a fallback image URL
+                        e.target.src = 'placeholder-image-url';
                       }}
                     />
                   </div>
