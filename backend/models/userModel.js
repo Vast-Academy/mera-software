@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema({
     },
     password: String,
     profilePic : String,
+    phone: String,     // Added phone field
+    age: Number,      // Added age field
     role : String,
     walletBalance: {
         type: Number,

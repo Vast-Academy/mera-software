@@ -129,6 +129,10 @@ const SummaryApi = {
         url : `${backendDomain}/api/delete-banner`,
         method : "delete"
     },
+    updateProfile : {
+        url : `${backendDomain}/api/update-profile`,
+        method : "post"
+    },
     wallet : {
         balance :{
             url : `${backendDomain}/api/wallet/balance`,

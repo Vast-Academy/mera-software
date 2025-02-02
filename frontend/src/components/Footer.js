@@ -49,7 +49,7 @@ const Footer = () => {
             )}
           </div>
 
-          <Link to={"/login"}>
+          <Link to={user?._id ? "/profile" : "/login"}>
             {user?._id ? (
               <div className='cursor-pointer relative flex justify-center' onClick={() => setMenuDisplay(prev => !prev)}>
                 {user?.profilePic ? (

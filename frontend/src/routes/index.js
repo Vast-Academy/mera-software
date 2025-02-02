@@ -18,6 +18,7 @@ import AllOrder from "../pages/AllOrder";
 import AllCategory from "../pages/AllCategory";
 import AllAds from "../pages/AllAds";
 import WalletManagement from "../pages/WalletManagement";
+import Profile from "../pages/Profile";
 
 
 const router = createBrowserRouter([
@@ -68,6 +69,10 @@ const router = createBrowserRouter([
             {
                 path : "order",
                 element : <OrderPage/>
+            },
+            {
+                path : "profile",
+                element : <Profile/>
             },
             {
                 path: "admin-panel",

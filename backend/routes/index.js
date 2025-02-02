@@ -38,12 +38,14 @@ const DeleteCategoryController = require('../controller/product/deleteCategory')
 const addWalletBalanceController = require('../controller/admin/addWalletBalanceController')
 const getWalletBalanceController = require('../controller/admin/getWalletBalanceController')
 const deductWalletController = require('../controller/admin/deductWalletController ')
+const updateUserProfileController = require('../controller/user/updateUserProfileController')
 
 
 router.post("/signup", userSignUpController)
 router.post("/signin", userSignInController)
 router.get("/user-details", authToken, userDetailsController)
 router.get("/userLogout", userLogout)
+router.post("/update-profile", authToken, updateUserProfileController)
 
 
 //admin panel
