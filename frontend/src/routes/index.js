@@ -19,6 +19,7 @@ import AllCategory from "../pages/AllCategory";
 import AllAds from "../pages/AllAds";
 import WalletManagement from "../pages/WalletManagement";
 import Profile from "../pages/Profile";
+import AllDevelopers from "../pages/AllDevelopers";
 
 
 const router = createBrowserRouter([
@@ -81,6 +82,10 @@ const router = createBrowserRouter([
                     {
                         path: "all-users",
                         element : <AllUsers/>
+                    },
+                    {
+                        path: "all-developers",
+                        element : <AllDevelopers/>
                     },
                     {
                         path : "all-ads",

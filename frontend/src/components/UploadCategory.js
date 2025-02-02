@@ -15,6 +15,7 @@ const UploadCategory = ({
         categoryId: "",
         categoryName: "",
         categoryValue: "",
+        serviceType: "",
         imageUrl: [],
         order: 0,
         isActive: true
@@ -130,7 +131,20 @@ const UploadCategory = ({
                         required
                     />
 
-                    <label htmlFor='order'>Display Order:</label>
+                    <label htmlFor='serviceType' className='mt-3'>Service Type :</label> 
+                    <select
+                        name="serviceType"
+                        value={data.serviceType}
+                        onChange={handleOnChange}
+                        className='p-2 bg-slate-100 border rounded'
+                        required
+                    >
+                        <option value="">Select Service Type</option>
+                        <option value="development">Development Service</option>
+                        <option value="update">Update Service</option>
+                    </select>
+
+                    <label htmlFor='order' className='mt-3'>Display Order:</label>
                     <input
                         type='number'
                         id='order'

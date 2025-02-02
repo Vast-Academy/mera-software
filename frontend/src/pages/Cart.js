@@ -137,15 +137,32 @@ const Cart = () => {
           const deductData = await deductResponse.json();
       
           if (deductData.success) {
-            // Update wallet balance in context
+            // Create orders for each item
+            for (const item of data) {
+              const orderResponse = await fetch(SummaryApi.createOrder.url, {
+                method: SummaryApi.createOrder.method,
+                credentials: 'include',
+                headers: {
+                  "content-type": 'application/json'
+                },
+                body: JSON.stringify({
+                  productId: item.productId._id,
+                  quantity: item.quantity,
+                  price: item.productId.sellingPrice
+                })
+              });
+    
+              const orderData = await orderResponse.json();
+              if (!orderData.success) {
+                throw new Error('Failed to create order');
+              }
+            }
+    
+            // Update context and clear cart
             context.fetchWalletBalance();
+            await Promise.all(data.map(item => deleteCartProduct(item._id)));
             
-            // Clear cart
-            await Promise.all(data.map(item => 
-              deleteCartProduct(item._id)
-            ));
-      
-            // Redirect to success page
+            // Go to success page
             navigate('/success');
           } else {
             toast.error(deductData.message || "Payment failed!");
@@ -154,7 +171,7 @@ const Cart = () => {
           console.error("Payment error:", error);
           toast.error("Payment failed!");
         }
-      };
+    };
 
     const totalQty = data.reduce((previousValue,currentValue)=> previousValue + currentValue.quantity, 0)
     const totalPrice = data.reduce((preve,curr)=>preve + (curr.quantity * curr?.productId?.sellingPrice), 0)

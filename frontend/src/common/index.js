@@ -133,6 +133,22 @@ const SummaryApi = {
         url : `${backendDomain}/api/update-profile`,
         method : "post"
     },
+    uploadDeveloper : {
+        url: `${backendDomain}/api/upload-developer`,
+        method: "post"
+    },
+    createOrder : {
+        url : `${backendDomain}/api/create-order`,
+        method: "post"
+    },
+    ordersList : {
+        url : `${backendDomain}/api/get-order`,
+        method: "get"
+    },
+    orderDetails: {
+        url : `${backendDomain}/api/order-details`,
+        method: "post"
+    },
     wallet : {
         balance :{
             url : `${backendDomain}/api/wallet/balance`,

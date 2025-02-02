@@ -6,6 +6,7 @@ import SummaryApi from '../common';
 import { setUserDetails } from '../store/userSlice';
 import { FaEdit } from "react-icons/fa";
 import EditProfileModal from '../components/EditProfileModal';
+import { Link } from 'react-router-dom';
 
 const Profile = () => {
     const dispatch = useDispatch();
@@ -20,8 +21,8 @@ const Profile = () => {
 
     const fetchUserDetails = async () => {
         try {
-            const response = await fetch(SummaryApi.userDetails.url, {
-                method: SummaryApi.userDetails.method,
+            const response = await fetch(SummaryApi.current_user.url, {
+                method: SummaryApi.current_user.method,
                 credentials: 'include'
             });
             const data = await response.json();
@@ -111,6 +112,19 @@ const Profile = () => {
                     </div>
                 </div>
             </div>
+
+             {/* Orders Section */}
+                            <div className="mt-8 bg-white rounded-lg shadow-md max-w-2xl mx-auto p-6">
+                <h2 className="text-xl font-semibold mb-4">Your Orders</h2>
+                <Link 
+                    to="/order" 
+                    className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                    <span>View Order History</span>
+                    <span className="text-gray-400">›</span>
+                </Link>
+                </div>         
+
 
             {/* Edit Modal */}
             {showEditModal && (

@@ -39,6 +39,11 @@ const addWalletBalanceController = require('../controller/admin/addWalletBalance
 const getWalletBalanceController = require('../controller/admin/getWalletBalanceController')
 const deductWalletController = require('../controller/admin/deductWalletController ')
 const updateUserProfileController = require('../controller/user/updateUserProfileController')
+const uploadDeveloperController = require('../controller/admin/uploadDeveloper')
+const getAllDevelopersController = require('../controller/admin/getDeveloper')
+const createOrder = require('../controller/order/createOrder')
+const getUserOrders = require('../controller/order/getUserOrder')
+const getOrderDetails = require('../controller/order/getOrderDetails')
 
 
 router.post("/signup", userSignUpController)
@@ -54,6 +59,8 @@ router.post("/update-user", authToken, updateUser)
 router.post("/wallet/add-balance", authToken, addWalletBalanceController)
 router.get("/wallet/balance", authToken, getWalletBalanceController)
 router.post("/wallet/deduct", authToken, deductWalletController);
+router.post("/upload-developer", authToken, uploadDeveloperController)
+router.get("/get-developer", getAllDevelopersController)
 
 // product
 router.post("/upload-product", authToken, UploadProductController )
@@ -81,6 +88,10 @@ router.post("/delete-cart-product", authToken, deleteAddToCartProduct)
 router.post("/checkout",authToken,paymentController)
 router.get("/order-list", authToken, orderController)
 router.get("/all-order",authToken, allOrderController)
+
+router.post("/create-order", authToken, createOrder)
+router.get("/get-order", authToken, getUserOrders)
+router.post("/order-details", authToken, getOrderDetails)
 
 // ads
 router.post("/upload-ad", authToken, UploadAdController)

@@ -1,37 +1,39 @@
 const mongoose = require('mongoose')
 
 const orderSchema = new mongoose.Schema({
-    productDetails :{
-        type : Array,
-        default : []
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user',
+        required: true
     },
-    email : {
-        type : String,
-        default : ""
+    productId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'product',
+        required: true
     },
-    userId : {
-        type : String,
-        default : ""
+    quantity: {
+        type: Number,
+        required: true,
+        default: 1
     },
-    paymentDetails : {
-        paymentId : {
-           type : String,
-            default : "" 
-        },
-        payment_method_type : [],
-        payment_status : {
-            type : String,
-            default : ""
-        }
+    price: {
+        type: Number,
+        required: true
     },
-    shipping_options : [],
-    totalAmount : {
-        type : Number,
-        default : 0
+    status: {
+        type: String,
+        enum: ['pending', 'in_progress', 'completed'],
+        default: 'pending'
+    },
+    projectProgress: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
     }
-},{
-    timestamps : true
-})
+}, {
+    timestamps: true
+});
 
 const orderModel = mongoose.model('order',orderSchema)
 

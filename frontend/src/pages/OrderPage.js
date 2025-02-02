@@ -1,98 +1,160 @@
-import React, { useEffect, useState } from 'react'
-import SummaryApi from '../common'
-import moment from 'moment'
-import displayINRCurrency from '../helpers/displayCurrency'
+import React, { useState, useEffect } from 'react';
+import { BsCalendar3 } from 'react-icons/bs';
+import { IoBarChartSharp } from 'react-icons/io5';
+import SummaryApi from '../common';
+import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const OrderPage = () => {
-  const [data,setData] = useState([])
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const fetchOrderDetails = async()=>{
-    const response = await fetch(SummaryApi.getOrder.url,{
-      method : SummaryApi.getOrder.method,
-      credentials : 'include'
-    })
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
-    const responseData = await response.json()
+  const fetchOrders = async () => {
+    try {
+      const response = await fetch(SummaryApi.ordersList.url, {
+        method: SummaryApi.ordersList.method,
+        credentials: 'include',
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setOrders(data.data);
+      } else {
+        toast.error('Failed to fetch orders');
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      toast.error('Something went wrong');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    setData(responseData.data)
-  }
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
 
-  useEffect(()=>{
-    fetchOrderDetails()
-  },[])
+  const formatTime = (date) => {
+    return new Date(date).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const isWebsiteService = (category = '') => {
+    return ['static_websites', 'standard_websites', 'dynamic_websites'].includes(category?.toLowerCase());
+  };
 
   return (
+    <div className="container mx-auto p-4 mb-20">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-2xl font-bold mb-6">Your Orders</h1>
+        
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-gray-100 rounded-lg h-40 animate-pulse"/>
+            ))}
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 mb-4">No orders found</p>
+            <Link to="/" className="text-blue-500 hover:text-blue-600">
+              Continue Shopping
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {orders.map((order) => (
+              <div key={order._id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="bg-gray-50 p-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-lg font-semibold">
+                        {order.productId?.serviceName}
+                      </span>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {order.productId?.category?.split('_').join(' ')}
+                      </p>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      Order #{order._id.slice(-6)}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="p-6">
+                  {isWebsiteService(order.productId?.category) ? (
+                    <div className="space-y-6">
+                      {/* Success Message for Website Services */}
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <p className="text-green-700 text-center font-medium">
+                          Congratulations! Your website project has been initiated successfully.
+                        </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="flex items-center space-x-3">
+                          <BsCalendar3 className="h-5 w-5 text-blue-500" />
+                          <div>
+                            <p className="text-sm text-gray-500">Project Start</p>
+                            <p className="font-medium">{formatDate(order.createdAt)}</p>
+                            <p className="text-sm text-gray-500">{formatTime(order.createdAt)}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3">
+                          <IoBarChartSharp className="h-5 w-5 text-blue-500" />
+                          <div className="flex-1">
+                            <p className="text-sm text-gray-500">Project Progress</p>
+                            <div className="mt-2">
+                              <div className="h-2 w-full bg-gray-200 rounded-full">
+                                <div 
+                                  className="h-2 bg-blue-500 rounded-full transition-all duration-1000" 
+                                  style={{ width: '0%' }}
+                                />
+                              </div>
+                              <p className="text-sm font-medium mt-1">0% Complete</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center">
     <div>
-      {
-        !data [0] && (
-          <p>No Order Available</p>
-        )
-      }
-
-      <div className='p-4 w-full'>
-        {
-          data.map((item,index)=>{
-            return(
-              <div key={item.userId+index}>
-                <p className='font-medium text-lg'>{moment(item.createdAt).format('LL')}</p>
-                <div className='border rounded'>
-
-               <div className='flex flex-col lg:flex-row justify-between'>
-               <div className='grid gap-1'>
-                {
-                  item.productDetails.map((product,index)=>{
-                    return(
-                      <div key={product.productId+index} className='flex gap-3 bg-slate-100'>
-                      <img 
-                      src={product.image[0]}
-                        className='w-28 h-28 bg-slate-200 object-scale-down p-2'
-                      />
-                      <div>
-                      <div className='font-medium text-lg text-ellipsis line-clamp-1'>{product.name}</div>
-                        <div className='flex items-center gap-5 mt-1'>
-                          <div className='text-lg text-red-500'>{displayINRCurrency(product.price)}</div>
-                          <p>Quantity: {product.quantity}</p>
-                        </div>
-                      </div>
-                      </div>
-                    )
-                  })
-                } 
-                </div>
-                <div className='flex flex-col gap-4 p-2 min-w-[300px]'>
-                <div>
-                  <div className='text-lg font-medium'>Payment Details : </div>
-                  <p className='ml-1'>Payment method : {item.paymentDetails.payment_method_type[0]}</p>
-                  <p className='ml-1'>Payment Status : {item.paymentDetails.payment_status}</p>
-                </div>
-
-                <div>
-                  <div className='text-lg font-medium'>Shipping Details :</div>
-                  {
-                    item.shipping_options.map((shipping,index)=>{
-                      return(
-                        <div key={shipping.shipping_rate} className=' ml-1'>
-                          Shipping Amount : {shipping.shipping_amount}
-                        </div>
-                      )
-                    })
-                  }
-                </div>
-                </div>
-               </div>
-
-                <div className='font-semibold ml-auto w-fit lg:text-lg'>
-                  Total Amount : {item.totalAmount}
-                </div>
-
-                </div>
-              </div>
-            )
-          })
-        }
+      <p className="text-gray-500">Ordered on {formatDate(order.createdAt)}</p>
+      <div className="flex flex-col mt-2 gap-1">
+        <p className="font-medium">
+          Quantity: {order.quantity}
+        </p>
+        <p className="font-medium text-red-600">
+          Total: ₹{order.price}
+        </p>
       </div>
     </div>
-  )
-}
+    <div className="text-sm px-3 py-1 bg-green-100 text-green-800 rounded-full capitalize">
+      {order.status}
+    </div>
+  </div>
+)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
-export default OrderPage
+export default OrderPage;
