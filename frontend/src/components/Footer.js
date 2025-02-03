@@ -24,17 +24,18 @@ const Footer = () => {
             </div>
           </Link>
          
-          <Link to={"/cart"}>
-            <div className="flex flex-col text-white items-center relative">
-              <IoCartOutline className="w-6 h-6" />
-              {context?.cartProductCount > 0 && (
-                <div className="absolute -top-2 -right-2 bg-red-600 text-white w-4 h-4 rounded-full flex items-center justify-center">
-                  <p className="text-xs">{context?.cartProductCount}</p>
-                </div>
-              )}
-              <span className="text-xs">Cart</span>
+          {/* Cart Link */}
+      <Link to={"/cart"}>
+        <div className="flex flex-col text-white items-center relative">
+          <IoCartOutline className="w-6 h-6" />
+          {user?._id && context?.cartProductCount > 0 && ( // user?._id का check add करें
+            <div className="absolute -top-2 -right-2 bg-red-600 text-white w-4 h-4 rounded-full flex items-center justify-center">
+              <p className="text-xs">{context?.cartProductCount}</p>
             </div>
-          </Link>
+          )}
+          <span className="text-xs">Cart</span>
+        </div>
+      </Link>
 
           <div className="flex flex-col text-white items-center">
             <IoWalletOutline className="w-6 h-6" />

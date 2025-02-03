@@ -10,7 +10,8 @@ import { toast } from 'react-toastify';
 import { setUserDetails } from '../store/userSlice';
 import ROLE from '../common/role';
 import Context from '../context';
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeftLong } from "react-icons/fa6";
+// import { FaArrowLeft } from "react-icons/fa";
 // import { IoIosNotifications } from "react-icons/io";
 // import { BiSolidUser } from "react-icons/bi";
 import { IoWalletOutline } from "react-icons/io5";
@@ -221,10 +222,10 @@ if(value){
    {showBackButton && (
      <button 
        onClick={onBack} 
-       className='p-2 hover:bg-gray-100  mr-2'
+       className='p-2 text-white mr-2'
        aria-label="Go back"
      >
-       <FaArrowLeft size={24} />
+       <FaArrowLeftLong size={24} />
      </button>
    )}
    <div className="flex-1 flex items-center border rounded-lg border-gray-500 focus-within:shadow">
