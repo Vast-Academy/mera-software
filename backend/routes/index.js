@@ -44,6 +44,9 @@ const getAllDevelopersController = require('../controller/admin/getDeveloper')
 const createOrder = require('../controller/order/createOrder')
 const getUserOrders = require('../controller/order/getUserOrder')
 const getOrderDetails = require('../controller/order/getOrderDetails')
+const getProjectsController = require('../controller/admin/getProjectController')
+const updateProgressController = require('../controller/admin/updateProgressController')
+const sendMessageController = require('../controller/admin/sendMessageController')
 
 
 router.post("/signup", userSignUpController)
@@ -61,6 +64,9 @@ router.get("/wallet/balance", authToken, getWalletBalanceController)
 router.post("/wallet/deduct", authToken, deductWalletController);
 router.post("/upload-developer", authToken, uploadDeveloperController)
 router.get("/get-developer", getAllDevelopersController)
+router.get("/get-projects", authToken, getProjectsController)
+router.post("/update-project-progress", authToken, updateProgressController)
+router.post("/project-message", authToken, sendMessageController)
 
 // product
 router.post("/upload-product", authToken, UploadProductController )
@@ -91,7 +97,7 @@ router.get("/all-order",authToken, allOrderController)
 
 router.post("/create-order", authToken, createOrder)
 router.get("/get-order", authToken, getUserOrders)
-router.post("/order-details", authToken, getOrderDetails)
+router.get("/order-details/:orderId", authToken, getOrderDetails)
 
 // ads
 router.post("/upload-ad", authToken, UploadAdController)

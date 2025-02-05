@@ -3,15 +3,20 @@ import { FiArrowRight } from "react-icons/fi";
 import { LuSmartphone } from "react-icons/lu";
 import { BsFillBarChartFill, BsCalendar3 } from "react-icons/bs";
 import { IoBarChartSharp } from 'react-icons/io5';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import SummaryApi from '../common';
 
 const AppConvertingBanner = () => {
+  const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
   const [orders, setOrders] = useState([]);
+
+  const handleOrderClick = (orderId) => {
+    navigate(`/project-details/${orderId}`);
+  };
   
   // Get user from Redux store
   const user = useSelector(state => state?.user?.user);
@@ -108,9 +113,11 @@ const AppConvertingBanner = () => {
         <div className="relative">
           {user?._id ? (
             orders.length > 0 ? (
-              // Show the latest website order
               <div className="px-4">
-                <div className="bg-white rounded-lg overflow-hidden">
+                <div 
+                  className="bg-white rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => handleOrderClick(orders[0]._id)}
+                >
                   <div className="bg-gray-50 p-4">
                     <div className="flex justify-between items-center">
                       <div>
@@ -129,11 +136,19 @@ const AppConvertingBanner = () => {
                   
                   <div className="p-4">
                     <div className="space-y-6">
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <p className="text-green-700 text-center font-medium">
-                          Your website project is in progress
-                        </p>
-                      </div>
+                      {orders[0].projectProgress === 0 ? (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <p className="text-green-700 text-center font-medium">
+                            Congratulations! Your website project has been initiated successfully.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <p className="text-blue-700 text-center font-medium">
+                            Your project is in progress. Check updates below.
+                          </p>
+                        </div>
+                      )}
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="flex items-center space-x-3">
@@ -153,10 +168,10 @@ const AppConvertingBanner = () => {
                               <div className="h-2 w-full bg-gray-200 rounded-full">
                                 <div 
                                   className="h-2 bg-blue-500 rounded-full transition-all duration-1000" 
-                                  style={{ width: '0%' }}
+                                  style={{ width: `${orders[0].projectProgress}%` }}
                                 />
                               </div>
-                              <p className="text-sm font-medium mt-1">0% Complete</p>
+                              <p className="text-sm font-medium mt-1">{orders[0].projectProgress}% Complete</p>
                             </div>
                           </div>
                         </div>

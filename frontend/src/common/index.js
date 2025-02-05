@@ -147,7 +147,19 @@ const SummaryApi = {
     },
     orderDetails: {
         url : `${backendDomain}/api/order-details`,
+        method: "get"
+    },
+    adminProjects : {
+        url : `${backendDomain}/api/get-projects`,
+        method : "get"
+    },
+    updateProjectProgress: {
+        url : `${backendDomain}/api/update-project-progress`,
         method: "post"
+    },
+    sendProjectMessage: {
+        url : `${backendDomain}/api/project-message`,
+        method : "post"
     },
     wallet : {
         balance :{

@@ -1,30 +1,96 @@
 const orderProductModel = require("../../models/orderProductModel")
+const productModel =  require("../../models/productModel")
 
 const createOrder = async (req, res) => {
-    try {
+     try {
         const { productId, quantity, price } = req.body;
-        const userId = req.userId; // From auth middleware
+        const userId = req.userId;
 
-        const order = new orderProductModel({
+        // Fetch product details
+        const product = await productModel.findById(productId);
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found"
+            });
+        }
+
+        // Check if it's a website service
+        const isWebsiteService = ['static_websites', 'standard_websites']
+            .includes(product.category);
+
+        let orderData = {
             userId,
             productId,
             quantity,
             price,
-            status: 'pending'
-        });
+            isWebsiteProject: isWebsiteService
+        };
 
+        // If it's a website service, add checkpoints
+        if (isWebsiteService) {
+            // Fixed checkpoints
+            const structureCheckpoints = [
+                { checkpointId: 1, name: "Website Structure ready", percentage: 2, completed: false },
+                { checkpointId: 2, name: "Header created", percentage: 5, completed: false },
+                { checkpointId: 3, name: "Footer created", percentage: 5, completed: false },
+            ];
+
+            // Calculate percentage for pages
+            const remainingPercentage = 78;
+            const percentagePerPage = Number((remainingPercentage / product.totalPages).toFixed(2));
+
+            // Generate page checkpoints
+            const pageCheckpoints = Array.from(
+                { length: product.totalPages },
+                (_, index) => ({
+                    checkpointId: index + 4,
+                    name: index < 4 ? 
+                        ["Home Page", "About Us Page", "Contact Us Page", "Gallery Page"][index] :
+                        `Additional Page ${index - 3}`,
+                    percentage: percentagePerPage,
+                    completed: false
+                })
+            );
+
+            // Final testing checkpoint
+            const finalCheckpoint = [
+                { 
+                    checkpointId: product.totalPages + 4,
+                    name: "Final Testing",
+                    percentage: 10,
+                    completed: false
+                }
+            ];
+
+            orderData.checkpoints = [
+                ...structureCheckpoints,
+                ...pageCheckpoints,
+                ...finalCheckpoint
+            ];
+            orderData.projectProgress = 0;
+            orderData.messages = [];
+        }
+
+        const order = new orderProductModel(orderData);
         await order.save();
 
-        return res.status(201).json({
+        // Fetch the saved order with populated fields
+        const populatedOrder = await orderProductModel.findById(order._id)
+            .populate('userId', 'name email')
+            .populate('productId', 'serviceName category totalPages');
+
+        res.status(201).json({
+            message: "Order created successfully",
             success: true,
-            message: 'Order created successfully',
-            data: order
+            data: populatedOrder
         });
+
     } catch (error) {
-        console.error('Create order error:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Failed to create order'
+        console.error('Error creating order:', error);
+        res.status(500).json({
+            message: error.message,
+            success: false
         });
     }
 };

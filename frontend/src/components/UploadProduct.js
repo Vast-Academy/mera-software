@@ -18,18 +18,66 @@ const UploadProduct = ({
     onClose,
     fetchData
 }) => {
+  const BASE_PAGES = [
+    "Home Page",
+    "About Us Page",
+    "Contact Us Page",
+    "Gallery Page"
+  ];
+
   const [categories, setCategories] = useState([]);
     const [data, setData] = useState({
         serviceName : "",
         category : "",
-        packageIncludes : "",
-        perfectFor : "",
+        packageIncludes : [],
+        perfectFor : [],
         serviceImage : [],
          price : "",
         sellingPrice : "",
         description : "",
         websiteTypeDescription : "",   
+        // Website service specific fields
+    isWebsiteService: false,
+    totalPages: 4, // Starts with minimum 4 pages
+    checkpoints: []
     })
+
+
+      // Calculate checkpoints whenever totalPages changes
+  useEffect(() => {
+    if (data.isWebsiteService && data.totalPages >= 4) {
+      // Structure checkpoints
+      const structureCheckpoints = [
+        { name: "Website Structure ready", percentage: 2 },
+        { name: "Header created", percentage: 5 },
+        { name: "Footer created", percentage: 5 },
+      ];
+
+      // Calculate percentage per page
+      const remainingPercentage = 78; // 100 - (2 + 5 + 5 + 10)
+      const percentagePerPage = Number((remainingPercentage / data.totalPages).toFixed(2));
+
+      // Generate page checkpoints (fixed + additional if any)
+      const pageCheckpoints = Array.from({ length: data.totalPages }, (_, index) => ({
+        name: index < 4 ? BASE_PAGES[index] : `Additional Page ${index - 3}`,
+        percentage: percentagePerPage
+      }));
+
+      // Final testing checkpoint
+      const finalCheckpoint = [{ name: "Final Testing", percentage: 10 }];
+
+      // Combine all checkpoints
+      setData(prev => ({
+        ...prev,
+        checkpoints: [
+          ...structureCheckpoints,
+          ...pageCheckpoints,
+          ...finalCheckpoint
+        ]
+      }));
+    }
+  }, [data.totalPages, data.isWebsiteService]);
+
 
      // Fetch categories when component mounts
      useEffect(() => {
@@ -184,6 +232,55 @@ const shouldShowWebsiteFields = (category) => {
           {
             shouldShowWebsiteFields(data.category) && (
               <>
+              {/* Number of Pages Dropdown */}
+            <div className='mt-3'>
+              <label htmlFor='totalPages' className='block mb-2'>
+                Number of Pages: <span className='text-sm text-gray-500'>(Includes {BASE_PAGES.join(", ")})</span>
+              </label>
+              <select
+                id='totalPages'
+                name='totalPages'
+                value={data.totalPages}
+                onChange={(e) => setData(prev => ({
+                  ...prev,
+                  totalPages: parseInt(e.target.value)
+                }))}
+                className='w-full p-2 bg-slate-100 border rounded'
+              >
+                {Array.from({ length: 47 }, (_, i) => i + 4).map((num) => (
+                  <option key={num} value={num}>
+                    {num} Pages {num === 4 ? '(Minimum)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Display checkpoints */}
+            {data.checkpoints.length > 0 && (
+              <div className='mt-3'>
+                <label className='block mb-2'>Progress Checkpoints:</label>
+                <div className='bg-slate-50 p-3 rounded mt-1 max-h-60 overflow-y-auto'>
+                  {data.checkpoints.map((checkpoint, index) => (
+                    <div 
+                      key={index} 
+                      className={`flex justify-between items-center py-1 border-b last:border-0 ${
+                        BASE_PAGES.includes(checkpoint.name) ? 'font-medium' : ''
+                      }`}
+                    >
+                      <span className='text-sm'>{checkpoint.name}</span>
+                      <span className='text-sm text-gray-600'>{checkpoint.percentage}%</span>
+                    </div>
+                  ))}
+                  <div className='mt-2 pt-2 border-t'>
+                    <div className='flex justify-between font-medium'>
+                      <span>Total Pages:</span>
+                      <span>{data.totalPages}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
               <label htmlFor='packageIncludes' className='mt-3'>Package Includes:</label>
           <Select
             options={packageOptions}

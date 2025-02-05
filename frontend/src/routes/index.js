@@ -20,6 +20,8 @@ import AllAds from "../pages/AllAds";
 import WalletManagement from "../pages/WalletManagement";
 import Profile from "../pages/Profile";
 import AllDevelopers from "../pages/AllDevelopers";
+import AdminProjects from "../pages/AdminProjects";
+import ProjectDetails from "../pages/ProjectDetails";
 
 
 const router = createBrowserRouter([
@@ -76,12 +78,20 @@ const router = createBrowserRouter([
                 element : <Profile/>
             },
             {
+                path : "project-details/:orderId",
+                element : <ProjectDetails/>
+            },
+            {
                 path: "admin-panel",
                 element : <AdminPanel/>,
                 children :[
                     {
                         path: "all-users",
                         element : <AllUsers/>
+                    },
+                    {
+                        path : "projects",
+                        element : <AdminProjects/>
                     },
                     {
                         path: "all-developers",

@@ -2,8 +2,8 @@ const orderProductModel = require("../../models/orderProductModel")
 
 const getOrderDetails = async (req, res) => {
     try {
-        const { orderId } = req.body;
-        const userId = req.user._id;
+        const orderId = req.params.orderId;  // Changed from req.body to req.params
+        const userId = req.userId;
 
         const order = await orderProductModel.findOne({ _id: orderId, userId })
             .populate({
@@ -31,4 +31,4 @@ const getOrderDetails = async (req, res) => {
     }
 };
 
-module.exports = getOrderDetails
+module.exports = getOrderDetails;
