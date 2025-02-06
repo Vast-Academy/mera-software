@@ -19,7 +19,7 @@ const OrderPage = () => {
   useEffect(() => {
     fetchOrders();
     // Set up polling for updates every 30 seconds
-    const interval = setInterval(fetchOrders, 30000);
+    const interval = setInterval(fetchOrders, 5000);
     return () => clearInterval(interval);
   }, []);
 
