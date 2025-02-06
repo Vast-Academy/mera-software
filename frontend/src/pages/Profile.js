@@ -7,12 +7,14 @@ import { setUserDetails } from '../store/userSlice';
 import { FaEdit } from "react-icons/fa";
 import EditProfileModal from '../components/EditProfileModal';
 import { Link } from 'react-router-dom';
+import TriangleMazeLoader from '../components/TriangleMazeLoader';
 
 const Profile = () => {
     const dispatch = useDispatch();
     const user = useSelector(state => state?.user?.user);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true); // Start with true since we fetch on mount
+    const [updateLoading, setUpdateLoading] = useState(false);
 
     // Fetch latest user data when component mounts
     useEffect(() => {
@@ -20,6 +22,7 @@ const Profile = () => {
     }, []);
 
     const fetchUserDetails = async () => {
+        setLoading(true); // Show loading when fetching
         try {
             const response = await fetch(SummaryApi.current_user.url, {
                 method: SummaryApi.current_user.method,
@@ -32,10 +35,13 @@ const Profile = () => {
         } catch (error) {
             console.error("Error fetching user details:", error);
         }
+        finally {
+            setLoading(false); // Hide loading when done
+        }
     };
 
     const handleProfileUpdate = async (updatedData) => {
-        setLoading(true);
+        setUpdateLoading(true);
         try {
             const response = await fetch(SummaryApi.updateProfile.url, {
                 method: SummaryApi.updateProfile.method,
@@ -59,12 +65,21 @@ const Profile = () => {
             console.error("Error updating profile:", error);
             toast.error("Failed to update profile");
         } finally {
-            setLoading(false);
+            setUpdateLoading(false);
         }
     };
 
     return (
         <div className="container mx-auto p-4 mb-20">
+            {/* Show loading overlay when either loading state is true */}
+            {(loading || updateLoading) && (
+                <div className="fixed inset-0 bg-black bg-opacity-10  flex items-center justify-center z-50">
+                    <div className="rounded-lg p-8">
+                        <TriangleMazeLoader />
+                    </div>
+                </div>
+            )}
+
             <div className="bg-white rounded-lg shadow-md max-w-2xl mx-auto p-6">
                 <div className="flex items-start gap-6">
                     {/* Profile Image */}
@@ -132,7 +147,7 @@ const Profile = () => {
                     user={user}
                     onClose={() => setShowEditModal(false)}
                     onUpdate={handleProfileUpdate}
-                    loading={loading}
+                    loading={updateLoading}
                 />
             )}
         </div>
