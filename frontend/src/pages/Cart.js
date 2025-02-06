@@ -5,6 +5,7 @@ import displayINRCurrency from '../helpers/displayCurrency'
 import { MdDelete } from "react-icons/md";
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import TriangleMazeLoader from '../components/TriangleMazeLoader';
 // import {loadStripe} from '@stripe/stripe-js'
 
 const Cart = () => {
@@ -13,6 +14,7 @@ const Cart = () => {
     const [loading,setLoading] = useState(false)
     const context = useContext(Context)
     const loadingCart = new Array(context.cartProductCount).fill(null)
+    const [paymentLoading, setPaymentLoading] = useState(false);
 
     const fetchData = async()=>{
         const response = await fetch(SummaryApi.addToCartProductView.url,{
@@ -47,6 +49,8 @@ const Cart = () => {
     }, [])
 
     const increaseQty = async(id,qty)=>{
+        try {
+            setLoading(true)
         const response = await fetch(SummaryApi.updateCartProduct.url,{
             method : SummaryApi.updateCartProduct.method,
             credentials : 'include',
@@ -62,11 +66,16 @@ const Cart = () => {
         })
 
         const responseData = await response.json()
-
         if(responseData.success){
             fetchData()
         }
+
+    } catch (error) {
+        console.error("Error updating quantity:", error);
+    } finally {
+        setLoading(false);  // Action complete होने पर loading हटा दें
     }
+ }
 
     const descreaseQty = async(id,qty)=>{
         if(qty >= 2){
@@ -93,6 +102,8 @@ const Cart = () => {
     }
 
     const deleteCartProduct = async(id)=>{
+        try {
+            setLoading(true)
         const response = await fetch(SummaryApi.deleteCartProduct.url,{
             method : SummaryApi.deleteCartProduct.method,
             credentials : 'include',
@@ -112,10 +123,16 @@ const Cart = () => {
             fetchData()
             context.fetchUserAddToCart()
         }
+    } catch (error) {
+        console.error("Error deleting product:", error);
+    } finally {
+        setLoading(false);
+    }
     }
 
     const handlePayment = async () => {
         try {
+            setPaymentLoading(true); 
           // First check if user has sufficient balance
           if (context.walletBalance < totalPrice) {
             toast.error("Insufficient wallet balance!");
@@ -171,12 +188,33 @@ const Cart = () => {
           console.error("Payment error:", error);
           toast.error("Payment failed!");
         }
+        finally {
+            setPaymentLoading(false); // Stop payment loading
+        }
     };
 
     const totalQty = data.reduce((previousValue,currentValue)=> previousValue + currentValue.quantity, 0)
     const totalPrice = data.reduce((preve,curr)=>preve + (curr.quantity * curr?.productId?.sellingPrice), 0)
   return (
     <div className='container mx-auto'>
+        {/* Add payment loading overlay */}
+        {paymentLoading && (
+                <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
+                    <div className="rounded-lg p-8  flex flex-col items-center">
+                        <TriangleMazeLoader />
+                        <p className="text-center mt-4 text-gray-600">Processing Payment...</p>
+                    </div>
+                </div>
+            )}
+
+         {/* Loading overlay - सबसे पहले check करें */}
+         {loading && (
+                <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
+                    <div className="rounded-lg p-8">
+                        <TriangleMazeLoader />
+                    </div>
+                </div>
+            )}
 
         <div className='text-center text-lg my-3'>
             {
@@ -253,7 +291,13 @@ const Cart = () => {
                     <p>{displayINRCurrency (totalPrice)}</p>
                     </div>
 
-                    <button className='bg-blue-600 p-2 text-white w-full mt-2' onClick={handlePayment}>Payment</button>
+                     <button 
+                className={`bg-blue-600 p-2 text-white w-full mt-2 ${paymentLoading ? 'opacity-70 cursor-not-allowed' : ''}`} 
+                onClick={handlePayment}
+                disabled={paymentLoading}
+            >
+                {paymentLoading ? 'Processing...' : 'Payment'}
+            </button>
                  </div>
                 )
             }

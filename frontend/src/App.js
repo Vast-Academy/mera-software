@@ -90,7 +90,10 @@ function App() {
         setWalletBalance, // Add this to allow components to update wallet balance
         fetchWalletBalance
       }}>
-        <ToastContainer position='top-center' />
+        <ToastContainer
+         position='top-center' 
+         autoClose={1000}
+         />
         <Header />
         <main className='min-h-[calc(100vh-120px)] pt-24 md:pt-16'>
           <Outlet />
