@@ -9,6 +9,7 @@ import SummaryApi from './common';
 import Context from './context';
 import { useDispatch } from 'react-redux';
 import { setUserDetails, updateWalletBalance } from './store/userSlice';
+import { LoadingProvider } from './context/LoadingContext';
 
 function App() {
   const dispatch = useDispatch();
@@ -82,6 +83,7 @@ function App() {
 
   return (
     <>
+     <LoadingProvider>
       <Context.Provider value={{
         fetchUserDetails,
         cartProductCount,
@@ -97,6 +99,7 @@ function App() {
         </main>
         <Footer />
       </Context.Provider>
+      </LoadingProvider>
     </>
   );
 }
