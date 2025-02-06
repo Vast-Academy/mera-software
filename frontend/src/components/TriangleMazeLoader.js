@@ -10,7 +10,7 @@ const LoaderContainer = ({ children, label }) => (
 
 // Triangle Maze Loader
 const TriangleMazeLoader = () => (
-  <LoaderContainer label="Triangle Maze">
+  <LoaderContainer label="Loading">
     <div className="relative w-16 h-16">
       <div className="absolute inset-0 animate-spin">
         {Array.from({ length: 3 }).map((_, i) => (

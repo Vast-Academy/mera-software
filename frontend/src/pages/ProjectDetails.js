@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import SummaryApi from '../common';
 import TriangleMazeLoader from '../components/TriangleMazeLoader';
-import { useLoading } from '../context/LoadingContext';
 
 const ProjectDetails = () => {
-  const { setIsNavigating } = useLoading();
   const { orderId } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +26,6 @@ const ProjectDetails = () => {
       console.error("Error:", error);
     } finally {
       setLoading(false);
-      setIsNavigating(false);
     }
   };
 
@@ -48,11 +45,11 @@ const ProjectDetails = () => {
     });
   };
 
-  if (loading || !order) return   <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
-  <div className="rounded-lg p-8">
-    <TriangleMazeLoader />
-  </div>
-</div>
+  if (loading || !order) return   <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
+            <div className="rounded-lg p-8">
+              <TriangleMazeLoader />
+            </div>
+          </div>
 
   return (
     <div className="max-w-xl mx-auto bg-gray-50 min-h-screen p-4">
