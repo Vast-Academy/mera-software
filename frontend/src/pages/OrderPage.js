@@ -5,6 +5,7 @@ import { BsChatDots } from 'react-icons/bs';
 import SummaryApi from '../common';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import TriangleMazeLoader from '../components/TriangleMazeLoader';
 
 const OrderPage = () => {
   const navigate = useNavigate();
@@ -144,10 +145,8 @@ const OrderPage = () => {
         <h1 className="text-2xl font-bold mb-6">Your Orders</h1>
         
         {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-gray-100 rounded-lg h-40 animate-pulse"/>
-            ))}
+          <div className="flex items-center justify-center min-h-[400px]">
+            <TriangleMazeLoader />
           </div>
         ) : orders.length === 0 ? (
           <div className="text-center py-12">
