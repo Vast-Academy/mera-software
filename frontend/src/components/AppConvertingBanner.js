@@ -26,8 +26,8 @@ const AppConvertingBanner = () => {
     if (user?._id) {
       fetchOrders();
 
-      // Set up polling for updates every 30 seconds
-    const interval = setInterval(fetchOrders, 5000);
+      // Set up polling for updates every 3 seconds
+    const interval = setInterval(fetchOrders, 3000);
     return () => clearInterval(interval);
     }
   }, [user]);
