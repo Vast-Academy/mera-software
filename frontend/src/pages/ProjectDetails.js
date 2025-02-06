@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import SummaryApi from '../common';
+import TriangleMazeLoader from '../components/TriangleMazeLoader';
 
 const ProjectDetails = () => {
   const { orderId } = useParams();
@@ -44,7 +45,9 @@ const ProjectDetails = () => {
     });
   };
 
-  if (loading || !order) return <div>Loading...</div>;
+  if (loading || !order) return <div className="flex items-center justify-center min-h-[400px]">
+  <TriangleMazeLoader />
+</div>
 
   return (
     <div className="max-w-xl mx-auto bg-gray-50 min-h-screen p-4">
