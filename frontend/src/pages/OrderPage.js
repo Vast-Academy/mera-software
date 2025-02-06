@@ -12,8 +12,10 @@ const OrderPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const handleOrderClick = (orderId) => {
+    setIsNavigating(true);  // Show loader
     navigate(`/project-details/${orderId}`);
   };
 
