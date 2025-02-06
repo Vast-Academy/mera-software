@@ -9,19 +9,28 @@ class WebSocketService {
     connect(userId) {
         if (this.socket) return;
 
-        this.socket = io(process.env.REACT_APP_BACKEND_URL, {
+        this.socket = io(process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080', {
             auth: { userId },
-            withCredentials: true
+            withCredentials: true,
+            transports: ['websocket', 'polling'], // Try WebSocket first, fallback to polling
+            extraHeaders: {
+                'Access-Control-Allow-Origin': '*'
+            }
+        });
+
+        // Add connection event handlers
+        this.socket.on('connect', () => {
+            console.log('WebSocket connected successfully');
+        });
+
+        this.socket.on('connect_error', (error) => {
+            console.error('WebSocket connection error:', error);
         });
 
         // Listen for project updates
         this.socket.on('projectUpdate', (data) => {
-            // Notify all registered callbacks
+            console.log('Received project update:', data);
             this.callbacks.forEach(callback => callback(data));
-        });
-
-        this.socket.on('connect', () => {
-            console.log('WebSocket connected');
         });
 
         this.socket.on('disconnect', () => {
@@ -29,12 +38,10 @@ class WebSocketService {
         });
     }
 
-    // Add a callback for project updates
     onProjectUpdate(id, callback) {
         this.callbacks.set(id, callback);
     }
 
-    // Remove a callback
     removeProjectUpdateCallback(id) {
         this.callbacks.delete(id);
     }
