@@ -9,8 +9,10 @@ async function sendMessageController(req, res) {
         }
 
         const { projectId, message } = req.body
-
         const project = await orderModel.findById(projectId)
+        .populate('userId', 'name email')  // Populate user details
+        .populate('productId')             // Populate product details
+
         if (!project) {
             throw new Error("Project not found")
         }
@@ -24,6 +26,21 @@ async function sendMessageController(req, res) {
 
         // Save the updated project
         await project.save()
+
+        // Get the io instance from req (added by middleware)
+        const io = req.io
+
+        // Emit update to the specific user
+        if (io) {
+            io.to(`user_${project.userId._id}`).emit('projectUpdate', {
+                projectId: project._id,
+                data: {
+                    messages: project.messages,
+                    projectProgress: project.projectProgress,
+                    checkpoints: project.checkpoints
+                }
+            })
+        }
 
         res.status(200).json({
             message: "Message sent successfully",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { FiArrowRight } from "react-icons/fi";
 import { LuSmartphone } from "react-icons/lu";
 import { BsFillBarChartFill, BsCalendar3 } from "react-icons/bs";
@@ -6,9 +6,11 @@ import { IoBarChartSharp } from 'react-icons/io5';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import SummaryApi from '../common';
+import Context from '../context';
 
 const AppConvertingBanner = () => {
   const navigate = useNavigate();
+  const { websocketService } = useContext(Context);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
@@ -25,7 +27,23 @@ const AppConvertingBanner = () => {
   useEffect(() => {
     if (user?._id) {
       fetchOrders();
+
+     // Listen for real-time updates
+      websocketService.onProjectUpdate('banner', (updateData) => {
+        setOrders(prevOrders => 
+          prevOrders.map(order => 
+            order._id === updateData.projectId 
+              ? { ...order, ...updateData.data }
+              : order
+          )
+        );
+      });
     }
+
+    // Cleanup
+    return () => {
+      websocketService.removeProjectUpdateCallback('banner');
+    };
   }, [user]);
 
   const fetchOrders = async () => {
