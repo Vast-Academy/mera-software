@@ -45,8 +45,10 @@ const ProjectDetails = () => {
     });
   };
 
-  if (loading || !order) return <div className="flex items-center justify-center min-h-[400px]">
-  <TriangleMazeLoader />
+  if (loading || !order) return   <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
+  <div className="bg-white bg-opacity-20 rounded-lg p-8">
+    <TriangleMazeLoader />
+  </div>
 </div>
 
   return (

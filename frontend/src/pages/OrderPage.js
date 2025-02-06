@@ -145,8 +145,10 @@ const OrderPage = () => {
         <h1 className="text-2xl font-bold mb-6">Your Orders</h1>
         
         {loading ? (
-          <div className="flex items-center justify-center min-h-[400px]">
-            <TriangleMazeLoader />
+            <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="  rounded-lg p-8">
+              <TriangleMazeLoader />
+            </div>
           </div>
         ) : orders.length === 0 ? (
           <div className="text-center py-12">
