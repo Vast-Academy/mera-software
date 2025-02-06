@@ -9,7 +9,6 @@ import SummaryApi from './common';
 import Context from './context';
 import { useDispatch } from 'react-redux';
 import { setUserDetails, updateWalletBalance } from './store/userSlice';
-import websocketService from './services/websocketService'
 
 function App() {
   const dispatch = useDispatch();
@@ -43,11 +42,6 @@ function App() {
       
       if (dataApi.success && dataApi.data) {
         dispatch(setUserDetails(dataApi.data));
-
-        // Initialize WebSocket connection after getting user details
-        if (dataApi.data._id) {
-          websocketService.connect(dataApi.data._id);
-        }
         
         // Update wallet balance if it exists in user data
         if (dataApi.data.walletBalance !== undefined) {
@@ -84,13 +78,7 @@ function App() {
     };
     
     initializeData();
-
-    return () => {
-      websocketService.disconnect();
-    };
   }, []);
-
-  
 
   return (
     <>
@@ -100,8 +88,7 @@ function App() {
         fetchUserAddToCart,
         walletBalance,
         setWalletBalance, // Add this to allow components to update wallet balance
-        fetchWalletBalance,
-        websocketService
+        fetchWalletBalance
       }}>
         <ToastContainer position='top-center' />
         <Header />

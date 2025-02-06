@@ -1,16 +1,13 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BsCalendar3 } from 'react-icons/bs';
 import { IoBarChartSharp } from 'react-icons/io5';
 import { BsChatDots } from 'react-icons/bs';
 import SummaryApi from '../common';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import Context from '../context';
-
 
 const OrderPage = () => {
   const navigate = useNavigate();
-  const { websocketService } = useContext(Context);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -21,22 +18,9 @@ const OrderPage = () => {
 
   useEffect(() => {
     fetchOrders();
-
-    // Listen for real-time updates
-    websocketService.onProjectUpdate('orderPage', (updateData) => {
-      setOrders(prevOrders => 
-        prevOrders.map(order => 
-          order._id === updateData.projectId 
-            ? { ...order, ...updateData.data }
-            : order
-        )
-      );
-    });
-
-    // Cleanup
-    return () => {
-      websocketService.removeProjectUpdateCallback('orderPage');
-    };
+    // Set up polling for updates every 30 seconds
+    const interval = setInterval(fetchOrders, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchOrders = async () => {
