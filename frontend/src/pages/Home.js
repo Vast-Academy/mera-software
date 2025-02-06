@@ -9,10 +9,11 @@ import HomeSecondBanner from '../components/HomeSecondBanner'
 const Home = () => {
   return (
     <div>
-      
-      <BannerProduct serviceName="home"/>
-      <CategoryList/>
+
       <AppConvertingBanner/>
+      <CategoryList/>
+      <BannerProduct serviceName="home"/>
+
       <HomeSecondBanner/>
       
       {/* <HorizontalCardProduct category={"static_websites"} heading={"Static Websites"}/>  */}

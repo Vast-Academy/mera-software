@@ -27,7 +27,7 @@ const AppConvertingBanner = () => {
       fetchOrders();
 
       // Set up polling for updates every 3 seconds
-    const interval = setInterval(fetchOrders, 3000);
+    const interval = setInterval(fetchOrders, 10000);
     return () => clearInterval(interval);
     }
   }, [user]);
@@ -116,75 +116,75 @@ const AppConvertingBanner = () => {
       <div className="bg-white rounded-xl py-6 px-2 shadow-lg max-w-xl mx-auto overflow-hidden">
         <div className="relative">
           {user?._id ? (
-            orders.length > 0 ? (
-              <div className="px-4">
-                <div 
-                  className="bg-white rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => handleOrderClick(orders[0]._id)}
-                >
-                  <div className="bg-gray-50 p-4">
-                    <div className="flex justify-between items-center">
+           orders.length > 0 ? (
+            <div className="px-4">
+              <div
+                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer p-4"
+                onClick={() => handleOrderClick(orders[0]._id)}
+              >
+                {/* Main container with two columns */}
+                <div className="flex justify-between items-start">
+                  {/* Left column with order details */}
+                  <div className="flex-1 pr-4">
+                    <div className="mb-4">
+                      <h3 className="font-medium text-gray-900">
+                        {orders[0].productId?.serviceName}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                       • {orders[0].productId?.category?.split('_').join(' ')}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        #{orders[0]._id.slice(-6)} 
+                      </p>
+                    </div>
+                    
+                    {/* Project Start Info */}
+                    <div className="flex items-center text-sm text-gray-600">
+                      <BsCalendar3 className="h-4 w-4 text-blue-500 mr-2" />
                       <div>
-                        <span className="text-lg font-semibold">
-                          {orders[0].productId?.serviceName}
-                        </span>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {orders[0].productId?.category?.split('_').join(' ')}
-                        </p>
+                      <span>Started:</span>
+                      <span>{formatDate(orders[0].createdAt)} at {formatTime(orders[0].createdAt)}</span>
                       </div>
-                      <span className="text-sm text-gray-500">
-                        Order #{orders[0]._id.slice(-6)}
-                      </span>
                     </div>
                   </div>
-                  
-                  <div className="p-4">
-                    <div className="space-y-6">
-                      {orders[0].projectProgress === 0 ? (
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                          <p className="text-green-700 text-center font-medium">
-                            Congratulations! Your website project has been initiated successfully.
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <p className="text-blue-700 text-center font-medium">
-                            Your project is in progress. Check updates below.
-                          </p>
-                        </div>
-                      )}
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="flex items-center space-x-3">
-                          <BsCalendar3 className="h-5 w-5 text-blue-500" />
-                          <div>
-                            <p className="text-sm text-gray-500">Project Start</p>
-                            <p className="font-medium">{formatDate(orders[0].createdAt)}</p>
-                            <p className="text-sm text-gray-500">{formatTime(orders[0].createdAt)}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-3">
-                          <IoBarChartSharp className="h-5 w-5 text-blue-500" />
-                          <div className="flex-1">
-                            <p className="text-sm text-gray-500">Project Progress</p>
-                            <div className="mt-2">
-                              <div className="h-2 w-full bg-gray-200 rounded-full">
-                                <div 
-                                  className="h-2 bg-blue-500 rounded-full transition-all duration-1000" 
-                                  style={{ width: `${orders[0].projectProgress}%` }}
-                                />
-                              </div>
-                              <p className="text-sm font-medium mt-1">{orders[0].projectProgress}% Complete</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+          
+                  {/* Right column with larger progress circle */}
+                  <div className="relative w-24 h-24 flex-shrink-0">
+                    <svg className="w-full h-full" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#E5E7EB"
+                        strokeWidth="3"
+                      />
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#3B82F6"
+                        strokeWidth="3"
+                        strokeDasharray={`${orders[0].projectProgress}, 100`}
+                        strokeLinecap="round"
+                      />
+                      <text
+                        x="18"
+                        y="20.35"
+                        className="font-base"
+                        textAnchor="middle"
+                        fill="#374151"
+                        style={{ fontSize: '9px' }}
+                      >
+                        {orders[0].projectProgress}%
+                      </text>
+                    </svg>
                   </div>
                 </div>
               </div>
-            ) : (
+            </div>
+          ) :  (
               // Show welcome message if no website orders
               <div className="px-4 py-2">
                 <h2 className="text-xl font-bold text-gray-800 mb-3">
