@@ -27,6 +27,12 @@ const SingleBanner = ({ serviceName = null, bannerType = null }) => {
         }
     }, [serviceName, bannerType]);
 
+    const handleBannerClick = () => {
+        if (banner?.targetUrl) {
+            window.open(banner.targetUrl, '_blank', 'noopener,noreferrer');
+        }
+    };
+
     useEffect(() => {
         if (serviceName && bannerType) {
             fetchBanner();
@@ -53,9 +59,10 @@ const SingleBanner = ({ serviceName = null, bannerType = null }) => {
         <div className='w-full rounded'>
             <img
                 src={banner.images[0]}
-                className='w-full h-auto object-cover rounded'
+                className='w-full h-auto object-cover cursor-pointer rounded'
                 alt={banner.serviceName}
                 loading="lazy"
+                onClick={handleBannerClick}
             />
         </div>
     );

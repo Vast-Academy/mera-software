@@ -15,6 +15,7 @@ const UploadBanner = ({ onClose, fetchData }) => {
         isActive: true,
         displayOrder: 0,
         duration: 5,
+        targetUrl: '',
     });
 
     const [availableOrders, setAvailableOrders] = useState([]);
@@ -113,6 +114,10 @@ const UploadBanner = ({ onClose, fetchData }) => {
             toast.error("This display order is already taken for the selected position.");
             return;
         }
+        if (data.targetUrl && !isValidUrl(data.targetUrl)) {
+            toast.error("Please enter a valid URL");
+            return;
+        }
     
         try {
             const bannerData = {
@@ -121,7 +126,8 @@ const UploadBanner = ({ onClose, fetchData }) => {
                 position: data.position,
                 displayOrder: data.displayOrder,
                 isActive: data.isActive,
-                duration: data.serviceName === 'home' ? data.duration : undefined
+                duration: data.serviceName === 'home' ? data.duration : undefined,
+                targetUrl: data.targetUrl.trim()
             };
     
             const response = await fetch(SummaryApi.uploadBanner.url, {
@@ -144,6 +150,17 @@ const UploadBanner = ({ onClose, fetchData }) => {
         } catch (error) {
             console.error("Error:", error);
             toast.error("Error uploading banner. Please try again.");
+        }
+    };
+
+    // URL validation helper
+    const isValidUrl = (url) => {
+        if (!url) return true; // Empty URL is valid (optional field)
+        try {
+            new URL(url);
+            return true;
+        } catch (e) {
+            return false;
         }
     };
 
@@ -316,7 +333,21 @@ const UploadBanner = ({ onClose, fetchData }) => {
                         </div>
                     </div>
 
-                    
+                    <div>
+                    <label htmlFor="targetUrl" className="block mb-2">Target URL (Optional):</label>
+                    <input
+                        type="url"
+                        id="targetUrl"
+                        name="targetUrl"
+                        value={data.targetUrl}
+                        onChange={handleOnChange}
+                        placeholder="https://example.com"
+                        className="w-full p-2 border rounded bg-slate-50"
+                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                        Enter the URL where users should be directed when clicking the banner
+                    </p>
+                </div>
 
                     {/* Active Status */}
                     <div className="flex items-center gap-2">

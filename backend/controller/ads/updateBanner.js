@@ -22,6 +22,14 @@ async function updateBannerController(req, res) {
             throw new Error("Display order must be a number")
         }
 
+        if (updateData.targetUrl) {
+            try {
+                new URL(updateData.targetUrl);
+            } catch (e) {
+                throw new Error("Invalid URL format");
+            }
+        }
+
         // Check for existing banner with same position and display order
         const existingBanner = await bannerModel.findOne({
             position: updateData.position,
@@ -38,7 +46,8 @@ async function updateBannerController(req, res) {
             _id,
             {
                 ...updateData,
-                displayOrder: updateData.displayOrder || 0  // Ensure displayOrder is set
+                displayOrder: updateData.displayOrder || 0,  // Ensure displayOrder is set
+                 targetUrl: updateData.targetUrl?.trim() || ''
             },
             { new: true }
         )

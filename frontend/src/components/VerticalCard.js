@@ -112,27 +112,35 @@ const VerticalCard = ({loading, data = [], currentCategory = ''}) => {
         <div className='grid grid-cols-1 gap-6 px-2 pb-4 mb-28'>
             {/* Show top banner */}
             {getBannerForPosition(-1) && (
-                <div className='h-auto md:h-auto w-full bg-slate-200 relative rounded-lg'>
-                    <div className="hidden md:flex h-full w-full overflow-hidden">
-                        <div className='w-full h-full min-h-full min-w-full'>
-                            <img 
-                                src={getBannerForPosition(-1).currentImage}
-                                alt="Top Banner"
-                                className="w-full h-full object-cover rounded-lg"
-                            />
-                        </div>
-                    </div>
-                    <div className="flex h-full w-full overflow-hidden md:hidden rounded-lg">
-                        <div className='w-full h-full min-h-full min-w-full transition-all'>
-                            <img 
-                                src={getBannerForPosition(-1).currentImage}
-                                alt="Top Banner"
-                                className="w-full h-full object-contain rounded-lg"
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
+    <div 
+        className={`h-auto md:h-auto w-full bg-slate-200 relative rounded-lg ${getBannerForPosition(-1).targetUrl ? 'cursor-pointer' : ''}`}
+        onClick={() => {
+            const banner = getBannerForPosition(-1);
+            if (banner.targetUrl) {
+                window.open(banner.targetUrl, '_blank', 'noopener,noreferrer');
+            }
+        }}
+    >
+        <div className="hidden md:flex h-full w-full overflow-hidden">
+            <div className='w-full h-full min-h-full min-w-full'>
+                <img 
+                    src={getBannerForPosition(-1).currentImage}
+                    alt="Top Banner"
+                    className="w-full h-full object-cover rounded-lg"
+                />
+            </div>
+        </div>
+        <div className="flex h-full w-full overflow-hidden md:hidden rounded-lg">
+            <div className='w-full h-full min-h-full min-w-full transition-all'>
+                <img 
+                    src={getBannerForPosition(-1).currentImage}
+                    alt="Top Banner"
+                    className="w-full h-full object-contain rounded-lg"
+                />
+            </div>
+        </div>
+    </div>
+)}
 
             {loading ? (
                 loadingList.map((_, index) => (
@@ -201,29 +209,37 @@ const VerticalCard = ({loading, data = [], currentCategory = ''}) => {
                      {/* Show banner after card if exists */}
 
                      {getBannerForPosition(index) && (
-                        <div className='h-auto md:h-auto w-full bg-slate-200 relative rounded-lg'>
-                        {/* desktop version */}
-                            <div className="hidden md:flex h-full w-full overflow-hidden">
-                            <div className='w-full h-full min-h-full min-w-full'>
-                            <img 
-                                src={getBannerForPosition(index).currentImage}
-                                alt={`Banner after card ${index + 1}`}
-                                className="w-full h-full object-cover rounded-lg"
-                            />
-                            </div>
-                            </div>
-                            {/* mobile version */}
-                            <div className="flex h-full w-full overflow-hidden md:hidden rounded-lg">
-                            <div className='w-full h-full min-h-full min-w-full transition-all'>
-                            <img 
-                                src={getBannerForPosition(index).currentImage}
-                                alt={`Banner after card ${index + 1}`}
-                                className="w-full h-full object-cover rounded-lg"
-                            />
-                            </div>
-                            </div>
-                        </div>
-                    )}
+    <div 
+        className={`h-auto md:h-auto w-full bg-slate-200 relative rounded-lg cursor-pointer ${getBannerForPosition(index).targetUrl ? 'cursor-pointer' : ''}`}
+        onClick={() => {
+            const banner = getBannerForPosition(index);
+            if (banner.targetUrl) {
+                window.open(banner.targetUrl, '_blank', 'noopener,noreferrer');
+            }
+        }}
+    >
+        {/* desktop version */}
+        <div className="hidden md:flex h-full w-full overflow-hidden">
+            <div className='w-full h-full min-h-full min-w-full'>
+                <img 
+                    src={getBannerForPosition(index).currentImage}
+                    alt={`Banner after card ${index + 1}`}
+                    className="w-full h-full object-cover rounded-lg"
+                />
+            </div>
+        </div>
+        {/* mobile version */}
+        <div className="flex h-full w-full overflow-hidden md:hidden rounded-lg">
+            <div className='w-full h-full min-h-full min-w-full transition-all'>
+                <img 
+                    src={getBannerForPosition(index).currentImage}
+                    alt={`Banner after card ${index + 1}`}
+                    className="w-full h-full object-cover rounded-lg"
+                />
+            </div>
+        </div>
+    </div>
+)}
                 </React.Fragment>
                 ))
             )}

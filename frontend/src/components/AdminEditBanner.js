@@ -19,7 +19,8 @@ const AdminEditBanner = ({
         isActive: true,
         serviceName: '',
         position: '',
-        duration: 5
+        duration: 5,
+        targetUrl: ''
     });
 
     const [existingOrders, setExistingOrders] = useState([]);
@@ -112,6 +113,12 @@ const AdminEditBanner = ({
             return;
         }
 
+         // Validate URL if provided
+         if (data.targetUrl && !isValidUrl(data.targetUrl)) {
+            toast.error("Please enter a valid URL");
+            return;
+        }
+
         try {
             const response = await fetch(`${SummaryApi.updateBanner.url}/${data._id}`, {
                 method: SummaryApi.updateBanner.method,
@@ -122,7 +129,8 @@ const AdminEditBanner = ({
                 body: JSON.stringify({
                     ...data,
                     order: undefined,  // Remove old order field
-                    duration: data.position === 'home' ? data.duration : undefined
+                    duration: data.position === 'home' ? data.duration : undefined,
+                    targetUrl: data.targetUrl?.trim() 
                 })
             });
 
@@ -142,6 +150,17 @@ const AdminEditBanner = ({
         } catch (error) {
             console.error("API Error:", error);
             toast.error("Something went wrong!");
+        }
+    };
+
+    // URL validation helper
+    const isValidUrl = (url) => {
+        if (!url) return true; // Empty URL is valid (optional field)
+        try {
+            new URL(url);
+            return true;
+        } catch (e) {
+            return false;
         }
     };
 
@@ -292,6 +311,22 @@ const AdminEditBanner = ({
                                 <p className='text-red-500 text-sm mt-1'>* Please upload at least one banner image</p>
                             )}
                         </div>
+                    </div>
+
+                    <div>
+                        <label htmlFor="targetUrl" className="block mb-2">Target URL (Optional):</label>
+                        <input
+                            type="url"
+                            id="targetUrl"
+                            name="targetUrl"
+                            value={data.targetUrl || ''}
+                            onChange={handleOnChange}
+                            placeholder="https://example.com"
+                            className="w-full p-2 bg-slate-100 border rounded"
+                        />
+                        <p className="text-sm text-gray-500 mt-1">
+                            Enter the URL where users should be directed when clicking the banner
+                        </p>
                     </div>
 
                     {/* Submit Button */}

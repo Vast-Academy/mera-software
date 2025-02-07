@@ -8,7 +8,7 @@ async function UploadBannerController(req, res) {
             throw new Error("Permission denied");
         }
 
-        const { images, serviceName, isActive, displayOrder, position, duration  } = req.body;
+        const { images, serviceName, isActive, displayOrder, position, duration, targetUrl } = req.body;
 
         // Add duration validation for home position
         if (position === 'home' && (!duration || duration < 1 || duration > 30)) {
@@ -46,7 +46,8 @@ async function UploadBannerController(req, res) {
             position,
             isActive: isActive !== undefined ? isActive : true,
             displayOrder: displayOrder || 0,
-            duration: position === 'home' ? duration : undefined
+            duration: position === 'home' ? duration : undefined,
+            targetUrl: targetUrl || ''
         });
 
         const saveBanner = await uploadBanner.save();

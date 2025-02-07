@@ -99,6 +99,12 @@ const BannerProduct = ({ serviceName = "home" }) => {
     if (banners.length === 0) {
         return null;
     }
+    const handleBannerClick = (banner) => {
+        console.log('Banner clicked:', banner);
+        if (banner.targetUrl) {
+            window.open(banner.targetUrl, '_blank', 'noopener,noreferrer');
+        }
+    };
 
     return (
         <div className='container mx-auto px-2 md:mt-5 rounded'>
@@ -112,8 +118,9 @@ const BannerProduct = ({ serviceName = "home" }) => {
                 {/* desktop and tablet version */}
                 <div className='hidden md:flex h-full w-full overflow-hidden'>
                     {banners.map((banner) => (
-                        <div className='w-full h-full min-h-full min-w-full transition-all' 
+                        <div className='w-full h-full min-h-full min-w-full cursor-pointer transition-all' 
                              key={banner._id} 
+                             onClick={() => handleBannerClick(banner)}
                              style={{ transform: `translateX(-${currentImage * 100}%)` }}>
                             <img src={banner.images[0]} className='w-full h-full object-cover' alt="Banner" />
                         </div>
@@ -127,8 +134,9 @@ const BannerProduct = ({ serviceName = "home" }) => {
                     onTouchEnd={onTouchEnd}
                 >
                     {banners.map((banner) => (
-                        <div className='w-full h-full min-h-full min-w-full transition-all' 
+                        <div className='w-full h-full min-h-full min-w-full cursor-pointer transition-all' 
                              key={banner._id} 
+                             onClick={() => handleBannerClick(banner)}
                              style={{ transform: `translateX(-${currentImage * 100}%)` }}>
                             <img src={banner.images[0]} className='rounded-lg w-full h-full object-cover' alt="Banner" />
                         </div>

@@ -63,6 +63,11 @@ const bannerSchema = new mongoose.Schema({
             },
             message: 'Duration is required for home position banners'
         }
+    },
+    targetUrl: {
+        type: String,
+        default: '',  // Optional URL
+        trim: true
     }
 }, {
     timestamps: true
