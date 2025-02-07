@@ -173,6 +173,10 @@ const SummaryApi = {
         deduct : {
             url : `${backendDomain}/api/wallet/deduct`,
             method : "post"
+        },
+        history : {
+            url : `${backendDomain}/api/wallet/history`,
+            method : "get"
         }
     }
 }

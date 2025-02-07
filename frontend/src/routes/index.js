@@ -22,6 +22,7 @@ import Profile from "../pages/Profile";
 import AllDevelopers from "../pages/AllDevelopers";
 import AdminProjects from "../pages/AdminProjects";
 import ProjectDetails from "../pages/ProjectDetails";
+import WalletDetails from "../pages/WalletDetails";
 
 
 const router = createBrowserRouter([
@@ -80,6 +81,10 @@ const router = createBrowserRouter([
             {
                 path : "project-details/:orderId",
                 element : <ProjectDetails/>
+            },
+            {
+                path : "wallet",
+                element : <WalletDetails/>
             },
             {
                 path: "admin-panel",

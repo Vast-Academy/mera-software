@@ -37,18 +37,20 @@ const Footer = () => {
         </div>
       </Link>
 
-          <div className="flex flex-col text-white items-center">
-            <IoWalletOutline className="w-6 h-6" />
-            {user?._id ? (
-              <div className="flex flex-col items-center">
-                <span className="text-xs text-white">
-                  ₹{context?.walletBalance || 0}
-                </span>
-              </div>
-            ) : (
-              <span className="text-xs">Wallet</span>
-            )}
-          </div>
+      <Link to={user?._id ? "/wallet" : "/login"}>
+            <div className="flex flex-col text-white items-center cursor-pointer">
+              <IoWalletOutline className="w-6 h-6" />
+              {user?._id ? (
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-white">
+                    ₹{context?.walletBalance || 0}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-xs">Wallet</span>
+              )}
+            </div>
+          </Link>
 
           <Link to={user?._id ? "/profile" : "/login"}>
             {user?._id ? (

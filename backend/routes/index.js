@@ -47,6 +47,7 @@ const getOrderDetails = require('../controller/order/getOrderDetails')
 const getProjectsController = require('../controller/admin/getProjectController')
 const updateProgressController = require('../controller/admin/updateProgressController')
 const sendMessageController = require('../controller/admin/sendMessageController')
+const getWalletHistoryController = require('../controller/admin/getWalletHistoryController')
 
 
 router.post("/signup", userSignUpController)
@@ -62,6 +63,7 @@ router.post("/update-user", authToken, updateUser)
 router.post("/wallet/add-balance", authToken, addWalletBalanceController)
 router.get("/wallet/balance", authToken, getWalletBalanceController)
 router.post("/wallet/deduct", authToken, deductWalletController);
+router.get("/wallet/history", authToken, getWalletHistoryController)
 router.post("/upload-developer", authToken, uploadDeveloperController)
 router.get("/get-developer", getAllDevelopersController)
 router.get("/get-projects", authToken, getProjectsController)
