@@ -1,54 +1,54 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import SummaryApi from '../common'
-import { FaStar } from "react-icons/fa";
-import { FaStarHalf } from "react-icons/fa";
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { FaStar, FaStarHalf } from "react-icons/fa";
+import SummaryApi from '../common';
 import displayINRCurrency from '../helpers/displayCurrency';
-// import VerticalCardProduct from '../components/VerticalCardProduct';
 import CategoryWiseProductDisplay from '../components/CategoryWiseProductDisplay';
 import addToCart from '../helpers/addToCart';
 import Context from '../context';
 import CartPopup from '../components/CartPopup';
-import TriangleMazeLoader from '../components/TriangleMazeLoader'
+import TriangleMazeLoader from '../components/TriangleMazeLoader';
 
 const ProductDetails = () => {
-  const [data,setData] = useState({
-    serviceName : "",
-    category : "",
-    packageIncludes : [],
-    perfectFor : [],
-    serviceImage : [],
-    description : "",
-    websiteTypeDescription : "",
-    price : "",
-    sellingPrice : ""
-  })
+  const [data, setData] = useState({
+    serviceName: "",
+    category: "",
+    packageIncludes: [],
+    perfectFor: [],
+    serviceImage: [],
+    description: "",
+    websiteTypeDescription: "",
+    price: "",
+    sellingPrice: ""
+  });
 
-  const params = useParams()
-  const [initialLoading, setInitialLoading] = useState(true) 
-  const [loading,setLoading] = useState(true)
-  const productImageListLoading = new Array(4).fill(null)
-  const [activeImage,setActiveImage] = useState("")
+  const params = useParams();
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [activeImage, setActiveImage] = useState("");
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [showCartPopup, setShowCartPopup] = useState(false);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
 
-  const [zoomImageCoordinate,setZoomImageCoordinate] = useState({
-    x : 0,
-    y : 0
-  })
+  const [zoomImageCoordinate, setZoomImageCoordinate] = useState({
+    x: 0,
+    y: 0
+  });
 
-  const [zoomImage,setZoomImage] = useState(false)
+  const [zoomImage, setZoomImage] = useState(false);
+  const minSwipeDistance = 50;
 
-  const { fetchUserAddToCart } = useContext(Context)
-  const navigate = useNavigate()
-  
-  const fetchProductDetails = async() =>{
+  const { fetchUserAddToCart } = useContext(Context);
+  const navigate = useNavigate();
+
+  const fetchProductDetails = async () => {
     try {
-      // Show initial loader for 1.5 seconds
-      setInitialLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      setInitialLoading(false)
+      setInitialLoading(true);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setInitialLoading(false);
 
-      setLoading(true)
+      setLoading(true);
       const response = await fetch(SummaryApi.productDetails.url, {
         method: SummaryApi.productDetails.method,
         headers: {
@@ -57,241 +57,291 @@ const ProductDetails = () => {
         body: JSON.stringify({
           productId: params?.id
         })
-      })
+      });
       
-      const dataResponse = await response.json()
-      setData(dataResponse?.data)
-      setActiveImage(dataResponse?.data?.serviceImage[0])
-      setLoading(false)
+      const dataResponse = await response.json();
+      setData(dataResponse?.data);
+      setActiveImage(dataResponse?.data?.serviceImage[0]);
+      setLoading(false);
     } catch (error) {
-      console.error("Error fetching product details:", error)
-      setInitialLoading(false)
-      setLoading(false)
+      console.error("Error fetching product details:", error);
+      setInitialLoading(false);
+      setLoading(false);
     }
-  }
+  };
 
-  console.log("data",data);
-  
-  useEffect(()=>{
-    fetchProductDetails()
-  },[params])
+  useEffect(() => {
+    fetchProductDetails();
+  }, [params]);
 
-  const handleMouseEnterProduct = (imageURL) =>{
-    setActiveImage(imageURL)
-  }
+  // Mobile touch handlers
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
 
-  const handleZoomImage = useCallback((e)=>{
-    setZoomImage(true)
-    const { left, top, width, height } = e.target.getBoundingClientRect()
-    console.log("coordinate", left, top, width, height);
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
 
-    const x = (e.clientX - left) / width
-    const y = (e.clientY - top) / height
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe) {
+      setActiveImageIndex(prev => 
+        prev === data.serviceImage.length - 1 ? 0 : prev + 1
+      );
+      setActiveImage(data.serviceImage[activeImageIndex]);
+    }
+    if (isRightSwipe) {
+      setActiveImageIndex(prev => 
+        prev === 0 ? data.serviceImage.length - 1 : prev - 1
+      );
+      setActiveImage(data.serviceImage[activeImageIndex]);
+    }
+  };
 
-    setZoomImageCoordinate({
-      x,
-      y
-    })
-  },[zoomImageCoordinate])
+  // Desktop handlers
+  const handleMouseEnterProduct = (imageURL, index) => {
+    setActiveImage(imageURL);
+    setActiveImageIndex(index);
+  };
 
-  const handleLeaveImageZoom = ()=>{
-    setZoomImage(false)
-  }
+  const handleZoomImage = useCallback((e) => {
+    setZoomImage(true);
+    const { left, top, width, height } = e.target.getBoundingClientRect();
+    const x = (e.clientX - left) / width;
+    const y = (e.clientY - top) / height;
+    setZoomImageCoordinate({ x, y });
+  }, []);
 
-  const handleAddToCart = async(e,id) => {
+  const handleLeaveImageZoom = () => {
+    setZoomImage(false);
+  };
+
+  const handleAddToCart = async (e, id) => {
     try {
       const result = await addToCart(e, id);
-      // Only show popup and update cart if product was successfully added
       if (result && !result.error) {
         fetchUserAddToCart();
         setShowCartPopup(true);
       }
-      // If there was an error, the toast notification will be shown by the addToCart function
     } catch (error) {
       console.error("Error adding to cart:", error);
     }
+  };
+
+  const handleBuyProduct = async (e, id) => {
+    await addToCart(e, id);
+    fetchUserAddToCart();
+    navigate("/cart");
+  };
+
+  const calculateDiscount = () => {
+    const discount = ((data.price - data.sellingPrice) / data.price) * 100;
+    return Math.round(discount);
+  };
+
+  if (initialLoading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
+        <div className="rounded-lg p-8">
+          <TriangleMazeLoader />
+        </div>
+      </div>
+    );
   }
 
-  const handleBuyProduct = async(e,id) => {
-    await addToCart(e,id)
-    fetchUserAddToCart()
-    navigate("/cart")
-  }
   return (
-   <>
-   {initialLoading ? (
-        <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
-          <div className="rounded-lg p-8">
-            <TriangleMazeLoader />
+    <div className="container mx-auto p-4">
+      <div className="min-h-[200px] flex flex-col lg:flex-row gap-4 relative">
+        {/* Mobile View */}
+        <div className="lg:hidden w-full">
+          <div className="w-full h-auto">
+            <div 
+              className="w-full h-full"
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+            >
+              <img 
+                src={data.serviceImage[activeImageIndex]} 
+                className="w-full h-full object-contain"
+                alt={`Product ${activeImageIndex + 1}`}
+              />
+            </div>
+          </div>
+          {/* Dots for Mobile - Moved outside */}
+          <div className="flex justify-center gap-2 mt-4">
+            {data.serviceImage.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setActiveImageIndex(index);
+                  setActiveImage(data.serviceImage[index]);
+                }}
+                className={`w-2 h-2 rounded-full ${
+                  index === activeImageIndex ? 'bg-black' : 'bg-gray-400'
+                }`}
+              />
+            ))}
           </div>
         </div>
-      ) : (
-        <div className='container mx-auto p-4'>
-      
-        <div className='min-h-[200px] flex flex-col lg:flex-row gap-4 relative'>
-           {/* product image */}
-            <div className='h-fit flex flex-col lg:flex-row-reverse gap-4 sticky' >
-  
-                <div className='h-[300px] w-[300px] lg:h-96 lg:w-96 bg-slate-200 relative p-2'>
-                <img src={activeImage} className='h-full w-full object-scale-down mix-blend-multiply' onMouseMove={handleZoomImage} onMouseLeave={handleLeaveImageZoom}/>
-                
-                {/* product zoom */}
-                {
-                  zoomImage && (
-                    <div className='hidden lg:block absolute min-w-[500px] min-h-[400px] overflow-hidden bg-slate-200 p-1 -right-[510px] top-0'>
+
+        {/* Desktop View */}
+        <div className="hidden lg:flex gap-4 sticky">
+          <div className="h-fit flex flex-col lg:flex-row-reverse gap-4">
+            <div className="h-[300px] w-[300px] lg:h-96 lg:w-96 bg-slate-200 relative p-2">
+              <img 
+                src={activeImage} 
+                className="h-full w-full object-scale-down mix-blend-multiply"
+                onMouseMove={handleZoomImage}
+                onMouseLeave={handleLeaveImageZoom}
+              />
+              
+              {zoomImage && (
+                <div className="hidden lg:block absolute min-w-[500px] min-h-[400px] overflow-hidden bg-slate-200 p-1 -right-[510px] top-0">
                   <div 
-                  className='h-full w-full min-w-[500px] min-h-[400px] mix-blend-multiply scale-125'
-                  style={{
-                    backgroundImage : `url(${activeImage})`,
-                    backgroundRepeat : 'no-repeat',
-                    backgroundPosition : `${zoomImageCoordinate.x * 100}% ${zoomImageCoordinate.y * 100}%`
-                  }}>
-  
+                    className="h-full w-full min-w-[500px] min-h-[400px] mix-blend-multiply scale-125"
+                    style={{
+                      backgroundImage: `url(${activeImage})`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: `${zoomImageCoordinate.x * 100}% ${zoomImageCoordinate.y * 100}%`
+                    }}>
                   </div>
                 </div>
-                  )
-                }
-  
-                </div>
-  
-                <div className='h-full'>
-                  {
-                    loading ? (
-                      <div className='flex gap-2 lg:flex-col overflow-scroll scrollbar-none h-full'>
-                      {
-                        productImageListLoading.map((el,index) =>{
-                          return(
-                            <div className='h-20 w-20 bg-slate-200 rounded animate-pulse' key={"loadingImage"+index}>
-  
-                            </div>
-                          )
-                        })
-                      }
-                      </div>
-                    ): (
-                      <div className='flex gap-2 lg:flex-col overflow-scroll scrollbar-none h-full'>
-                      {
-                        data?.serviceImage?.map((imgURL,index) =>{
-                          return(
-                            <div className='h-20 w-20 bg-slate-200 rounded p-1' key={imgURL}>
-                            <img src={imgURL} className='w-full h-full object-scale-down mix-blend-multiply cursor-pointer' onMouseEnter={()=>handleMouseEnterProduct(imgURL)} onClick={()=>handleMouseEnterProduct(imgURL)} />
-                            </div>
-                          )
-                        })
-                      }
-                      </div>
-                    )
-                  }
-                </div>
+              )}
             </div>
-  
-             {/* product detail */}
-            {
-              loading ? (
-                <div className='grid w-full gap-1'>
-              <p className='bg-slate-200 animate-pulse h-6 lg:h-8 w-full rounded-full inline-block'></p>
-              <h2 className='text-2xl lg:text-4xl font-medium bg-slate-200 animate-pulse h-6 lg:h-8 w-full rounded-full'></h2>
-              <p className='capitalize text-slate-400 bg-slate-200 min-w-[100px] animate-pulse h-6 lg:h-8 w-full'></p>
-  
-              <div className='text-yellow-400 bg-slate-200 animate-pulse h-6 lg:h-8 flex items-center gap-1 w-full'>
-                 
+
+            <div className="h-full">
+              {loading ? (
+                <div className="flex gap-2 lg:flex-col overflow-scroll scrollbar-none h-full">
+                  {new Array(4).fill(null).map((_, index) => (
+                    <div className="h-20 w-20 bg-slate-200 rounded animate-pulse" key={`loadingImage${index}`} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex gap-2 lg:flex-col overflow-scroll scrollbar-none h-full">
+                  {data?.serviceImage?.map((imgURL, index) => (
+                    <div 
+                      className={`h-20 w-20 bg-slate-200 rounded p-1 ${
+                        index === activeImageIndex ? 'border-2 border-gray-900' : ''
+                      }`} 
+                      key={imgURL}
+                    >
+                      <img 
+                        src={imgURL} 
+                        className="w-full h-full object-scale-down mix-blend-multiply cursor-pointer" 
+                        onMouseEnter={() => handleMouseEnterProduct(imgURL, index)}
+                        onClick={() => handleMouseEnterProduct(imgURL, index)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Content Section - Same for both Mobile and Desktop */}
+        {loading ? (
+          <div className="grid w-full gap-1">
+            <p className="bg-slate-200 animate-pulse h-6 lg:h-8 w-full rounded-full"></p>
+            <h2 className="text-2xl lg:text-4xl font-medium bg-slate-200 animate-pulse h-6 lg:h-8 w-full rounded-full"></h2>
+            <p className="capitalize text-slate-400 bg-slate-200 min-w-[100px] animate-pulse h-6 lg:h-8 w-full"></p>
+          </div>
+        ) : (
+          <div className="flex-1 px-2 py-4 space-y-4 lg:px-4 lg:py-6 lg:space-y-6">
+            <div className="text-sm text-gray-600">
+              {data?.category?.split('_').join(' ')}
+            </div>
+
+            <div>
+              <h1 className="text-2xl lg:text-4xl font-medium mb-4">{data?.serviceName}</h1>
+              
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold">₹{data.sellingPrice?.toLocaleString()}</span>
+                <span className="text-gray-400 line-through">₹{data.price?.toLocaleString()}</span>
+                <span className="text-sm text-green-600 font-medium">
+                  {calculateDiscount()}% off
+                </span>
               </div>
-  
-              <div className='flex items-center gap-2 text-2xl lg:text-3xl my-1 animate-pulse h-6 lg:h-8 font-medium w-full'>
-                <p className='text-red-600 bg-slate-200 w-full'></p>
-                <p className='text-slate-400 line-through bg-slate-200 w-full'></p>
-              </div>
-                 
-                <div className='flex items-center gap-3 my-2 w-full'>
-                  <button className='bg-slate-200 animate-pulse h-6 lg:h-8 rounded w-full'></button>
-                  <button className='bg-slate-200 animate-pulse h-6 lg:h-8 rounded w-full'></button>
-                </div> 
-  
-                  <div className='w-full'>
-                    <p className='text-slate-600 font-medium my-1 bg-slate-200 animate-pulse h-6 lg:h-8 rounded w-full'></p>
-                    <p className='bg-slate-200 animate-pulse h-10 lg:h-12 rounded w-full'></p>
+            </div>
+
+            {/* Package Includes */}
+            <div>
+              <h2 className="text-lg font-medium mb-3">Package Includes</h2>
+              <div className="space-y-2">
+                {data?.packageIncludes?.map((item, index) => (
+                  <div 
+                    key={index} 
+                    className="flex items-center gap-2 bg-green-50 p-3 rounded-lg"
+                  >
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                    <span className="text-gray-700">{item}</span>
                   </div>
-  
+                ))}
+              </div>
             </div>
-              ): (
-                <div className='flex flex-col gap-1'>
-              <p className='bg-red-200 text-red-600 px-2 rounded-full inline-block w-fit'>{data?.category.split('_').join(' ')}</p>
-              <h2 className='text-2xl lg:text-4xl font-medium'>{data?.serviceName}</h2>
-              {/* <p className='capitalize text-slate-400 '>{data?.category}</p> */}
-  
-              <div className='text-yellow-400 flex items-center gap-1'>
-                  <FaStar/>
-                  <FaStar/>
-                  <FaStar/>
-                  <FaStar/>
-                  <FaStarHalf/>
-              </div>
-  
-              <div className='flex items-center gap-2 text-2xl lg:text-3xl my-1 font-medium'>
-                <p className='text-red-600'>{displayINRCurrency(data.sellingPrice)}</p>
-                <p className='text-slate-400 line-through'>{displayINRCurrency(data.price)}</p>
-              </div>
-                 
-                <div className='flex items-center gap-3 my-2'>
-                  <button className='border-2 border-red-600 rounded px-3 py-1 min-w-[120px] text-red-600 font-medium hover:bg-red-600 hover:text-white' onClick={(e)=>handleBuyProduct(e,data?._id)}>Buy</button>
-                  <button className='border-2 border-red-600 rounded px-3 py-1 min-w-[120px] text-white bg-red-600 hover:text-red-600 hover:bg-transparent' onClick={(e)=>handleAddToCart(e,data?._id)}>Add To Cart</button>
-                </div> 
-  
-  
-                <div className="package-section">
-                <h2 className="perfect-heading">Package Includes:</h2>
-                <div className={data?.packageIncludes?.length > 5 ? "grid grid-cols-2 gap-x-2" : ""}>
-                  {Array.isArray(data?.packageIncludes) &&
-                    data.packageIncludes.map((item, index) => (
-                      <div className="feature-list" key={`feature-list-${index}`}>
-                        <li>{item}</li>
-                      </div>
-                    ))}
-                </div>
-              </div>
-  
-  
-  
-                <h2 className="perfect-heading">Perfect For:</h2>
-              <div className="perfect-for">
+
+            {/* Perfect For */}
+            <div>
+              <h2 className="text-lg font-medium mb-3">Perfect For</h2>
+              <div className="flex flex-wrap gap-2">
                 {data?.perfectFor?.map((tag, index) => (
-                  <span className="tag" key={index}>{tag}</span>
-                   ))}
+                  <span 
+                    key={index}
+                    className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm"
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
-  
-                  <div className='additional-info'>
-                  <div className='info-block' dangerouslySetInnerHTML={{ __html: data?.description }}>
-                  </div>
-  
-                  <div className='info-block' dangerouslySetInnerHTML={{ __html: data?.websiteTypeDescription }}>
-                  </div>
-                    
-                  </div>
-  
-        </div>
-              )
-            }
-  
-        </div>
-  
-        {
-          data.category && (
-        <CategoryWiseProductDisplay category={data?.category} heading={"Recommended Product"}/>
-          )
-        }
-  
-        <CartPopup 
-          isOpen={showCartPopup}
-          onClose={() => setShowCartPopup(false)}
-          product={data}
-        />
-  
+            </div>
+
+            {/* Description */}
+            <div className="prose prose-sm lg:prose-base max-w-none">
+              <div dangerouslySetInnerHTML={{ __html: data?.description }} />
+              <div dangerouslySetInnerHTML={{ __html: data?.websiteTypeDescription }} />
+            </div>
+
+            {/* Action Buttons - Fixed on mobile */}
+            <div className="lg:static fixed bottom-0 left-0 right-0 p-4 bg-white border-t flex gap-3 z-10">
+              <button 
+                className="flex-1 px-6 py-3 bg-white border border-gray-900 text-gray-900 rounded-lg font-medium"
+                onClick={(e) => handleBuyProduct(e, data?._id)}
+              >
+                Buy Now
+              </button>
+              <button 
+                className="flex-1 px-6 py-3 bg-gray-900 text-white rounded-lg font-medium"
+                onClick={(e) => handleAddToCart(e, data?._id)}
+              >
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {data.category && (
+        <CategoryWiseProductDisplay 
+          category={data?.category} 
+          heading={"Recommended Product"}
+        />
       )}
-   </>
 
-    
-  )
-}
+      <CartPopup 
+        isOpen={showCartPopup}
+        onClose={() => setShowCartPopup(false)}
+        product={data}
+      />
+    </div>
+  );
+};
 
-export default ProductDetails
+export default ProductDetails;
