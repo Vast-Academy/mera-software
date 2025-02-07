@@ -30,6 +30,7 @@ const ProductDetails = () => {
   const [showCartPopup, setShowCartPopup] = useState(false);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+  const [addToCartLoading, setAddToCartLoading] = useState(false);
 
   const [zoomImageCoordinate, setZoomImageCoordinate] = useState({
     x: 0,
@@ -125,13 +126,21 @@ const ProductDetails = () => {
 
   const handleAddToCart = async (e, id) => {
     try {
+      setAddToCartLoading(true);
       const result = await addToCart(e, id);
-      if (result && !result.error) {
-        fetchUserAddToCart();
-        setShowCartPopup(true);
-      }
+
+      // Artificial delay of 1 second
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+       await fetchUserAddToCart();
+      setAddToCartLoading(false); // Hide loader
+      setShowCartPopup(true); // Show cart popup
+      
     } catch (error) {
       console.error("Error adding to cart:", error);
+      setAddToCartLoading(false); // Hide loader in case of error
+    } finally {
+      setAddToCartLoading(false); // Always ensure loader is hidden
     }
   };
 
@@ -158,6 +167,14 @@ const ProductDetails = () => {
 
   return (
     <div className="container mx-auto p-4">
+       {/* Add to Cart Loading Overlay */}
+       {addToCartLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
+          <div className="rounded-lg p-8">
+            <TriangleMazeLoader />
+          </div>
+        </div>
+      )}
       <div className="min-h-[200px] flex flex-col lg:flex-row gap-4 relative">
         {/* Mobile View */}
         <div className="lg:hidden w-full">
