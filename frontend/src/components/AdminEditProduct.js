@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { CgClose } from "react-icons/cg";
-import productCategory from '../helpers/productCategory';
+// import productCategory from '../helpers/productCategory';
 import { FaCloudUploadAlt } from "react-icons/fa";
 import uploadImage from '../helpers/uploadImage';
 import DisplayImage from './DisplayImage';
@@ -18,6 +18,14 @@ const AdminEditProduct = ({
     productData,
     fetchdata 
 }) => {
+    const BASE_PAGES = [
+      "Home Page",
+      "About Us Page",
+      "Contact Us Page",
+      "Gallery Page"
+    ];
+
+    const [categories, setCategories] = useState([]);
     const [data, setData] = useState({
         ...productData,
         serviceName: productData?.serviceName,
@@ -28,10 +36,66 @@ const AdminEditProduct = ({
         price: productData?.price,
         sellingPrice: productData?.sellingPrice,
         description: productData?.description,
-        websiteTypeDescription: productData?.websiteTypeDescription || ""
-    })
-    const [openFullScreenImage, setOpenFullScreenImage] = useState(false)
-    const [fullScreenImage, setFullScreenImage] = useState("")
+        websiteTypeDescription: productData?.websiteTypeDescription || "",
+        // Website service specific fields
+        isWebsiteService: productData?.isWebsiteService || false,
+        totalPages: productData?.totalPages || 4, // Default to minimum 4 pages
+        checkpoints: productData?.checkpoints || []
+    });
+
+    const [openFullScreenImage, setOpenFullScreenImage] = useState(false);
+    const [fullScreenImage, setFullScreenImage] = useState("");
+
+    // Fetch categories when component mounts
+    useEffect(() => {
+      const fetchCategories = async () => {
+          try {
+              const response = await fetch(SummaryApi.allCategory.url);
+              const result = await response.json();
+              if (result.success) {
+                  setCategories(result.data);
+              }
+          } catch (error) {
+              console.error("Error fetching categories:", error);
+          }
+      };
+      fetchCategories();
+    }, []);
+
+    // Calculate checkpoints whenever totalPages changes
+    useEffect(() => {
+      if (shouldShowWebsiteFields(data.category) && data.totalPages >= 4) {
+        // Structure checkpoints
+        const structureCheckpoints = [
+          { name: "Website Structure ready", percentage: 2 },
+          { name: "Header created", percentage: 5 },
+          { name: "Footer created", percentage: 5 },
+        ];
+
+        // Calculate percentage per page
+        const remainingPercentage = 78; // 100 - (2 + 5 + 5 + 10)
+        const percentagePerPage = Number((remainingPercentage / data.totalPages).toFixed(2));
+
+        // Generate page checkpoints (fixed + additional if any)
+        const pageCheckpoints = Array.from({ length: data.totalPages }, (_, index) => ({
+          name: index < 4 ? BASE_PAGES[index] : `Additional Page ${index - 3}`,
+          percentage: percentagePerPage
+        }));
+
+        // Final testing checkpoint
+        const finalCheckpoint = [{ name: "Final Testing", percentage: 10 }];
+
+        // Combine all checkpoints
+        setData(prev => ({
+          ...prev,
+          checkpoints: [
+            ...structureCheckpoints,
+            ...pageCheckpoints,
+            ...finalCheckpoint
+          ]
+        }));
+      }
+    }, [data.totalPages, data.category]);
 
     const handleOnChange = (e)=> {
       const { name, value } = e.target
@@ -114,6 +178,12 @@ const AdminEditProduct = ({
       }
     }
 
+    // Add this helper function
+    const shouldShowWebsiteFields = (category) => {
+      const websiteCategories = ['static_websites', 'standard_websites', 'dynamic_websites'];
+      return category && websiteCategories.includes(category);
+    };
+
   return (
     <div className='fixed w-full h-full bg-slate-200 bg-opacity-40 top-0 left-0 right-0 bottom-0 flex justify-center items-center'>
       <div className='bg-white p-4 rounder w-full max-w-2xl h-full max-h-[75%] overflow-hidden'>
@@ -128,67 +198,113 @@ const AdminEditProduct = ({
       <form className='grid p-4 gap-2 overflow-y-scroll h-full pb-5' onSubmit={handleSubmit}>
         <label htmlFor='serviceName'>Service Name :</label>
         <input 
-        type='text' 
-        id='serviceName'
-        placeholder='enter service name'
-        name='serviceName'
-        value={data.serviceName}
-        onChange={handleOnChange}
-        className='p-2 bg-slate-100 border rounded'
-        required
+          type='text' 
+          id='serviceName'
+          placeholder='enter service name'
+          name='serviceName'
+          value={data.serviceName}
+          onChange={handleOnChange}
+          className='p-2 bg-slate-100 border rounded'
+          required
         />
 
         <label htmlFor='category' className='mt-3'>Service Category :</label>   
         <select required value={data.category} id='category' name='category' onChange={handleOnChange} className='p-2 bg-slate-100 border rounded'>
-        <option value={""}>Select Category</option>
-        {
-            productCategory.map((el,index)=>{
-                return(
-                    <option value={el.value} key={el.value+index}>{el.label}</option>
-                )
-            })
-        }
+          <option value="">Select Category</option>
+          {categories.map((cat) => (
+              <option 
+                  value={cat.categoryValue} 
+                  key={cat.categoryId}
+              >
+                  {cat.categoryName}
+              </option>
+          ))}
         </select>
 
-        {
-          data.category && (
-            <>
-              <label htmlFor='packageIncludes' className='mt-3'>Package Includes:</label>
-              <Select
-                options={packageOptions}
-                isMulti
-                value={data.packageIncludes.map(value => {
-              // Find the full option object for each selected value
-              const option = packageOptions.find(opt => opt.value === value);
-              return option;
-            })}
-                name='packageIncludes'
-                id='packageIncludes'
-                onChange={handlePackageIncludesChange}
-                className='basic-multi-select bg-slate-100 border rounded'
-                classNamePrefix='select'
-                placeholder="Select package options"
-              />
+        {shouldShowWebsiteFields(data.category) && (
+          <>
+            {/* Number of Pages Dropdown */}
+            <div className='mt-3'>
+              <label htmlFor='totalPages' className='block mb-2'>
+                Number of Pages: <span className='text-sm text-gray-500'>(Includes {BASE_PAGES.join(", ")})</span>
+              </label>
+              <select
+                id='totalPages'
+                name='totalPages'
+                value={data.totalPages}
+                onChange={(e) => setData(prev => ({
+                  ...prev,
+                  totalPages: parseInt(e.target.value)
+                }))}
+                className='w-full p-2 bg-slate-100 border rounded'
+              >
+                {Array.from({ length: 47 }, (_, i) => i + 4).map((num) => (
+                  <option key={num} value={num}>
+                    {num} Pages {num === 4 ? '(Minimum)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-              <label htmlFor='perfectFor' className='mt-3'>Perfect For:</label>
-              <Select
-                options={perfectForOptions}
-                isMulti
-                value={data.perfectFor.map(value => {
-                  // Find the full option object for each selected value
-                  const option = perfectForOptions.find(opt => opt.value === value);
-                  return option;
-                })}
-                name='perfectFor'
-                id='perfectFor'
-                onChange={handlePerfectForChange}
-                className='basic-multi-select bg-slate-100 border rounded'
-                classNamePrefix='select'
-                placeholder="Select target audience"
-              />
-            </>
-          )
-        }
+            {/* Display checkpoints */}
+            {data.checkpoints.length > 0 && (
+              <div className='mt-3'>
+                <label className='block mb-2'>Progress Checkpoints:</label>
+                <div className='bg-slate-50 p-3 rounded mt-1 max-h-60 overflow-y-auto'>
+                  {data.checkpoints.map((checkpoint, index) => (
+                    <div 
+                      key={index} 
+                      className={`flex justify-between items-center py-1 border-b last:border-0 ${
+                        BASE_PAGES.includes(checkpoint.name) ? 'font-medium' : ''
+                      }`}
+                    >
+                      <span className='text-sm'>{checkpoint.name}</span>
+                      <span className='text-sm text-gray-600'>{checkpoint.percentage}%</span>
+                    </div>
+                  ))}
+                  <div className='mt-2 pt-2 border-t'>
+                    <div className='flex justify-between font-medium'>
+                      <span>Total Pages:</span>
+                      <span>{data.totalPages}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <label htmlFor='packageIncludes' className='mt-3'>Package Includes:</label>
+            <Select
+              options={packageOptions}
+              isMulti
+              value={data.packageIncludes.map(value => {
+                const option = packageOptions.find(opt => opt.value === value);
+                return option;
+              })}
+              name='packageIncludes'
+              id='packageIncludes'
+              onChange={handlePackageIncludesChange}
+              className='basic-multi-select bg-slate-100 border rounded'
+              classNamePrefix='select'
+              placeholder="Select package options"
+            />
+
+            <label htmlFor='perfectFor' className='mt-3'>Perfect For:</label>
+            <Select
+              options={perfectForOptions}
+              isMulti
+              value={data.perfectFor.map(value => {
+                const option = perfectForOptions.find(opt => opt.value === value);
+                return option;
+              })}
+              name='perfectFor'
+              id='perfectFor'
+              onChange={handlePerfectForChange}
+              className='basic-multi-select bg-slate-100 border rounded'
+              classNamePrefix='select'
+              placeholder="Select target audience"
+            />
+          </>
+        )}
 
         <label htmlFor='serviceImage' className='mt-3'>Service Image :</label> 
         <label htmlFor='uploadImageInput'>
@@ -236,26 +352,26 @@ const AdminEditProduct = ({
 
         <label htmlFor='price' className='mt-3'>Price :</label>
         <input 
-        type='number' 
-        id='price'
-        placeholder='enter price'
-        name='price'
-        value={data.price}
-        onChange={handleOnChange}
-        className='p-2 bg-slate-100 border rounded'
-        required
+          type='number' 
+          id='price'
+          placeholder='enter price'
+          name='price'
+          value={data.price}
+          onChange={handleOnChange}
+          className='p-2 bg-slate-100 border rounded'
+          required
         />
 
         <label htmlFor='sellingPrice' className='mt-3'>Selling Price :</label>
         <input 
-        type='number' 
-        id='sellingPrice'
-        placeholder='enter selling price'
-        name='sellingPrice'
-        value={data.sellingPrice}
-        onChange={handleOnChange}
-        className='p-2 bg-slate-100 border rounded'
-        required
+          type='number' 
+          id='sellingPrice'
+          placeholder='enter selling price'
+          name='sellingPrice'
+          value={data.sellingPrice}
+          onChange={handleOnChange}
+          className='p-2 bg-slate-100 border rounded'
+          required
         />
 
         <label htmlFor='description' className='mt-3'>Description :</label>
@@ -271,28 +387,31 @@ const AdminEditProduct = ({
           placeholder='Enter service description'
         />
 
-        <label htmlFor="websiteTypeDescription" className="mt-3">Website Type Description :</label>
-        <textarea
-          className="h-28 bg-slate-100 border p-1 resize-none"
-          placeholder="enter website type details"
-          rows={4}
-          onChange={handleOnChange}
-          name="websiteTypeDescription"
-          value={data.websiteTypeDescription}
-        >
-        </textarea>
+        {shouldShowWebsiteFields(data.category) && (
+          <>
+            <label htmlFor="websiteTypeDescription" className="mt-3">Website Type Description :</label>
+            <textarea
+              className="h-28 bg-slate-100 border p-1 resize-none"
+              placeholder="enter website type details"
+              rows={4}
+              onChange={handleOnChange}
+              name="websiteTypeDescription"
+              value={data.websiteTypeDescription}
+            >
+            </textarea>
+          </>
+        )}
 
         <button className='px-3 py-2 bg-red-600 text-white mb-10 hover:bg-red-700'>Update Service</button>
       </form>
       </div>
 
-           {/* display image full screen */}
+      {/* display image full screen */}
       {
         openFullScreenImage && (
           <DisplayImage onClose={()=>setOpenFullScreenImage(false)} imgUrl={fullScreenImage}/>
         )
       }
-
     </div>
   )
 }

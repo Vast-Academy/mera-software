@@ -76,7 +76,7 @@ if(value){
        <div className="h-full flex items-center px-4 container mx-auto justify-between">
        <div className=''>
        <Link to={"/"}>
-       <img src={Logo} className='w-8 h-8'/>
+       <img src={Logo} className='w-24 h-8'/>
             {/* <Logo w={90} h={50} /> */}
         </Link>
        </div>

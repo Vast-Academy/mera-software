@@ -116,19 +116,10 @@ const AppConvertingBanner = () => {
   };
 
   // Rendering Logic Fix
-  if (loading ) {
-    return (
-      <div className='container mx-auto px-4'>
-        <div className="bg-white rounded-xl py-6 px-2 shadow-lg max-w-xl mx-auto">
-          <div className="animate-pulse px-4">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-          </div>
-        </div>
-      </div>
-    );
+  if (loading && user?._id) {
+    return null; // Jab tak data load ho raha hai, kuch bhi mat dikhao
   }
+  
   return (
     <div className='container mx-auto px-4'>
     <div className="bg-white rounded-xl py-6 px-2 shadow-lg max-w-xl mx-auto overflow-hidden">
@@ -216,7 +207,7 @@ const AppConvertingBanner = () => {
               </Link>
             </div>
           </div>
-        ) :  (
+        ) : !user?._id && !loading &&(
           // Slider for non-logged-in users
           <>
           <div
