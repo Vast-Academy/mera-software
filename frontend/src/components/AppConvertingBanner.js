@@ -4,16 +4,18 @@ import { LuSmartphone } from "react-icons/lu";
 import { BsFillBarChartFill, BsCalendar3 } from "react-icons/bs";
 import { IoBarChartSharp } from 'react-icons/io5';
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { setUserDetails  } from '../store/userSlice';
 import SummaryApi from '../common';
 
 const AppConvertingBanner = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
-  const [orders, setOrders] = useState([]);
-  const [isLoading, setIsLoading] = useState(true); 
+  const [orders, setOrders] = useState(null); // Changed to null initially
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   const handleOrderClick = (orderId) => {
     navigate(`/project-details/${orderId}`);
@@ -21,46 +23,67 @@ const AppConvertingBanner = () => {
   
   // Get user from Redux store
   const user = useSelector(state => state?.user?.user);
+  const initialized = useSelector(state => state?.user?.initialized);
 
   // Fetch orders when user is logged in
+  // Initial auth check effect
   useEffect(() => {
-    if (user?._id) {
-      fetchOrders();
-
-      // Set up polling for updates every 3 seconds
-    const interval = setInterval(fetchOrders, 10000);
-    return () => clearInterval(interval);
+    if (!initialized) {
+      // If not initialized, dispatch setUserDetails with null to mark as initialized
+      dispatch(setUserDetails(null));
     }
-    else {
-      // If there's no user, we can stop loading
-      setIsLoading(false);
-    }
-  }, [user]);
+  }, [initialized, dispatch]);
 
-  const fetchOrders = async () => {
-    try {
-      const response = await fetch(SummaryApi.ordersList.url, {
-        method: SummaryApi.ordersList.method,
-        credentials: 'include',
-      });
-      const data = await response.json();
-      
-      if (data.success) {
-        // Filter only website related orders
-        const websiteOrders = data.data.filter(order => 
-          ['static_websites', 'standard_websites', 'dynamic_websites'].includes(
-            order.productId?.category?.toLowerCase()
-          )
-        );
-        setOrders(websiteOrders);
+  // Orders fetching effect
+  useEffect(() => {
+    if (!initialized) {
+      return;
+    }
+
+    const fetchOrders = async () => {
+      if (!user?._id) {
+        setOrders([]);
+        setIsDataLoaded(true);
+        return;
       }
-    } catch (error) {
-      console.error("Error fetching orders:", error);
+
+      try {
+        const response = await fetch(SummaryApi.ordersList.url, {
+          method: SummaryApi.ordersList.method,
+          credentials: 'include',
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+          const websiteOrders = data.data.filter(order => 
+            ['static_websites', 'standard_websites', 'dynamic_websites'].includes(
+              order.productId?.category?.toLowerCase()
+            )
+          );
+          setOrders(websiteOrders);
+        } else {
+          setOrders([]);
+        }
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+        setOrders([]);
+      } finally {
+        setIsDataLoaded(true);
+      }
+    };
+
+    setIsDataLoaded(false);
+    fetchOrders();
+
+    let interval;
+    if (user?._id) {
+      interval = setInterval(fetchOrders, 10000);
     }
-    finally {
-      setIsLoading(false); // Set loading to false after fetching orders
-    }
-  };
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [user?._id, initialized]);
 
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-GB', {
@@ -119,8 +142,20 @@ const AppConvertingBanner = () => {
     }
   };
 
-  if (isLoading) {
-    return null; // Or return a loader component if you prefer
+  // Show loading state until everything is initialized
+  if (!initialized || !isDataLoaded) {
+    return (
+      <div className="container mx-auto px-4">
+        <div className="bg-white rounded-xl py-6 px-2 shadow-lg max-w-xl mx-auto overflow-hidden">
+          <div className="animate-pulse flex space-x-4">
+            <div className="flex-1 space-y-4 py-1">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
