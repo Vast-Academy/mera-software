@@ -23,6 +23,7 @@ import AllDevelopers from "../pages/AllDevelopers";
 import AdminProjects from "../pages/AdminProjects";
 import ProjectDetails from "../pages/ProjectDetails";
 import WalletDetails from "../pages/WalletDetails";
+import ServiceCard from "../pages/ServiceCard";
 
 
 const router = createBrowserRouter([
@@ -85,6 +86,10 @@ const router = createBrowserRouter([
             {
                 path : "wallet",
                 element : <WalletDetails/>
+            },
+            {
+                path: "/service-card",
+                element : <ServiceCard/>
             },
             {
                 path: "admin-panel",

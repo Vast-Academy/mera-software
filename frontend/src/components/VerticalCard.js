@@ -164,9 +164,9 @@ const VerticalCard = ({loading, data = [], currentCategory = ''}) => {
                     <React.Fragment key={product._id || index}>
                     <Link to={"/product/"+product?._id} className="bg-white p-3 rounded-lg block border border-gray-200">
                         <div className="space-y-2.5">
-                            <div className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full w-fit">
+                            {/* <div className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full w-fit">
                                 MOST POPULAR  
-                            </div>
+                            </div> */}
 
                             <div className="flex justify-between items-start gap-2">
                                 <div>
@@ -176,7 +176,7 @@ const VerticalCard = ({loading, data = [], currentCategory = ''}) => {
                                     </p>
                                 </div>
                                 <button className="shrink-0 border border-blue-500 text-blue-500 px-3 py-1 rounded-lg text-sm">
-                                    ADD +
+                                    More 
                                 </button>
                             </div>
 

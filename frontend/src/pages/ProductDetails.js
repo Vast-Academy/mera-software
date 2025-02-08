@@ -267,7 +267,7 @@ const ProductDetails = () => {
             <p className="capitalize text-slate-400 bg-slate-200 min-w-[100px] animate-pulse h-6 lg:h-8 w-full"></p>
           </div>
         ) : (
-          <div className="flex-1 px-2 py-4 space-y-4 lg:px-4 lg:py-6 lg:space-y-6">
+          <div className="flex-1 px-1 py-4 space-y-4 lg:px-4 lg:py-6 lg:space-y-6">
             <div className="text-sm text-gray-600">
               {data?.category?.split('_').join(' ')}
             </div>
