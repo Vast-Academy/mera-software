@@ -74,7 +74,7 @@ const productSchema = new mongoose.Schema({
 
 // Set isWebsiteService based on category
 productSchema.pre('save', function(next) {
-  const websiteCategories = ['static_websites', 'standard_websites'];
+  const websiteCategories = ['static_websites', 'standard_websites', 'dynamic_websites'];
   this.isWebsiteService = websiteCategories.includes(this.category);
   next();
 });

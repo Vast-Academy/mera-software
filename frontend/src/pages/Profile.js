@@ -83,7 +83,7 @@ const Profile = () => {
             <div className="bg-white rounded-lg shadow-md max-w-2xl mx-auto p-6">
                 <div className="flex items-start gap-6">
                     {/* Profile Image */}
-                    <div className="w-32 h-32">
+                    <div className="w-32">
                         {user?.profilePic ? (
                             <img 
                                 src={user.profilePic}

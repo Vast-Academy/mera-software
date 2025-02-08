@@ -8,7 +8,7 @@ import addToCart from '../helpers/addToCart';
 import Context from '../context';
 import CartPopup from '../components/CartPopup';
 import TriangleMazeLoader from '../components/TriangleMazeLoader';
-import ServiceCard from './ServiceCard';
+import VerticalCardProduct from '../components/VerticalCardProduct';
 
 const ProductDetails = () => {
   const [data, setData] = useState({
@@ -341,10 +341,9 @@ const ProductDetails = () => {
         )}
       </div>
 
-      <ServiceCard/>
 
       {data.category && (
-        <CategoryWiseProductDisplay 
+        <VerticalCardProduct 
           category={data?.category} 
           heading={"Recommended Product"}
         />
