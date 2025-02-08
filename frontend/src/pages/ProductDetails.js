@@ -129,9 +129,6 @@ const ProductDetails = () => {
       setAddToCartLoading(true);
       const result = await addToCart(e, id);
 
-      // Artificial delay of 1 second
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
        await fetchUserAddToCart();
       setAddToCartLoading(false); // Hide loader
       setShowCartPopup(true); // Show cart popup
@@ -139,8 +136,6 @@ const ProductDetails = () => {
     } catch (error) {
       console.error("Error adding to cart:", error);
       setAddToCartLoading(false); // Hide loader in case of error
-    } finally {
-      setAddToCartLoading(false); // Always ensure loader is hidden
     }
   };
 
@@ -166,7 +161,7 @@ const ProductDetails = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 pb-24">
        {/* Add to Cart Loading Overlay */}
        {addToCartLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
@@ -327,7 +322,7 @@ const ProductDetails = () => {
             </div>
 
             {/* Action Buttons - Fixed on mobile */}
-            <div className="lg:static fixed bottom-0 left-0 right-0 p-4 bg-white border-t flex gap-3 z-10">
+            <div className="lg:static fixed bottom-[57px] left-0 right-0 p-4 bg-white border-t flex gap-3 z-50">
               <button 
                 className="flex-1 px-6 py-3 bg-white border border-gray-900 text-gray-900 rounded-lg font-medium"
                 onClick={(e) => handleBuyProduct(e, data?._id)}
@@ -356,6 +351,7 @@ const ProductDetails = () => {
         isOpen={showCartPopup}
         onClose={() => setShowCartPopup(false)}
         product={data}
+        className="z-[55]"
       />
     </div>
   );
