@@ -138,7 +138,7 @@ const BannerProduct = ({ serviceName = "home" }) => {
                              key={banner._id} 
                              onClick={() => handleBannerClick(banner)}
                              style={{ transform: `translateX(-${currentImage * 100}%)` }}>
-                            <img src={banner.images[0]} className='rounded-lg w-full h-full object-cover' alt="Banner" />
+                            <img src={banner.images[0]} className='rounded-2xl w-full h-full object-cover' alt="Banner" />
                         </div>
                     ))}
                 </div>
