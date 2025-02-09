@@ -94,7 +94,7 @@ const productSchema = new mongoose.Schema({
 
 // Set isWebsiteService based on category
 productSchema.pre('save', function(next) {
-  const websiteCategories = ['standard_websites', 'dynamic_websites', 'web_applications', 'mobile_apps'];
+  const websiteCategories = ['static_websites', 'standard_websites'];
   this.isWebsiteService = websiteCategories.includes(this.category);
   this.isFeatureUpgrade = this.category === 'feature_upgrades';
 

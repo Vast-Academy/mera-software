@@ -72,8 +72,8 @@ const CategoryList = () => {
   }
 
   return (
-    <div className="my-6 mx-4 rounded-2xl w-auto bg-white">
-      <div className="flex flex-wrap md:flex-nowrap w-full rounded-2xl overflow-hidden">
+    <div className="my-6 mx-2 rounded-lg w-auto bg-white">
+      <div className="flex flex-wrap md:flex-nowrap w-full rounded-lg overflow-hidden">
         {loading && categories.length === 0 ? (
           categoryLoading.map((el, index) => (
             <div className="w-1/4 flex items-center justify-center border h-24" key={`loading-${index}`}>
