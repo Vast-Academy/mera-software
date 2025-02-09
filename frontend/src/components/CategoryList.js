@@ -72,7 +72,7 @@ const CategoryList = () => {
   }
 
   return (
-    <div className="my-6 mx-2 rounded-lg w-auto bg-white">
+    <div className="my-6 mx-4 rounded-lg w-auto bg-white">
       <div className="flex flex-wrap md:flex-nowrap w-full rounded-lg overflow-hidden">
         {loading && categories.length === 0 ? (
           categoryLoading.map((el, index) => (
