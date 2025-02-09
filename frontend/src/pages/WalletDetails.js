@@ -2,7 +2,8 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import Context from '../context';
 import SummaryApi from '../common';
-import displayINRCurrency from '../helpers/displayCurrency'
+import displayINRCurrency from '../helpers/displayCurrency';
+import TriangleMazeLoader from '../components/TriangleMazeLoader'; // Make sure to import the loader
 
 const WalletDetails = () => {
   const [walletHistory, setWalletHistory] = useState([]);
@@ -29,7 +30,6 @@ const WalletDetails = () => {
           "content-type": 'application/json'
         }
       });
-
       const responseData = await response.json();
       console.log("Wallet History Response:", responseData); // Debug log
       if (responseData.success) {
@@ -55,20 +55,26 @@ const WalletDetails = () => {
         </h1>
         <div className="flex items-center justify-between">
           <span className="text-lg">Current Balance</span>
-          <span className="text-red-600 text-2xl font-bold">{displayINRCurrency (context?.walletBalance || 0)}</span>
+          <span className="text-red-600 text-2xl font-bold">{displayINRCurrency(context?.walletBalance || 0)}</span>
         </div>
       </div>
 
       {/* Payment History */}
       <div className='bg-white rounded-lg p-6 shadow'>
         <h2 className="text-xl font-semibold mb-4">Payment History</h2>
-        {walletHistory.length === 0 && !loading ? (
+        {loading ? (
+          <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
+            <div className="rounded-lg p-8">
+              <TriangleMazeLoader />
+            </div>
+          </div>
+        ) : walletHistory.length === 0 ? (
           <p className='text-center text-gray-500 py-4'>No transaction history available</p>
         ) : (
           <div className="space-y-4">
             {walletHistory.map((transaction) => (
-              <div 
-                key={transaction._id} 
+              <div
+                key={transaction._id}
                 className="border-b border-gray-200 pb-4 last:border-b-0"
               >
                 <div className="flex justify-between items-start">

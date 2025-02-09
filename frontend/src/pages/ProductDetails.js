@@ -8,6 +8,7 @@ import addToCart from '../helpers/addToCart';
 import Context from '../context';
 import CartPopup from '../components/CartPopup';
 import TriangleMazeLoader from '../components/TriangleMazeLoader';
+import VerticalCardProduct from '../components/VerticalCardProduct';
 
 const ProductDetails = () => {
   const [data, setData] = useState({
@@ -129,9 +130,6 @@ const ProductDetails = () => {
       setAddToCartLoading(true);
       const result = await addToCart(e, id);
 
-      // Artificial delay of 1 second
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
        await fetchUserAddToCart();
       setAddToCartLoading(false); // Hide loader
       setShowCartPopup(true); // Show cart popup
@@ -139,8 +137,6 @@ const ProductDetails = () => {
     } catch (error) {
       console.error("Error adding to cart:", error);
       setAddToCartLoading(false); // Hide loader in case of error
-    } finally {
-      setAddToCartLoading(false); // Always ensure loader is hidden
     }
   };
 
@@ -166,7 +162,7 @@ const ProductDetails = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 pb-24">
        {/* Add to Cart Loading Overlay */}
        {addToCartLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
@@ -272,7 +268,7 @@ const ProductDetails = () => {
             <p className="capitalize text-slate-400 bg-slate-200 min-w-[100px] animate-pulse h-6 lg:h-8 w-full"></p>
           </div>
         ) : (
-          <div className="flex-1 px-2 py-4 space-y-4 lg:px-4 lg:py-6 lg:space-y-6">
+          <div className="flex-1 px-1 py-4 space-y-4 lg:px-4 lg:py-6 lg:space-y-6">
             <div className="text-sm text-gray-600">
               {data?.category?.split('_').join(' ')}
             </div>
@@ -327,7 +323,7 @@ const ProductDetails = () => {
             </div>
 
             {/* Action Buttons - Fixed on mobile */}
-            <div className="lg:static fixed bottom-0 left-0 right-0 p-4 bg-white border-t flex gap-3 z-10">
+            <div className="lg:static fixed bottom-[57px] left-0 right-0 p-4 bg-white border-t flex gap-3 z-50">
               <button 
                 className="flex-1 px-6 py-3 bg-white border border-gray-900 text-gray-900 rounded-lg font-medium"
                 onClick={(e) => handleBuyProduct(e, data?._id)}
@@ -345,17 +341,20 @@ const ProductDetails = () => {
         )}
       </div>
 
+
       {data.category && (
-        <CategoryWiseProductDisplay 
+        <VerticalCardProduct 
           category={data?.category} 
           heading={"Recommended Product"}
         />
       )}
 
+
       <CartPopup 
         isOpen={showCartPopup}
         onClose={() => setShowCartPopup(false)}
         product={data}
+        className="z-[55]"
       />
     </div>
   );

@@ -109,6 +109,10 @@ const SummaryApi = {
         url : `${backendDomain}/api/delete-category`,
         method: "delete"
     },
+    getCompatibleFeatures:{
+        url: `${backendDomain}/api/compatible-features`,
+        method: "get"
+    },
     uploadAd : {
         url : `${backendDomain}/api/upload-ad`,
         method : "post"

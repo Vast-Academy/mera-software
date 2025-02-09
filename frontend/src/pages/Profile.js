@@ -1,28 +1,33 @@
 // components/Profile.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import SummaryApi from '../common';
 import { setUserDetails } from '../store/userSlice';
 import { FaEdit } from "react-icons/fa";
+import { IoCartOutline } from "react-icons/io5";
+import { IoWalletOutline } from "react-icons/io5";
+import { IoLogOutOutline } from "react-icons/io5";
 import EditProfileModal from '../components/EditProfileModal';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import TriangleMazeLoader from '../components/TriangleMazeLoader';
+import Context from '../context';
 
 const Profile = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const user = useSelector(state => state?.user?.user);
+    const context = useContext(Context);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [loading, setLoading] = useState(true); // Start with true since we fetch on mount
+    const [loading, setLoading] = useState(true);
     const [updateLoading, setUpdateLoading] = useState(false);
 
-    // Fetch latest user data when component mounts
     useEffect(() => {
         fetchUserDetails();
     }, []);
 
     const fetchUserDetails = async () => {
-        setLoading(true); // Show loading when fetching
+        setLoading(true);
         try {
             const response = await fetch(SummaryApi.current_user.url, {
                 method: SummaryApi.current_user.method,
@@ -34,9 +39,32 @@ const Profile = () => {
             }
         } catch (error) {
             console.error("Error fetching user details:", error);
+        } finally {
+            setLoading(false);
         }
-        finally {
-            setLoading(false); // Hide loading when done
+    };
+
+    const handleLogout = async () => {
+        try {
+            const fetchData = await fetch(SummaryApi.logout_user.url, {
+                method: SummaryApi.logout_user.method,
+                credentials: 'include'
+            });
+
+            const data = await fetchData.json();
+
+            if (data.success) {
+                toast.success(data.message);
+                dispatch(setUserDetails(null));
+                navigate("/");
+            }
+
+            if (data.error) {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            console.error("Error during logout:", error);
+            toast.error("Failed to logout");
         }
     };
 
@@ -71,75 +99,136 @@ const Profile = () => {
 
     return (
         <div className="container mx-auto p-4 mb-20">
-            {/* Show loading overlay when either loading state is true */}
             {(loading || updateLoading) && (
-                <div className="fixed inset-0 bg-black bg-opacity-10  flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
                     <div className="rounded-lg p-8">
                         <TriangleMazeLoader />
                     </div>
                 </div>
             )}
 
-            <div className="bg-white rounded-lg shadow-md max-w-2xl mx-auto p-6">
-                <div className="flex items-start gap-6">
-                    {/* Profile Image */}
-                    <div className="w-32 h-32">
-                        {user?.profilePic ? (
-                            <img 
-                                src={user.profilePic}
-                                alt={user.name}
-                                className="w-full h-full rounded-full object-cover"
-                            />
-                        ) : (
-                            <div className="w-full h-full rounded-full bg-gray-200 flex items-center justify-center">
-                                <span className="text-3xl text-gray-500">
-                                    {user?.name?.charAt(0)}
-                                </span>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* User Details */}
-                    <div className="flex-1">
-                        <div className="flex justify-between items-start">
-                            <h1 className="text-2xl font-bold">{user?.name}</h1>
-                            <button 
-                                onClick={() => setShowEditModal(true)}
-                                className="text-gray-600 hover:text-gray-900 p-2"
-                            >
-                                <FaEdit size={20} />
-                            </button>
+            {/* User Profile Header */}
+            <div className="bg-white rounded-lg shadow-sm max-w-2xl mx-auto mb-4">
+                <div className="p-6">
+                    <div className="flex items-start gap-6">
+                        <div className="w-16 h-16">
+                            {user?.profilePic ? (
+                                <img 
+                                    src={user.profilePic}
+                                    alt={user.name}
+                                    className="w-full h-full rounded-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full rounded-full bg-gray-200 flex items-center justify-center">
+                                    <span className="text-2xl text-gray-500">
+                                        {user?.name?.charAt(0)}
+                                    </span>
+                                </div>
+                            )}
                         </div>
-                        <div className="mt-4 space-y-2">
-                            <p className="text-gray-600">
-                                <span className="font-medium">Phone: </span>
-                                {user?.phone || 'Not set'}
-                            </p>
-                            <p className="text-gray-600">
-                                <span className="font-medium">Age: </span>
-                                {user?.age || 'Not set'}
-                            </p>
-                            <p className="text-gray-600">
-                                <span className="font-medium">Email: </span>
-                                {user?.email}
-                            </p>
+                        <div className="flex-1">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h1 className="text-xl font-semibold">{user?.name}</h1>
+                                    <p className="text-sm text-gray-600 mt-1">{user?.email}</p>
+                                    <div className="mt-2">
+                                        <p className="text-sm text-gray-600">
+                                            <span className="font-medium">Phone: </span>
+                                            {user?.phone || 'Not set'}
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            <span className="font-medium">Age: </span>
+                                            {user?.age || 'Not set'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => setShowEditModal(true)}
+                                    className="text-gray-600 hover:text-gray-900 p-2"
+                                >
+                                    <FaEdit size={18} />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-             {/* Orders Section */}
-                            <div className="mt-8 bg-white rounded-lg shadow-md max-w-2xl mx-auto p-6">
-                <h2 className="text-xl font-semibold mb-4">Your Orders</h2>
-                <Link 
-                    to="/order" 
-                    className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                    <span>View Order History</span>
-                    <span className="text-gray-400">›</span>
+            {/* Menu Items */}
+            <div className="bg-white rounded-lg shadow-sm max-w-2xl mx-auto">
+                {/* Orders Section */}
+                <Link to="/order" className="block">
+                    <div className="p-4 border-b hover:bg-gray-50">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <h2 className="text-base font-medium">Your Orders</h2>
+                                <p className="text-sm text-gray-600">Track, return, or buy things again</p>
+                            </div>
+                            <span className="text-gray-400 text-xl">›</span>
+                        </div>
+                    </div>
                 </Link>
-                </div>         
 
+                {/* Cart Section */}
+                <Link to="/cart" className="block">
+                    <div className="p-4 border-b hover:bg-gray-50">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <div className="relative">
+                                    <IoCartOutline className="w-6 h-6" />
+                                    {context?.cartProductCount > 0 && (
+                                        <div className="absolute -top-2 -right-2 bg-red-600 text-white w-4 h-4 rounded-full flex items-center justify-center">
+                                            <p className="text-xs">{context?.cartProductCount}</p>
+                                        </div>
+                                    )}
+                                </div>
+                                <div>
+                                    <h2 className="text-base font-medium">Your Cart</h2>
+                                    <p className="text-sm text-gray-600">
+                                        {context?.cartProductCount || 0} items in cart
+                                    </p>
+                                </div>
+                            </div>
+                            <span className="text-gray-400 text-xl">›</span>
+                        </div>
+                    </div>
+                </Link>
+
+                {/* Wallet Section */}
+                <Link to="/wallet" className="block">
+                    <div className="p-4 border-b hover:bg-gray-50">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <IoWalletOutline className="w-6 h-6" />
+                                <div>
+                                    <h2 className="text-base font-medium">Your Wallet</h2>
+                                    <p className="text-sm text-gray-600">
+                                        Balance: ₹{context?.walletBalance || 0}
+                                    </p>
+                                </div>
+                            </div>
+                            <span className="text-gray-400 text-xl">›</span>
+                        </div>
+                    </div>
+                </Link>
+
+                {/* Logout Section */}
+                <button 
+                    onClick={handleLogout}
+                    className="w-full text-left"
+                >
+                    <div className="p-4 hover:bg-gray-50 flex justify-between items-center text-red-600">
+                        <div className="flex items-center gap-3">
+                            <IoLogOutOutline className="w-6 h-6" />
+                            <div>
+                                <h2 className="text-base font-medium">Logout</h2>
+                                <p className="text-sm">Sign out of your account</p>
+                            </div>
+                        </div>
+                        <span className="text-gray-400 text-xl">›</span>
+                    </div>
+                </button>
+            </div>
 
             {/* Edit Modal */}
             {showEditModal && (

@@ -107,7 +107,7 @@ const BannerProduct = ({ serviceName = "home" }) => {
     };
 
     return (
-        <div className='container mx-auto px-2 md:mt-5 rounded'>
+        <div className='container mx-auto px-4 md:mt-5 rounded'>
             <div className='h-40 md:h-auto w-full bg-slate-200 relative rounded-lg shadow-lg'>
                 <div className='absolute z-10 h-full w-full md:flex items-center hidden'>
                     <div className='flex justify-between w-full text-2xl'>
@@ -138,7 +138,7 @@ const BannerProduct = ({ serviceName = "home" }) => {
                              key={banner._id} 
                              onClick={() => handleBannerClick(banner)}
                              style={{ transform: `translateX(-${currentImage * 100}%)` }}>
-                            <img src={banner.images[0]} className='rounded-lg w-full h-full object-cover' alt="Banner" />
+                            <img src={banner.images[0]} className='rounded-2xl w-full h-full object-cover' alt="Banner" />
                         </div>
                     ))}
                 </div>

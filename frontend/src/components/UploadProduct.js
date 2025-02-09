@@ -12,7 +12,8 @@ import packageOptions from '../helpers/packageOptions';
 import perfectForOptions from '../helpers/perfectForOptions';
 import defaultFields from '../helpers/defaultFields';
 import RichTextEditor from '../helpers/richTextEditor';
-
+import keyBenefitsOptions, { CustomKeyBenefitOption, CustomKeyBenefitValue } from '../helpers/keyBenefitOptions';
+import compatibleWithOptions, { CustomCompatibleOption, CustomCompatibleValue} from '../helpers/compatibleWithOptions';
 
 const UploadProduct = ({
     onClose,
@@ -26,6 +27,7 @@ const UploadProduct = ({
   ];
 
   const [categories, setCategories] = useState([]);
+  const [compatibleFeatures, setCompatibleFeatures] = useState([]);
     const [data, setData] = useState({
         serviceName : "",
         category : "",
@@ -37,9 +39,15 @@ const UploadProduct = ({
         description : "",
         websiteTypeDescription : "",   
         // Website service specific fields
-    isWebsiteService: false,
-    totalPages: 4, // Starts with minimum 4 pages
-    checkpoints: []
+        isWebsiteService: false,
+        totalPages: 4, 
+        checkpoints: [],
+        // feature upgrade fields
+        isFeatureUpgrade: false,
+        upgradeType: "", // 'feature' or 'component'
+        compatibleWith: [], 
+        keyBenefits: [], 
+        additionalFeatures: [],
     })
 
 
@@ -95,6 +103,28 @@ const UploadProduct = ({
       fetchCategories();
   }, []);
 
+  // Add this function after your other useEffect hooks
+const fetchCompatibleFeatures = async (category) => {
+  try {
+    const response = await fetch(`${SummaryApi.getCompatibleFeatures.url}?category=${category}`);
+    const result = await response.json();
+    if (result.success) {
+      // Transform the data for Select component
+      const formattedFeatures = result.data.map(feature => ({
+        value: feature._id,
+        label: feature.serviceName,
+        price: feature.price,
+        description: feature.description,
+        upgradeType: feature.upgradeType
+      }));
+      setCompatibleFeatures(formattedFeatures);
+    }
+  } catch (error) {
+    console.error("Error fetching compatible features:", error);
+    toast.error("Error loading compatible features");
+  }
+};
+
     const [openFullScreenImage, setOpenFullScreenImage] = useState(false)
     const [fullScreenImage, setFullScreenImage] = useState("")
 
@@ -102,12 +132,23 @@ const UploadProduct = ({
       const { name, value } = e.target
 
       setData((preve)=>{
-         // If category changes, set defaults
-    if (name === "category" && defaultFields[value]){
-      return{
-        ...preve,
-        [name] : value,
-        websiteTypeDescription : defaultFields[value].websiteTypeDescription,
+      // If category changes
+    if (name === "category") {
+      // Fetch compatible features if it's a website service
+      const servicesWithFeatures = ['standard_websites', 'dynamic_websites', 'web_applications', 'mobile_apps'];
+      if (servicesWithFeatures.includes(value)) {
+        fetchCompatibleFeatures(value);
+      } else {
+        setCompatibleFeatures([]); // Clear features if not applicable
+      }
+
+      // Handle defaults if any
+      if (defaultFields[value]) {
+        return {
+          ...preve,
+          [name]: value,
+          websiteTypeDescription: defaultFields[value].websiteTypeDescription,
+        };
       }
     }
      // Otherwise, just update the field
@@ -117,6 +158,22 @@ const UploadProduct = ({
         } 
       })
     }
+
+    const handleCompatibleWithChange = (selectedOptions) => {
+      setData((prev) => ({
+        ...prev,
+        compatibleWith: selectedOptions.map((option) => option.value),
+      }));
+    };
+
+    // Add these handler functions
+    const handleKeyBenefitsChange = (selectedOptions) => {
+      setData((prev) => ({
+        ...prev,
+        keyBenefits: selectedOptions.map((option) => option.value),
+      }));
+    };
+    
 
     const handlePackageIncludesChange = (selectedOptions) => {
       setData((preve) => ({
@@ -130,6 +187,13 @@ const UploadProduct = ({
       setData((preve) => ({
         ...preve,
         perfectFor: selectedOptions.map((option) => option.value),
+      }));
+    };
+
+    const handleAdditionalFeaturesChange = (selectedOptions) => {
+      setData(prev => ({
+        ...prev,
+        additionalFeatures: selectedOptions.map(option => option.value)
       }));
     };
 
@@ -162,6 +226,15 @@ const UploadProduct = ({
     // upload product
     const handleSubmit = async (e) => {
       e.preventDefault()
+
+      // Create submission data with additional features if applicable
+  const submissionData = {
+    ...data,
+    // Only include additional features if it's a website service
+    ...(shouldShowWebsiteFields(data.category) ? {
+      additionalFeatures: data.additionalFeatures
+    } : {})
+  };
       
       const response = await fetch(SummaryApi.uploadProduct.url,{
         method : SummaryApi.uploadProduct.method,
@@ -169,7 +242,7 @@ const UploadProduct = ({
         headers : {
           "content-type" : "application/json"
         },
-        body : JSON.stringify(data)
+        body : JSON.stringify(submissionData)
       })
       
       const responseData = await response.json()
@@ -187,8 +260,35 @@ const UploadProduct = ({
 
     // Add this helper function
 const shouldShowWebsiteFields = (category) => {
-  const websiteCategories = ['static_websites', 'standard_websites', 'dynamic_websites'];
+  const websiteCategories = ['standard_websites', 'dynamic_websites', 'web_applications', 'mobile_apps'];
   return category && websiteCategories.includes(category);
+};
+// Add this helper function alongside shouldShowWebsiteFields
+const shouldShowFeatureFields = (category) => {
+  return category === 'feature_upgrades';
+};
+
+// Custom Option Component for feature display
+const CustomFeatureOption = ({ data, ...props }) => {
+  return (
+    <div 
+      className={`p-2 ${props.isFocused ? 'bg-slate-100' : ''}`}
+      style={{ cursor: 'pointer' }}
+    >
+      <div className="font-medium">{data.label}</div>
+      <div className="text-sm text-gray-600 flex justify-between">
+        <span>{data.upgradeType === 'feature' ? 'Feature' : 'Component'}</span>
+        <span>₹{data.price}</span>
+      </div>
+      {data.description && (
+        <div className="text-xs text-gray-500 mt-1">
+          {data.description.length > 100 
+            ? `${data.description.substring(0, 100)}...` 
+            : data.description}
+        </div>
+      )}
+    </div>
+  );
 };
 
   return (
@@ -314,9 +414,90 @@ const shouldShowWebsiteFields = (category) => {
               classNamePrefix='select'
               placeholder="Select target audience"
             />
+
+{compatibleFeatures.length > 0 && (
+      <div className="mt-3">
+        <label htmlFor="additionalFeatures" className="block mb-2">
+          Additional Features Available:
+        </label>
+        <Select
+          isMulti
+          options={compatibleFeatures}
+          value={compatibleFeatures.filter(feature => 
+            data.additionalFeatures.includes(feature.value)
+          )}
+          onChange={handleAdditionalFeaturesChange}
+          className="basic-multi-select bg-slate-100 border rounded"
+          classNamePrefix="select"
+          placeholder="Select additional features"
+        />
+      </div>
+      )}
               </>
             )
           }
+
+        {
+          shouldShowFeatureFields(data.category) && (
+            <>
+              <label htmlFor='upgradeType' className='mt-3'>Upgrade Type:</label>
+              <select
+                id='upgradeType'
+                name='upgradeType'
+                value={data.upgradeType}
+                onChange={handleOnChange}
+                className='p-2 bg-slate-100 border rounded'
+                required
+              >
+                <option value="">Select Type</option>
+                <option value="feature">Feature</option>
+                <option value="component">Component</option>
+              </select>
+
+              {/* Compatible With Field */}
+              <label htmlFor='compatibleWith' className='mt-3'>Compatible With:</label>
+              <Select
+                isMulti
+                options={compatibleWithOptions}
+                value={data.compatibleWith.map(value => {
+                  const option = compatibleWithOptions.find(opt => opt.value === value);
+                  return option;
+                })}
+                name='compatibleWith'
+                id='compatibleWith'
+                onChange={handleCompatibleWithChange}
+                components={{
+                  Option: CustomCompatibleOption,
+                  MultiValue: CustomCompatibleValue
+                }}
+                className='basic-multi-select bg-slate-100 border rounded'
+                classNamePrefix='select'
+                placeholder="Select compatible platforms"
+              />
+
+              {/* Key Benefits Field */}
+            <label htmlFor='keyBenefits' className='mt-3'>Key Benefits:</label>
+            <Select
+              isMulti
+              options={keyBenefitsOptions}
+              value={data.keyBenefits.map(value => {
+                const option = keyBenefitsOptions.find(opt => opt.value === value);
+                return option;
+              })}
+              name='keyBenefits'
+              id='keyBenefits'
+              onChange={handleKeyBenefitsChange}
+              components={{
+                Option: CustomKeyBenefitOption,
+                MultiValue: CustomKeyBenefitValue
+              }}
+              className='basic-multi-select bg-slate-100 border rounded'
+              classNamePrefix='select'
+              placeholder="Select key benefits"
+            />
+            </>
+          )
+        }
 
         <label htmlFor='serviceImage' className='mt-3'>Service Image :</label> 
         <label htmlFor='uploadImageInput'>
@@ -402,9 +583,6 @@ const shouldShowWebsiteFields = (category) => {
         placeholder='Enter product description'
       />
 
-      {
-        shouldShowWebsiteFields(data.category) && (
-          <>
         <label htmlFor="websiteTypeDescription" className="mt-3">Website Type Description :</label>
       <textarea
         className="h-28 bg-slate-100 border p-1 resize-none"
@@ -415,10 +593,7 @@ const shouldShowWebsiteFields = (category) => {
         value={data.websiteTypeDescription}
       >
       </textarea>
-        </>
-        )   
-      }
-
+       
        {/* Submit Button */}
         <button className='px-3 py-2 bg-red-600 text-white mb-10 hover:bg-red-700'>Upload Service</button>
 

@@ -3,7 +3,7 @@ import SummaryApi from '../common'
 import Context from '../context'
 import displayINRCurrency from '../helpers/displayCurrency'
 import { MdDelete } from "react-icons/md";
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import TriangleMazeLoader from '../components/TriangleMazeLoader';
 // import {loadStripe} from '@stripe/stripe-js'
@@ -219,7 +219,12 @@ const Cart = () => {
         <div className='text-center text-lg my-3'>
             {
                 data.length === 0 && !loading && (
-                    <p className='bg-white py-5'>No Data</p>
+                    <div className="text-center py-12">
+            <p className="text-gray-500 mb-4">Your Cart is Empty!</p>
+            <Link to="/" className="text-blue-500 hover:text-blue-600">
+              Continue Shopping
+            </Link>
+          </div>
                 )
             }
         </div>

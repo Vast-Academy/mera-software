@@ -19,7 +19,7 @@ const CartPopup = ({ isOpen, onClose, product }) => {
           "content-type": 'application/json'
         }
       });
-      
+     
       const data = await response.json();
       if (data.success && data.data) {
         setCartProducts(data.data);
@@ -45,7 +45,7 @@ const CartPopup = ({ isOpen, onClose, product }) => {
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 mb-16">
+    <div className="fixed inset-0 z-[55]"> {/* Changed to full screen fixed with higher z-index */}
       {/* Overlay */}
       <div
         className="fixed inset-0 bg-black bg-opacity-50"
@@ -53,7 +53,7 @@ const CartPopup = ({ isOpen, onClose, product }) => {
       />
      
       {/* Popup Content */}
-      <div className="relative bg-white rounded-t-lg mx-auto max-w-md">
+      <div className="fixed bottom-[140px] left-0 right-0 bg-white rounded-t-lg mx-auto max-w-md"> {/* Positioned above buttons */}
         {/* Close button */}
         <button
           onClick={onClose}
@@ -91,7 +91,7 @@ const CartPopup = ({ isOpen, onClose, product }) => {
          
           {/* Other cart products */}
           {!loading && cartProducts
-            .filter(item => item.productId._id !== product?._id) // Exclude current product
+            .filter(item => item.productId._id !== product?._id)
             .map((item) => (
               <div
                 key={item._id}

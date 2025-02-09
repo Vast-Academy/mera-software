@@ -51,6 +51,10 @@ const defaultFields = {
                     <li>Higher Cost  </li>
                     </ul>`
     },
+    feature_upgrades: {
+        websiteTypeDescription: ` <h4>Our Objective</h4>
+                   <pTo provide you with a professional, user-friendly, and efficient gallery solution that enhances your website's visual appeal and user engagement. We ensure seamless integration, optimal performance, and complete satisfaction with our development services.</p>`
+       },
     // Add more categories as needed
   };
 

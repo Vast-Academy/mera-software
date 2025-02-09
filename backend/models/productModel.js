@@ -67,15 +67,41 @@ const productSchema = new mongoose.Schema({
         },
         message: 'Invalid checkpoints configuration'
       }
-    }
+    },
+    isFeatureUpgrade: {
+      type: Boolean,
+      default: false
+    },
+    upgradeType: {
+      type: String,
+      enum: ['', 'feature', 'component'],
+      validate: {
+        validator: function(value) {
+          return !this.isFeatureUpgrade || ['feature', 'component'].includes(value);
+        },
+        message: 'Feature upgrades must specify a valid upgrade type'
+      }
+    },
+    compatibleWith : [String],
+    keyBenefits : [String],
+    additionalFeatures: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'product'  // References the same Product model
+  }]
 }, {
     timestamps: true
 });
 
 // Set isWebsiteService based on category
 productSchema.pre('save', function(next) {
-  const websiteCategories = ['static_websites', 'standard_websites'];
+  const websiteCategories = ['standard_websites', 'dynamic_websites', 'web_applications', 'mobile_apps'];
   this.isWebsiteService = websiteCategories.includes(this.category);
+  this.isFeatureUpgrade = this.category === 'feature_upgrades';
+
+  // If it's not a website service, ensure additionalFeatures is empty
+  if (!this.isWebsiteService) {
+    this.additionalFeatures = [];
+}
   next();
 });
 

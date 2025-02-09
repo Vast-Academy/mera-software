@@ -48,6 +48,7 @@ const getProjectsController = require('../controller/admin/getProjectController'
 const updateProgressController = require('../controller/admin/updateProgressController')
 const sendMessageController = require('../controller/admin/sendMessageController')
 const getWalletHistoryController = require('../controller/admin/getWalletHistoryController')
+const getCompatibleFeaturesController = require('../controller/product/getCompatibleFeatures')
 
 
 router.post("/signup", userSignUpController)
@@ -84,6 +85,7 @@ router.post("/upload-category",authToken, UploadCategoryController)
 router.get("/get-categories", getCategoryController)
 router.post("/update-category/:id",authToken, updateCategoryController)
 router.delete("/delete-category", authToken, DeleteCategoryController)
+router.get("/compatible-features", getCompatibleFeaturesController)
 
 //user add to cart
 router.post("/addtocart", authToken, addToCartController)
