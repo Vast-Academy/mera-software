@@ -12,6 +12,8 @@ import packageOptions from '../helpers/packageOptions';
 import perfectForOptions from '../helpers/perfectForOptions';
 import defaultFields from '../helpers/defaultFields';
 import RichTextEditor from '../helpers/richTextEditor';
+import keyBenefitsOptions, { CustomKeyBenefitOption, CustomKeyBenefitValue } from '../helpers/keyBenefitOptions';
+import compatibleWithOptions, { CustomCompatibleOption, CustomCompatibleValue} from '../helpers/compatibleWithOptions';
 
 const AdminEditProduct = ({
     onClose,
@@ -26,6 +28,7 @@ const AdminEditProduct = ({
     ];
 
     const [categories, setCategories] = useState([]);
+    const [compatibleFeatures, setCompatibleFeatures] = useState([]);
     const [data, setData] = useState({
         ...productData,
         serviceName: productData?.serviceName,
@@ -40,7 +43,13 @@ const AdminEditProduct = ({
         // Website service specific fields
         isWebsiteService: productData?.isWebsiteService || false,
         totalPages: productData?.totalPages || 4, // Default to minimum 4 pages
-        checkpoints: productData?.checkpoints || []
+        checkpoints: productData?.checkpoints || [],
+        // New feature upgrade fields
+        isFeatureUpgrade: productData?.isFeatureUpgrade || false,
+        upgradeType: productData?.upgradeType || "",
+        compatibleWith: productData?.compatibleWith || [],
+        keyBenefits: productData?.keyBenefits || [],
+        additionalFeatures: productData?.additionalFeatures || [],
     });
 
     const [openFullScreenImage, setOpenFullScreenImage] = useState(false);
@@ -97,23 +106,77 @@ const AdminEditProduct = ({
       }
     }, [data.totalPages, data.category]);
 
+     // Add fetchCompatibleFeatures function
+     const fetchCompatibleFeatures = async (category) => {
+      try {
+        const response = await fetch(`${SummaryApi.getCompatibleFeatures.url}?category=${category}`);
+        const result = await response.json();
+        if (result.success) {
+          const formattedFeatures = result.data.map(feature => ({
+            value: feature._id,
+            label: feature.serviceName,
+            price: feature.price,
+            description: feature.description,
+            upgradeType: feature.upgradeType
+          }));
+          setCompatibleFeatures(formattedFeatures);
+        }
+      } catch (error) {
+        console.error("Error fetching compatible features:", error);
+        toast.error("Error loading compatible features");
+      }
+    };
+
     const handleOnChange = (e)=> {
       const { name, value } = e.target
 
       setData((preve)=>{
-        if (name === "category" && defaultFields[value]) {
-          return {
-            ...preve,
-            [name]: value,
-            websiteTypeDescription: defaultFields[value].websiteTypeDescription,
+        if (name === "category") {
+          // Fetch compatible features if it's a website service
+          const servicesWithFeatures = ['standard_websites', 'dynamic_websites', 'web_applications', 'mobile_apps'];
+          if (servicesWithFeatures.includes(value)) {
+            fetchCompatibleFeatures(value);
+          } else {
+            setCompatibleFeatures([]); // Clear features if not applicable
+          }
+
+          if (defaultFields[value]) {
+            return {
+              ...preve,
+              [name]: value,
+              websiteTypeDescription: defaultFields[value].websiteTypeDescription,
+            }
           }
         }
+
         return {
           ...preve,
           [name]: value
         }
       })
     }
+
+    // Add new handlers for feature-related fields
+    const handleCompatibleWithChange = (selectedOptions) => {
+      setData((prev) => ({
+        ...prev,
+        compatibleWith: selectedOptions.map((option) => option.value),
+      }));
+    };
+
+    const handleKeyBenefitsChange = (selectedOptions) => {
+      setData((prev) => ({
+        ...prev,
+        keyBenefits: selectedOptions.map((option) => option.value),
+      }));
+    };
+
+    const handleAdditionalFeaturesChange = (selectedOptions) => {
+      setData(prev => ({
+        ...prev,
+        additionalFeatures: selectedOptions.map(option => option.value)
+      }));
+    };  
 
     const handlePackageIncludesChange = (selectedOptions) => {
       setData((preve) => ({
@@ -178,11 +241,38 @@ const AdminEditProduct = ({
       }
     }
 
-    // Add this helper function
+    // Update helper functions
     const shouldShowWebsiteFields = (category) => {
-      const websiteCategories = ['static_websites', 'standard_websites', 'dynamic_websites'];
+      const websiteCategories = ['standard_websites', 'dynamic_websites', 'web_applications', 'mobile_apps'];
       return category && websiteCategories.includes(category);
     };
+
+    const shouldShowFeatureFields = (category) => {
+      return category === 'feature_upgrades';
+    };
+
+    // Custom Option Component for feature display
+    const CustomFeatureOption = ({ data, ...props }) => {
+      return (
+        <div 
+          className={`p-2 ${props.isFocused ? 'bg-slate-100' : ''}`}
+          style={{ cursor: 'pointer' }}
+        >
+          <div className="font-medium">{data.label}</div>
+          <div className="text-sm text-gray-600 flex justify-between">
+            <span>{data.upgradeType === 'feature' ? 'Feature' : 'Component'}</span>
+            <span>₹{data.price}</span>
+          </div>
+          {data.description && (
+            <div className="text-xs text-gray-500 mt-1">
+              {data.description.length > 100 
+                ? `${data.description.substring(0, 100)}...` 
+                : data.description}
+            </div>
+          )}
+        </div>
+      );
+    };  
 
   return (
     <div className='fixed w-full h-full bg-slate-200 bg-opacity-40 top-0 left-0 right-0 bottom-0 flex justify-center items-center'>
@@ -303,8 +393,89 @@ const AdminEditProduct = ({
               classNamePrefix='select'
               placeholder="Select target audience"
             />
+
+              {compatibleFeatures.length > 0 && (
+            <div className="mt-3">
+                <label htmlFor="additionalFeatures" className="block mb-2">
+                    Additional Features Available:
+                </label>
+                <Select
+                    isMulti
+                    options={compatibleFeatures}
+                    value={compatibleFeatures.filter(feature => 
+                        data.additionalFeatures.includes(feature.value)
+                    )}
+                    onChange={handleAdditionalFeaturesChange}
+                    className="basic-multi-select bg-slate-100 border rounded"
+                    classNamePrefix="select"
+                    placeholder="Select additional features"
+                    components={{
+                        Option: CustomFeatureOption
+                    }}
+                />
+            </div>
+            )}
           </>
         )}
+
+        {/* Add new feature upgrade fields */}
+        {shouldShowFeatureFields(data.category) && (
+                    <>
+                        <label htmlFor='upgradeType' className='mt-3'>Upgrade Type:</label>
+                        <select
+                            id='upgradeType'
+                            name='upgradeType'
+                            value={data.upgradeType}
+                            onChange={handleOnChange}
+                            className='p-2 bg-slate-100 border rounded'
+                            required
+                        >
+                            <option value="">Select Type</option>
+                            <option value="feature">Feature</option>
+                            <option value="component">Component</option>
+                        </select>
+
+                        <label htmlFor='compatibleWith' className='mt-3'>Compatible With:</label>
+                        <Select
+                            isMulti
+                            options={compatibleWithOptions}
+                            value={data.compatibleWith.map(value => {
+                                const option = compatibleWithOptions.find(opt => opt.value === value);
+                                return option;
+                            })}
+                            name='compatibleWith'
+                            id='compatibleWith'
+                            onChange={handleCompatibleWithChange}
+                            components={{
+                                Option: CustomCompatibleOption,
+                                MultiValue: CustomCompatibleValue
+                            }}
+                            className='basic-multi-select bg-slate-100 border rounded'
+                            classNamePrefix='select'
+                            placeholder="Select compatible platforms"
+                        />
+
+                        <label htmlFor='keyBenefits' className='mt-3'>Key Benefits:</label>
+                        <Select
+                            isMulti
+                            options={keyBenefitsOptions}
+                            value={data.keyBenefits.map(value => {
+                                const option = keyBenefitsOptions.find(opt => opt.value === value);
+                                return option;
+                            })}
+                            name='keyBenefits'
+                            id='keyBenefits'
+                            onChange={handleKeyBenefitsChange}
+                            components={{
+                                Option: CustomKeyBenefitOption,
+                                MultiValue: CustomKeyBenefitValue
+                            }}
+                            className='basic-multi-select bg-slate-100 border rounded'
+                            classNamePrefix='select'
+                            placeholder="Select key benefits"
+                        />
+                    </>
+                )}
 
         <label htmlFor='serviceImage' className='mt-3'>Service Image :</label> 
         <label htmlFor='uploadImageInput'>

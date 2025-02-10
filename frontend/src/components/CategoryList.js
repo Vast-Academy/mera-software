@@ -88,7 +88,7 @@ const CategoryList = () => {
             <Link
               to={`/product-category?category=${category.categoryValue}`}
               key={category.categoryId}
-              className="w-1/3 flex items-center justify-center h-32 px-4 bg-white border border-gray-50 active:bg-gray-100 md:hover:bg-[#F5EBE4] transition-all duration-200 touch-manipulation"
+              className="w-1/3 flex items-center justify-center h-32 px-2 bg-white border border-gray-50 active:bg-gray-100 md:hover:bg-[#F5EBE4] transition-all duration-200 touch-manipulation"
             >
               <div className="flex flex-col items-center w-full">
                 <div className="relative mb-1 pt-2">
@@ -105,7 +105,7 @@ const CategoryList = () => {
                   </div>
                 </div>
                 <div className="mt-2 flex items-center justify-center">
-                  <span className="text-xs text-gray-700 capitalize text-center" style={{ lineHeight: '16px' }}>
+                  <span className="text-xs text-gray-700 capitalize text-center" style={{ lineHeight: '16px', fontWeight: '600' }}>
                     {category.categoryName}
                   </span>
                 </div>
