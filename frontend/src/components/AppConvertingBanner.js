@@ -160,7 +160,7 @@ const AppConvertingBanner = () => {
 
   return (
     <div className='container mx-auto px-4'>
-      <div className="bg-white rounded-xl py-6 px-2 shadow-lg max-w-xl mx-auto overflow-hidden">
+      <div className="bg-white rounded-xl py-5  max-w-xl mx-auto overflow-hidden">
         <div className="relative">
           {!user?._id ? (
              <div
@@ -204,7 +204,7 @@ const AppConvertingBanner = () => {
           ) :  orders.length > 0 ? (
             <div className="px-4">
             <div
-              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer p-4"
+              className="bg-white rounded-lg  hover:shadow-lg transition-shadow cursor-pointer p-3"
               onClick={() => handleOrderClick(orders[0]._id)}
             >
               {/* Main container with two columns */}
@@ -212,7 +212,7 @@ const AppConvertingBanner = () => {
                 {/* Left column with order details */}
                 <div className="flex-1 pr-4">
                   <div className="mb-4">
-                    <h3 className="font-medium text-gray-900">
+                    <h3 className="text-xl font-medium text-gray-900">
                       {orders[0].productId?.serviceName}
                     </h3>
                     <p className="text-sm text-gray-500">
@@ -228,7 +228,7 @@ const AppConvertingBanner = () => {
                     <BsCalendar3 className="h-4 w-4 text-blue-500 mr-2" />
                     <div>
                     <span>Started:</span>
-                    <span>{formatDate(orders[0].createdAt)} at {formatTime(orders[0].createdAt)}</span>
+                    <span>{formatDate(orders[0].createdAt)}</span>
                     </div>
                   </div>
                 </div>
