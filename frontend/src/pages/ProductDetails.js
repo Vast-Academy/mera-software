@@ -10,6 +10,12 @@ import TriangleMazeLoader from '../components/TriangleMazeLoader';
 import VerticalCardProduct from '../components/VerticalCardProduct';
 import addToCart from '../helpers/addToCart';
 import QuantitySelector from '../components/QuantitySelector';
+import { 
+  cacheProductDetails, 
+  getCachedProduct, 
+  isCacheStale,
+  clearOldCache 
+} from '../helpers/productDB';
 
 const ProductDetails = () => {
   const [data, setData] = useState({
@@ -123,10 +129,54 @@ const calculateTotalPrice = () => {
     const fetchProductDetails = async () => {
       try {
         setInitialLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setInitialLoading(false);
+        
+        // Try to get cached data first
+        const cachedData = await getCachedProduct(params?.id);
+        
+        if (cachedData && !isCacheStale(cachedData.lastUpdated)) {
+          // Use cached data if it's not stale
+          setData(cachedData);
+          setInitialLoading(false);
+          setLoading(false);
+          
+          // Load additional features from cache if available
+          if (cachedData.additionalFeaturesData) {
+            setAdditionalFeaturesData(cachedData.additionalFeaturesData);
+            
+            // Initialize quantities and selected features from cache
+            const initialQuantities = {};
+            const initialSelectedFeatures = [];
 
-        setLoading(true);
+            cachedData.additionalFeaturesData.forEach(feature => {
+              if (feature.upgradeType === 'component') {
+                initialQuantities[feature._id] = feature.baseQuantity || cachedData.totalPages;
+                initialSelectedFeatures.push(feature._id);
+              }
+            });
+
+            setQuantities(initialQuantities);
+            setSelectedFeatures(initialSelectedFeatures);
+          }
+          
+          // Still fetch fresh data in background
+          fetchFreshData();
+        } else {
+          // If no cache or stale cache, fetch fresh data
+          await fetchFreshData();
+        }
+        
+        // Clear old cache entries
+        clearOldCache().catch(console.error);
+        
+      } catch (error) {
+        console.error("Error in product details:", error);
+        setInitialLoading(false);
+        setLoading(false);
+      }
+    };
+
+    const fetchFreshData = async () => {
+      try {
         const response = await fetch(SummaryApi.productDetails.url, {
           method: SummaryApi.productDetails.method,
           headers: { "content-type": "application/json" },
@@ -134,10 +184,11 @@ const calculateTotalPrice = () => {
         });
         
         const dataResponse = await response.json();
-        setData(dataResponse?.data);
+        const productData = dataResponse?.data;
+        setData(productData);
         
-        if (dataResponse?.data?.additionalFeatures?.length > 0) {
-          const featuresPromises = dataResponse.data.additionalFeatures.map(featureId =>
+        if (productData?.additionalFeatures?.length > 0) {
+          const featuresPromises = productData.additionalFeatures.map(featureId =>
             fetch(SummaryApi.productDetails.url, {
               method: SummaryApi.productDetails.method,
               headers: { "content-type": "application/json" },
@@ -148,7 +199,7 @@ const calculateTotalPrice = () => {
           const featuresData = await Promise.all(featuresPromises);
           const featuresWithData = featuresData.map(fd => fd.data);
 
-          // Sort features to show component type first
+          // Sort features
           const sortedFeatures = featuresWithData.sort((a, b) => {
             if (a.upgradeType === 'component' && b.upgradeType !== 'component') return -1;
             if (b.upgradeType === 'component' && a.upgradeType !== 'component') return 1;
@@ -157,26 +208,35 @@ const calculateTotalPrice = () => {
 
           setAdditionalFeaturesData(sortedFeatures);
 
+          // Cache the complete data including additional features
+          await cacheProductDetails(params?.id, {
+            ...productData,
+            additionalFeaturesData: sortedFeatures
+          });
+
           // Initialize quantities and selected features
           const initialQuantities = {};
           const initialSelectedFeatures = [];
 
           sortedFeatures.forEach(feature => {
             if (feature.upgradeType === 'component') {
-              initialQuantities[feature._id] = feature.baseQuantity || data.totalPages;
+              initialQuantities[feature._id] = feature.baseQuantity || productData.totalPages;
               initialSelectedFeatures.push(feature._id);
             }
           });
 
           setQuantities(initialQuantities);
           setSelectedFeatures(initialSelectedFeatures);
+        } else {
+          // Cache the product data without additional features
+          await cacheProductDetails(params?.id, productData);
         }
 
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching product details:", error);
         setInitialLoading(false);
         setLoading(false);
+      } catch (error) {
+        console.error("Error fetching fresh data:", error);
+        throw error;
       }
     };
 
