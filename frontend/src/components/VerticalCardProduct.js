@@ -57,8 +57,12 @@ const VerticalCardProduct = ({category, heading}) => {
     const fetchData = async() => {
         setLoading(true)
         const categoryProduct = await fetchCategoryWiseProduct(category)
+         // Sort the data alphabetically by serviceName before setting it
+        const sortedData = categoryProduct?.data.sort((a, b) => 
+        a.serviceName.localeCompare(b.serviceName)
+    )
         setLoading(false)
-        setData(categoryProduct?.data)
+        setData(sortedData)
     }
 
     useEffect(() => {

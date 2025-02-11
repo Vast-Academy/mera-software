@@ -151,12 +151,17 @@ const calculateTotalPrice = () => {
 
           // Initialize quantities for component-type features
         const initialQuantities = {};
+        const initialSelectedFeatures = [];
+
         featuresWithData.forEach(feature => {
-          if (feature.upgradeType === 'component' && feature.baseQuantity) {
-            initialQuantities[feature._id] = feature.baseQuantity;
+          if (feature.upgradeType === 'component') {
+            initialQuantities[feature._id] = feature.baseQuantity || data.totalPages;
+            initialSelectedFeatures.push(feature._id);
           }
         });
+
         setQuantities(initialQuantities);
+        setSelectedFeatures(initialSelectedFeatures);
         }
 
         setLoading(false);
