@@ -20,8 +20,12 @@ const productSchema = new mongoose.Schema({
     serviceImage: [],
     price: Number,
     sellingPrice: Number,
-    description: String,
-    websiteTypeDescription: String,
+    formattedDescriptions: [{
+      content: {
+          type: String,
+          required: true
+      }
+  }],
     
     // Website service fields
     isWebsiteService: {
@@ -82,6 +86,7 @@ const productSchema = new mongoose.Schema({
         message: 'Feature upgrades must specify a valid upgrade type'
       }
     },
+    
     compatibleWith : [String],
     keyBenefits : [String],
     additionalFeatures: [{

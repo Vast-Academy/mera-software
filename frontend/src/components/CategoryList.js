@@ -10,7 +10,7 @@ const CategoryList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const categoryLoading = new Array(8).fill(null);
+  const categoryLoading = new Array(6).fill(null);
 
   const fetchCategories = async () => {
     setLoading(true);

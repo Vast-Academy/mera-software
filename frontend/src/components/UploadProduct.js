@@ -4,14 +4,15 @@ import { CgClose } from "react-icons/cg";
 import { FaCloudUploadAlt } from "react-icons/fa";
 import uploadImage from '../helpers/uploadImage';
 import DisplayImage from './DisplayImage';
-import { MdDelete } from "react-icons/md";
+import { MdDelete, MdAdd  } from "react-icons/md";
 import SummaryApi from '../common';
 import {toast} from 'react-toastify'
 import Select from 'react-select'
-import packageOptions from '../helpers/packageOptions';
-import perfectForOptions from '../helpers/perfectForOptions';
-import defaultFields from '../helpers/defaultFields';
+import packageOptions, { CustomPackageOption, CustomPackageValue } from '../helpers/packageOptions';
+import perfectForOptions, { CustomPerfectForOption, CustomPerfectForValue } from '../helpers/perfectForOptions';
+// import defaultFields from '../helpers/defaultFields';
 import RichTextEditor from '../helpers/richTextEditor';
+import PackageSelect from './PackageSelect';
 import keyBenefitsOptions, { CustomKeyBenefitOption, CustomKeyBenefitValue } from '../helpers/keyBenefitOptions';
 import compatibleWithOptions, { CustomCompatibleOption, CustomCompatibleValue} from '../helpers/compatibleWithOptions';
 
@@ -36,8 +37,7 @@ const UploadProduct = ({
         serviceImage : [],
          price : "",
         sellingPrice : "",
-        description : "",
-        websiteTypeDescription : "",   
+        formattedDescriptions: [''],   
         // Website service specific fields
         isWebsiteService: false,
         totalPages: 4, 
@@ -143,13 +143,13 @@ const fetchCompatibleFeatures = async (category) => {
       }
 
       // Handle defaults if any
-      if (defaultFields[value]) {
-        return {
-          ...preve,
-          [name]: value,
-          websiteTypeDescription: defaultFields[value].websiteTypeDescription,
-        };
-      }
+      // if (defaultFields[value]) {
+      //   return {
+      //     ...preve,
+      //     [name]: value,
+      //     websiteTypeDescription: defaultFields[value].websiteTypeDescription,
+      //   };
+      // }
     }
      // Otherwise, just update the field
         return {
@@ -159,6 +159,31 @@ const fetchCompatibleFeatures = async (category) => {
       })
     }
 
+     // Add new description field
+     const handleAddDescription = () => {
+      setData(prev => ({
+          ...prev,
+          formattedDescriptions: [...prev.formattedDescriptions, '']
+      }));
+  };
+
+  // Remove description field
+  const handleRemoveDescription = (index) => {
+      setData(prev => ({
+          ...prev,
+          formattedDescriptions: prev.formattedDescriptions.filter((_, i) => i !== index)
+      }));
+  };
+
+  // Handle description changes
+  const handleDescriptionChange = (content, index) => {
+      setData(prev => ({
+          ...prev,
+          formattedDescriptions: prev.formattedDescriptions.map((desc, i) => 
+              i === index ? content : desc
+          )
+      }));
+  };
     const handleCompatibleWithChange = (selectedOptions) => {
       setData((prev) => ({
         ...prev,
@@ -227,13 +252,15 @@ const fetchCompatibleFeatures = async (category) => {
     const handleSubmit = async (e) => {
       e.preventDefault()
 
+      // Filter out empty descriptions
+      const validDescriptions = data.formattedDescriptions.filter(
+        content => content.trim() !== ''
+    );
+
       // Create submission data with additional features if applicable
   const submissionData = {
     ...data,
-    // Only include additional features if it's a website service
-    ...(shouldShowWebsiteFields(data.category) ? {
-      additionalFeatures: data.additionalFeatures
-    } : {})
+    formattedDescriptions: data.formattedDescriptions.map(content => ({ content }))
   };
       
       const response = await fetch(SummaryApi.uploadProduct.url,{
@@ -382,53 +409,50 @@ const CustomFeatureOption = ({ data, ...props }) => {
             )}
 
               <label htmlFor='packageIncludes' className='mt-3'>Package Includes:</label>
-          <Select
-            options={packageOptions}
-            isMulti
-            value={data.packageIncludes.map(value => {
-            // Find the full option object for each selected value
-            const option = packageOptions.find(opt => opt.value === value);
-            return option;
-          })}
-            name='packageIncludes'
-                id='packageIncludes'
-            onChange={handlePackageIncludesChange}
-            className='basic-multi-select bg-slate-100 border rounded'
-            classNamePrefix='select'
-            placeholder="Select package options"
-          />
+          <PackageSelect
+  options={packageOptions}
+  value={data.packageIncludes.map(value => {
+    const option = packageOptions.find(opt => opt.value === value);
+    return option;
+  })}
+   name='packageIncludes'
+  id='packageIncludes'
+  onChange={handlePackageIncludesChange}
+  components={{
+    Option: CustomPackageOption,
+    MultiValue: CustomPackageValue
+  }}
+  placeholder="Select package options"
+/>
 
         <label htmlFor='perfectFor' className='mt-3'>Perfect For:</label>
-            <Select
-              options={perfectForOptions}
-              isMulti
-              value={data.perfectFor.map(value => {
-              // Find the full option object for each selected value
-              const option = perfectForOptions.find(opt => opt.value === value);
-              return option;
-            })}
-               name='perfectFor'
-                id='perfectFor'
-              onChange={handlePerfectForChange}
-              className='basic-multi-select bg-slate-100 border rounded'
-              classNamePrefix='select'
-              placeholder="Select target audience"
-            />
+        <PackageSelect
+  options={perfectForOptions}
+  value={data.perfectFor.map(value => {
+    const option = perfectForOptions.find(opt => opt.value === value);
+    return option;
+  })}
+   name='perfectFor'
+  id='perfectFor'
+  onChange={handlePerfectForChange}
+  components={{
+    Option: CustomPerfectForOption,
+    MultiValue: CustomPerfectForValue
+  }}
+  placeholder="Select target audience"
+/>
 
 {compatibleFeatures.length > 0 && (
       <div className="mt-3">
         <label htmlFor="additionalFeatures" className="block mb-2">
           Additional Features Available:
         </label>
-        <Select
-          isMulti
+        <PackageSelect
           options={compatibleFeatures}
           value={compatibleFeatures.filter(feature => 
             data.additionalFeatures.includes(feature.value)
           )}
           onChange={handleAdditionalFeaturesChange}
-          className="basic-multi-select bg-slate-100 border rounded"
-          classNamePrefix="select"
           placeholder="Select additional features"
         />
       </div>
@@ -570,29 +594,34 @@ const CustomFeatureOption = ({ data, ...props }) => {
         />
 
 
-      <label htmlFor='description' className='mt-3'>Description :</label>
-      <RichTextEditor
-        name='description'
-        value={data.description}
-        onChange={(newContent) => {
-          setData(prev => ({
-            ...prev,
-            description: newContent
-          }))
-        }}
-        placeholder='Enter product description'
-      />
+        {/* Add Description Button */}
+        <div className="mt-4">
+                        <button
+                            type="button"
+                            onClick={handleAddDescription}
+                            className="flex items-center gap-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                             Add <MdAdd />
+                        </button>
+                    </div>
 
-        <label htmlFor="websiteTypeDescription" className="mt-3">Website Type Description :</label>
-      <textarea
-        className="h-28 bg-slate-100 border p-1 resize-none"
-        placeholder="enter website type details"
-        rows={4}
-        onChange={handleOnChange}
-        name="websiteTypeDescription"
-        value={data.websiteTypeDescription}
-      >
-      </textarea>
+                    {/* Dynamic Rich Text Editors */}
+                    {data.formattedDescriptions.map((content, index) => (
+                        <div key={index} className="mt-3 relative">
+                            <RichTextEditor
+                                value={content}
+                                onChange={(newContent) => handleDescriptionChange(newContent, index)}
+                                placeholder="Enter description..."
+                            />
+                            <button
+                                type="button"
+                                onClick={() => handleRemoveDescription(index)}
+                                className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                            >
+                                <MdDelete size={16} />
+                            </button>
+                        </div>
+                    ))}
        
        {/* Submit Button */}
         <button className='px-3 py-2 bg-red-600 text-white mb-10 hover:bg-red-700'>Upload Service</button>
