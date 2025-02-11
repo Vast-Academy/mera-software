@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import SummaryApi from '../common';
-
-const CACHE_KEY = 'categories_data';
-const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
+import { useDatabase } from '../context/DatabaseContext';
 
 const CategoryList = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { db, fetchAndCache } = useDatabase();
 
   const categoryLoading = new Array(6).fill(null);
 
@@ -17,22 +16,10 @@ const CategoryList = () => {
     setError(null);
     
     try {
+      // Using fetchAndCache from our DatabaseContext
+      const dataResponse = await fetchAndCache(SummaryApi.allCategory.url);
       
-      const response = await fetch(SummaryApi.allCategory.url);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const dataResponse = await response.json();
-      console.log('API Response data:', dataResponse); // Debug log
-
       if (dataResponse.success && Array.isArray(dataResponse.data)) {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({
-          data: dataResponse.data,
-          timestamp: Date.now()
-        }));
-        
         setCategories(dataResponse.data);
       } else {
         throw new Error('Invalid data format received from API');
@@ -41,18 +28,15 @@ const CategoryList = () => {
       console.error('Error fetching categories:', error);
       setError(error.message);
       
-      // Try to load from cache as fallback
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        try {
-          const { data } = JSON.parse(cached);
-          if (Array.isArray(data) && data.length > 0) {
-            setCategories(data);
-            setError(null); // Clear error if we successfully loaded from cache
-          }
-        } catch (cacheError) {
-          console.error('Error loading from cache:', cacheError);
+      // Try to load from IndexedDB as fallback
+      try {
+        const cachedData = await db.get('pages', SummaryApi.allCategory.url);
+        if (cachedData && cachedData.data && Array.isArray(cachedData.data.data)) {
+          setCategories(cachedData.data.data);
+          setError(null); // Clear error if we successfully loaded from cache
         }
+      } catch (cacheError) {
+        console.error('Error loading from cache:', cacheError);
       }
     } finally {
       setLoading(false);

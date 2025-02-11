@@ -9,6 +9,7 @@ import SummaryApi from './common';
 import Context from './context';
 import { useDispatch } from 'react-redux';
 import { setUserDetails, updateWalletBalance } from './store/userSlice';
+import { DatabaseProvider } from './context/DatabaseContext';
 
 function App() {
   const dispatch = useDispatch();
@@ -82,6 +83,7 @@ function App() {
 
   return (
     <>
+       <DatabaseProvider>
       <Context.Provider value={{
         fetchUserDetails,
         cartProductCount,
@@ -100,6 +102,7 @@ function App() {
         </main>
         <Footer />
       </Context.Provider>
+      </DatabaseProvider>
     </>
   );
 }
