@@ -147,21 +147,29 @@ const calculateTotalPrice = () => {
 
           const featuresData = await Promise.all(featuresPromises);
           const featuresWithData = featuresData.map(fd => fd.data);
-          setAdditionalFeaturesData(featuresWithData);
 
-          // Initialize quantities for component-type features
-        const initialQuantities = {};
-        const initialSelectedFeatures = [];
+          // Sort features to show component type first
+          const sortedFeatures = featuresWithData.sort((a, b) => {
+            if (a.upgradeType === 'component' && b.upgradeType !== 'component') return -1;
+            if (b.upgradeType === 'component' && a.upgradeType !== 'component') return 1;
+            return 0;
+          });
 
-        featuresWithData.forEach(feature => {
-          if (feature.upgradeType === 'component') {
-            initialQuantities[feature._id] = feature.baseQuantity || data.totalPages;
-            initialSelectedFeatures.push(feature._id);
-          }
-        });
+          setAdditionalFeaturesData(sortedFeatures);
 
-        setQuantities(initialQuantities);
-        setSelectedFeatures(initialSelectedFeatures);
+          // Initialize quantities and selected features
+          const initialQuantities = {};
+          const initialSelectedFeatures = [];
+
+          sortedFeatures.forEach(feature => {
+            if (feature.upgradeType === 'component') {
+              initialQuantities[feature._id] = feature.baseQuantity || data.totalPages;
+              initialSelectedFeatures.push(feature._id);
+            }
+          });
+
+          setQuantities(initialQuantities);
+          setSelectedFeatures(initialSelectedFeatures);
         }
 
         setLoading(false);
