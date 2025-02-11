@@ -360,7 +360,7 @@ const calculateTotalPrice = () => {
 
       {/* Fixed Bottom Bar */}
       {/* Get Started Section */}
-      <div className="fixed bottom-[60px] left-0 right-0 bg-white border-t shadow-lg">
+      <div className="fixed bottom-[56px] left-0 right-0 bg-white border-t shadow-lg z-50">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm text-gray-500">Total Price</p>
