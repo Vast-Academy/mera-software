@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { FiArrowRight } from "react-icons/fi";
 import { LuSmartphone } from "react-icons/lu";
 import { BsFillBarChartFill, BsCalendar3 } from "react-icons/bs";
-import { IoBarChartSharp } from 'react-icons/io5';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUserDetails  } from '../store/userSlice';
 import SummaryApi from '../common';
+import { useDatabase } from '../context/DatabaseContext';
+
 
 const AppConvertingBanner = () => {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ const AppConvertingBanner = () => {
   const [touchEnd, setTouchEnd] = useState(null);
   const [orders, setOrders] = useState(null); // Changed to null initially
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const { db, fetchAndCache } = useDatabase();
+  
 
   const handleOrderClick = (orderId) => {
     navigate(`/project-details/${orderId}`);
@@ -39,42 +42,77 @@ const AppConvertingBanner = () => {
     if (!initialized) {
       return;
     }
-
+  
     const fetchOrders = async () => {
       if (!user?._id) {
         setOrders([]);
         setIsDataLoaded(true);
         return;
       }
-
+  
       try {
-        const response = await fetch(SummaryApi.ordersList.url, {
-          method: SummaryApi.ordersList.method,
-          credentials: 'include',
-        });
-        const data = await response.json();
+        // First, try to get from cache
+        const cachedOrders = await db.get('orders', user._id);
+        
+        if (cachedOrders && !isCacheStale(cachedOrders.lastUpdated)) {
+          setOrders(filterWebsiteOrders(cachedOrders.data));
+          setIsDataLoaded(true);
+        }
+  
+        // Use fetchAndCache instead of direct fetch
+        const data = await fetchAndCache(
+          SummaryApi.ordersList.url,
+          {
+            method: SummaryApi.ordersList.method,
+            credentials: 'include'
+          }
+        );
         
         if (data.success) {
-          const websiteOrders = data.data.filter(order => 
-            ['static_websites', 'standard_websites', 'dynamic_websites'].includes(
-              order.productId?.category?.toLowerCase()
-            )
-          );
+          // Store in IndexedDB
+          await db.set('orders', {
+            id: user._id,
+            data: data.data,
+            lastUpdated: new Date().toISOString()
+          });
+  
+          const websiteOrders = filterWebsiteOrders(data.data);
           setOrders(websiteOrders);
         } else {
           setOrders([]);
         }
       } catch (error) {
         console.error("Error fetching orders:", error);
-        setOrders([]);
+        // If error in fetching fresh data, use cached data if available
+        const cachedOrders = await db.get('orders', user._id);
+        if (cachedOrders) {
+          setOrders(filterWebsiteOrders(cachedOrders.data));
+        } else {
+          setOrders([]);
+        }
       } finally {
         setIsDataLoaded(true);
       }
     };
 
+    const filterWebsiteOrders = (orders) => {
+      return orders.filter(order => 
+        ['static_websites', 'standard_websites', 'dynamic_websites'].includes(
+          order.productId?.category?.toLowerCase()
+        )
+      );
+    };
+
+    const isCacheStale = (lastUpdated) => {
+      if (!lastUpdated) return true;
+      const staleTime = 5 * 60 * 1000; // 5 minutes
+      return Date.now() - new Date(lastUpdated).getTime() > staleTime;
+    };
+
     setIsDataLoaded(false);
     fetchOrders();
 
+    // Set up polling interval
     let interval;
     if (user?._id) {
       interval = setInterval(fetchOrders, 10000);
@@ -83,7 +121,7 @@ const AppConvertingBanner = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [user?._id, initialized]);
+  }, [user?._id, initialized, db, fetchAndCache]);
 
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-GB', {

@@ -1,12 +1,13 @@
 class DatabaseService {
-    constructor(dbName = 'WebsiteDB', version = 1) {
+    constructor(dbName = 'WebsiteDB', version = 2) {
       this.dbName = dbName;
       this.version = version;
       this.stores = {
         products: 'id, category, lastUpdated',
         pages: 'path, lastUpdated',
         user: 'id',
-        cart: 'id, userId'
+        cart: 'id, userId',
+        orders: 'id, userId, lastUpdated' 
       };
     }
   
