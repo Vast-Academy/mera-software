@@ -24,6 +24,7 @@ import AdminProjects from "../pages/AdminProjects";
 import ProjectDetails from "../pages/ProjectDetails";
 import WalletDetails from "../pages/WalletDetails";
 import ServiceCard from "../pages/ServiceCard";
+import AllWelcomeContent from "../pages/AllWelcomeContent";
 
 
 const router = createBrowserRouter([
@@ -98,6 +99,10 @@ const router = createBrowserRouter([
                     {
                         path: "all-users",
                         element : <AllUsers/>
+                    },
+                    {
+                        path: "welcome-content",
+                        element : <AllWelcomeContent/>
                     },
                     {
                         path : "projects",

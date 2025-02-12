@@ -49,6 +49,14 @@ const updateProgressController = require('../controller/admin/updateProgressCont
 const sendMessageController = require('../controller/admin/sendMessageController')
 const getWalletHistoryController = require('../controller/admin/getWalletHistoryController')
 const getCompatibleFeaturesController = require('../controller/product/getCompatibleFeatures')
+const getGuestSlidesController = require('../controller/welcomeBanner/getGuestSlidesController')
+const uploadGuestSlidesController = require('../controller/welcomeBanner/uploadGuestSlidesController')
+const getUserWelcomeController = require('../controller/welcomeBanner/getUserWelcomeController')
+const uploadUserWelcomeController = require('../controller/welcomeBanner/uploadUserWelcomeController')
+// const uploadWelcomeController = require('../controller/welcomeBanner/uploadWelcomeController')
+// const getWelcomeController = require('../controller/welcomeBanner/getWelcomeController')
+// const updateWelcomeController = require('../controller/welcomeBanner/updateWelcomeController')
+// const deleteWelcomeController = require('../controller/welcomeBanner/deleteWelcomeController')
 
 
 router.post("/signup", userSignUpController)
@@ -109,5 +117,17 @@ router.post("/upload-banner", authToken, UploadBannerController)
 router.get("/get-banner", getBannersController)
 router.post("/update-banner/:id", authToken, updateBannerController)
 router.delete("/delete-banner", authToken, DeleteBannerController)
+
+// welcome banner
+router.get("/get-guest-slides", getGuestSlidesController)
+router.post("/upload-guest-slides", authToken, uploadGuestSlidesController)
+
+// User Welcome Routes
+router.get("/get-user-welcome", getUserWelcomeController)
+router.post("/upload-user-welcome", authToken, uploadUserWelcomeController)
+// router.post("/welcome-content", authToken, uploadWelcomeController)
+// router.get("/get-welcome-content", getWelcomeController)
+// router.post("/update-welcome-content/:id", authToken, updateWelcomeController)
+// router.delete("/delete-welcome-content/:id", authToken, deleteWelcomeController)
 
 module.exports = router;

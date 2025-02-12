@@ -165,6 +165,22 @@ const SummaryApi = {
         url : `${backendDomain}/api/project-message`,
         method : "post"
     },
+    guestSlides: {
+        url: `${backendDomain}/api/get-guest-slides`,
+        method: "get"
+      },
+      userWelcome: {
+        url: `${backendDomain}/api/get-user-welcome`,
+        method: "get"
+      },
+      uploadGuestSlides: {
+        url: `${backendDomain}/api/upload-guest-slides`,
+        method: "post"
+      },
+      uploadUserWelcome: {
+        url: `${backendDomain}/api/upload-user-welcome`,
+        method: "post"
+      },
     wallet : {
         balance :{
             url : `${backendDomain}/api/wallet/balance`,
