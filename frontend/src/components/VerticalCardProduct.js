@@ -85,7 +85,15 @@ const VerticalCardProduct = ({category, heading}) => {
 
     return (
         <div className='container mx-auto px-4 my-1 mb-6 relative'>
-            <h2 className='text-xl font-semibold py-3'>{heading}</h2>
+             <div className="flex justify-between items-center py-3">
+                <h2 className='text-xl font-semibold'>{heading}</h2>
+                <Link 
+                    to={`/product-category?category=${category}`}
+                    className="px-4 py-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                >
+                    View All
+                </Link>
+            </div>
 
             <div className='flex items-center gap-4 lg:gap-6 rounded-xl overflow-x-scroll scrollbar-none transition-all' ref={scrollElement}>
                 <button className='bg-white shadow-md rounded-full p-1 absolute left-0 hidden md:block' onClick={scrollLeft}>
