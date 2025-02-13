@@ -43,45 +43,51 @@ const AppConvertingBanner = () => {
   // Combined data fetching effect
   useEffect(() => {
     const loadData = async () => {
-      if (!isInitialized || !initialized) {
+      if (!isInitialized) {
         return;
       }
 
       setIsLoading(true);
       
       try {
-        // For non-logged in users
-        if (!user?._id && !dataInitialized) {
+        // For non-logged in users - only check database initialization
+        if (!user?._id) {
           const cacheKey = 'guest_slides';
-          // Try cache first
-          const cachedSlides = await db.get('apiCache', cacheKey);
           
-          if (cachedSlides && isCacheValid(cachedSlides.timestamp)) {
-            setGuestSlides(cachedSlides.data);
-            setIsLoading(false);
+          try {
+            // Try cache first
+            const cachedSlides = await db.get('apiCache', cacheKey);
+            
+            if (cachedSlides && isCacheValid(cachedSlides.timestamp)) {
+              setGuestSlides(cachedSlides.data);
+              setIsLoading(false);
+              setDataInitialized(true);
+              return;
+            }
+  
+            // Fetch fresh data
+            const response = await fetch(SummaryApi.guestSlides.url);
+            const data = await response.json();
+            if (data.success && data.data) {
+              setGuestSlides(data.data);
+              // Update cache
+              await db.set('apiCache', {
+                key: cacheKey,
+                data: data.data,
+                timestamp: new Date().toISOString()
+              });
+            }
             setDataInitialized(true);
-            return;
+            setIsLoading(false);
+          } catch (error) {
+            console.error('Error fetching guest slides:', error);
+            setIsLoading(false);
           }
-
-          // Fetch fresh data
-          const response = await fetch(SummaryApi.guestSlides.url);
-          const data = await response.json();
-          if (data.success && data.data) {
-            setGuestSlides(data.data);
-            // Update cache
-            await db.set('apiCache', {
-              key: cacheKey,
-              data: data.data,
-              timestamp: new Date().toISOString()
-            });
-          }
-          setDataInitialized(true);
-          setIsLoading(false);
           return;
         }
 
         // For logged in users
-        if (user?._id) {
+        if (user?._id && initialized) {
           const ordersCacheKey = `orders_${user._id}`;
           let userOrders = [];
 
