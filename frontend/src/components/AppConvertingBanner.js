@@ -21,10 +21,18 @@ const AppConvertingBanner = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [dataInitialized, setDataInitialized] = useState(false);
   const [isCacheChecked, setIsCacheChecked] = useState(false);
+  const [shouldShowGuest, setShouldShowGuest] = useState(false);
   
-  const { db, fetchAndCache, isCacheValid, isInitialized } = useDatabase();
+  const { db, isCacheValid, isInitialized } = useDatabase();
   const user = useSelector(state => state?.user?.user);
   const initialized = useSelector(state => state?.user?.initialized);
+
+   // Add an effect specifically for handling user state
+   useEffect(() => {
+    // Only set shouldShowGuest to true if we know for sure user is not logged in
+    // This means both initialized is true and user is null
+    setShouldShowGuest(initialized && !user?._id);
+  }, [initialized, user]);
 
   // Helper functions
   const filterWebsiteOrders = (orders) => {
@@ -47,14 +55,13 @@ const AppConvertingBanner = () => {
       if (!isInitialized) {
         return;
       }
-  
+
       try {
-        // For non-logged in users
-        if (!user?._id) {
+        // Only load guest slides if shouldShowGuest is true
+        if (shouldShowGuest) {
           const cacheKey = 'guest_slides';
           
           try {
-            // Check cache first without setting loading state
             const cachedSlides = await db.get('apiCache', cacheKey);
             
             if (cachedSlides && isCacheValid(cachedSlides.timestamp)) {
@@ -63,11 +70,8 @@ const AppConvertingBanner = () => {
               setIsCacheChecked(true);
               return;
             }
-  
-            // Only set loading if we need to fetch
+
             setIsLoading(true);
-            
-            // Fetch fresh data
             const response = await fetch(SummaryApi.guestSlides.url);
             const data = await response.json();
             if (data.success && data.data) {
@@ -89,11 +93,11 @@ const AppConvertingBanner = () => {
         }
   
         // Reset guest slides when user logs in
-        setGuestSlides(null);
-        
-        // For logged in users
-        if (initialized) {
+        if (user?._id && initialized) {
           setIsLoading(true);
+          // Clear guest slides immediately for logged in users
+          setGuestSlides(null);
+
           const ordersCacheKey = `orders_${user._id}`;
           let userOrders = [];
   
@@ -180,7 +184,7 @@ const AppConvertingBanner = () => {
     };
   
     loadData();
-  }, [user?._id, initialized, isInitialized, db, isCacheValid]);
+  }, [shouldShowGuest, user?._id, initialized, isInitialized, db, isCacheValid]);
 
   const handleOrderClick = (orderId) => {
     navigate(`/project-details/${orderId}`);
@@ -246,7 +250,7 @@ const AppConvertingBanner = () => {
       <div className="bg-white rounded-xl py-5 max-w-xl mx-auto overflow-hidden">
         <div className="relative">
           {/* Guest Slides View - Show when user is not logged in */}
-          {!user?._id && dataInitialized && guestSlides?.length > 0 && (
+          {shouldShowGuest && dataInitialized && guestSlides?.length > 0 && (
             <>
               <div
                 className="transition-all duration-500 ease-in-out flex"
