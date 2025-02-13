@@ -21,42 +21,59 @@ const AppConvertingBanner = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [dataInitialized, setDataInitialized] = useState(false);
   
-  const { db, fetchAndCache } = useDatabase();
+  const { db, fetchAndCache, isCacheValid, isInitialized } = useDatabase();
   const user = useSelector(state => state?.user?.user);
   const initialized = useSelector(state => state?.user?.initialized);
 
   // Helper functions
   const filterWebsiteOrders = (orders) => {
     return orders?.filter(order => 
-      ['static_websites', 'standard_websites', 'dynamic_websites'].includes(
+      ['standard_websites', 'dynamic_websites', 'web_applications', 'mobile_apps'].includes(
         order.productId?.category?.toLowerCase()
       )
     ) || [];
   };
 
-  const isCacheStale = (lastUpdated) => {
-    if (!lastUpdated) return true;
-    const staleTime = 5 * 60 * 1000; // 5 minutes
-    return Date.now() - new Date(lastUpdated).getTime() > staleTime;
-  };
+  // const isCacheStale = (lastUpdated) => {
+  //   if (!lastUpdated) return true;
+  //   const staleTime = 5 * 60 * 1000; 
+  //   return Date.now() - new Date(lastUpdated).getTime() > staleTime;
+  // };
 
   // Combined data fetching effect
   useEffect(() => {
-    const fetchData = async () => {
-      if (!initialized) {
-        dispatch(setUserDetails(null));
+    const loadData = async () => {
+      if (!isInitialized || !initialized) {
         return;
       }
 
       setIsLoading(true);
       
       try {
-        // Only fetch guest slides if user is not logged in AND we haven't loaded data yet
+        // For non-logged in users
         if (!user?._id && !dataInitialized) {
+          const cacheKey = 'guest_slides';
+          // Try cache first
+          const cachedSlides = await db.get('apiCache', cacheKey);
+          
+          if (cachedSlides && isCacheValid(cachedSlides.timestamp)) {
+            setGuestSlides(cachedSlides.data);
+            setIsLoading(false);
+            setDataInitialized(true);
+            return;
+          }
+
+          // Fetch fresh data
           const response = await fetch(SummaryApi.guestSlides.url);
           const data = await response.json();
           if (data.success && data.data) {
             setGuestSlides(data.data);
+            // Update cache
+            await db.set('apiCache', {
+              key: cacheKey,
+              data: data.data,
+              timestamp: new Date().toISOString()
+            });
           }
           setDataInitialized(true);
           setIsLoading(false);
@@ -65,47 +82,60 @@ const AppConvertingBanner = () => {
 
         // For logged in users
         if (user?._id) {
+          const ordersCacheKey = `orders_${user._id}`;
           let userOrders = [];
+
           try {
-            const cachedOrders = await db.get('orders', user._id);
+            // Try cache first
+            const cachedOrders = await db.get('apiCache', ordersCacheKey);
             
-            if (cachedOrders && !isCacheStale(cachedOrders.lastUpdated)) {
+            if (cachedOrders && isCacheValid(cachedOrders.timestamp)) {
               userOrders = filterWebsiteOrders(cachedOrders.data);
             } else {
-              const data = await fetchAndCache(
-                SummaryApi.ordersList.url,
-                {
-                  method: SummaryApi.ordersList.method,
-                  credentials: 'include'
-                }
-              );
+              // Fetch fresh orders
+              const ordersResponse = await fetch(SummaryApi.ordersList.url, {
+                method: SummaryApi.ordersList.method,
+                credentials: 'include'
+              });
+              const ordersData = await ordersResponse.json();
               
-              if (data.success) {
-                await db.set('orders', {
-                  id: user._id,
-                  data: data.data,
-                  lastUpdated: new Date().toISOString()
+              if (ordersData.success) {
+                await db.set('apiCache', {
+                  key: ordersCacheKey,
+                  data: ordersData.data,
+                  timestamp: new Date().toISOString()
                 });
-                userOrders = filterWebsiteOrders(data.data);
+                userOrders = filterWebsiteOrders(ordersData.data);
               }
             }
             setOrders(userOrders);
             
             // Only fetch welcome if no orders
             if (userOrders.length === 0) {
-              const response = await fetch(SummaryApi.userWelcome.url);
-              const data = await response.json();
-              if (data.success && data.data) {
-                setUserWelcome(data.data);
+              const welcomeCacheKey = 'user_welcome';
+              const cachedWelcome = await db.get('apiCache', welcomeCacheKey);
+              
+              if (cachedWelcome && isCacheValid(cachedWelcome.timestamp)) {
+                setUserWelcome(cachedWelcome.data);
+              } else {
+                const welcomeResponse = await fetch(SummaryApi.userWelcome.url);
+                const welcomeData = await welcomeResponse.json();
+                if (welcomeData.success && welcomeData.data) {
+                  setUserWelcome(welcomeData.data);
+                  await db.set('apiCache', {
+                    key: welcomeCacheKey,
+                    data: welcomeData.data,
+                    timestamp: new Date().toISOString()
+                  });
+                }
               }
             }
           } catch (error) {
             console.error("Error fetching data:", error);
-            const cachedOrders = await db.get('orders', user._id);
-            if (cachedOrders) {
+            // Try to load from cache as fallback
+            const cachedOrders = await db.get('apiCache', ordersCacheKey);
+            if (cachedOrders?.data) {
               setOrders(filterWebsiteOrders(cachedOrders.data));
-            } else {
-              setOrders([]);
             }
           }
           setDataInitialized(true);
@@ -117,20 +147,8 @@ const AppConvertingBanner = () => {
       }
     };
 
-    fetchData();
-
-    // Only set up polling for logged-in users
-    // let interval;
-    // if (user?._id && initialized) {
-    //   interval = setInterval(() => {
-    //     fetchData();
-    //   }, 10000);
-    // }
-
-    // return () => {
-    //   if (interval) clearInterval(interval);
-    // };
-  }, [user?._id, initialized, db, fetchAndCache, dispatch]);
+    loadData();
+  }, [user?._id, initialized, isInitialized, db, isCacheValid]);
 
   const handleOrderClick = (orderId) => {
     navigate(`/project-details/${orderId}`);

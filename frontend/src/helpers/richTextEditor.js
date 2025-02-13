@@ -1,5 +1,7 @@
+// RichTextEditor.js
 import React, { useState } from 'react';
 import { Editor } from '@tiptap/react';
+import ReactDOM from 'react-dom/client';
 import StarterKit from '@tiptap/starter-kit';
 import { useEditor, EditorContent } from '@tiptap/react';
 import Color from '@tiptap/extension-color';
@@ -8,7 +10,7 @@ import Underline from '@tiptap/extension-underline';
 import { Node } from '@tiptap/core';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
 
-// Import specific icon packages
+// Import icons
 import * as Fa from 'react-icons/fa';
 import * as Md from 'react-icons/md';
 import * as Bi from 'react-icons/bi';
@@ -51,29 +53,68 @@ const CustomIcon = Node.create({
   },
 
   renderHTML({ node }) {
-    return ['span', { 'data-icon': node.attrs.iconName }, ''];
+    return [
+      'span', 
+      { 
+        'data-icon': node.attrs.iconName,
+        'class': 'icon-placeholder'
+      }
+    ];
   },
 
   addNodeView() {
-    return ({ node }) => {
-      const container = document.createElement('span');
-      container.style.display = 'inline-block';
-      container.style.verticalAlign = 'middle';
+    return ({ node, editor }) => {
+      const dom = document.createElement('span');
+      dom.className = 'inline-flex items-center justify-center bg-blue-50 p-2 rounded-lg';
       
+      let root = null;
       const IconComponent = ReactIcons[node.attrs.iconName];
+      
       if (IconComponent) {
-        const iconElement = document.createElement('span');
-        const icon = IconComponent({ size: '1em' });
-        // Create a temporary div to render the React component
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = icon.type().props.children;
-        iconElement.appendChild(tempDiv.firstChild);
-        container.appendChild(iconElement);
+        const renderIcon = () => {
+          // Only create root if it doesn't exist
+          if (!root) {
+            root = ReactDOM.createRoot(dom);
+          }
+          
+          // Schedule render for next tick to avoid race conditions
+          setTimeout(() => {
+            if (root) {
+              root.render(<IconComponent className="w-5 h-5 text-blue-600" />);
+            }
+          }, 0);
+        };
+
+        renderIcon();
+
+        return {
+          dom,
+          update: (updatedNode) => {
+            if (updatedNode.attrs.iconName !== node.attrs.iconName) {
+              const NewIcon = ReactIcons[updatedNode.attrs.iconName];
+              if (NewIcon) {
+                setTimeout(() => {
+                  if (root) {
+                    root.render(<NewIcon className="w-5 h-5 text-blue-600" />);
+                  }
+                }, 0);
+              }
+            }
+            return true;
+          },
+          destroy: () => {
+            // Schedule unmount for next tick
+            setTimeout(() => {
+              if (root) {
+                root.unmount();
+                root = null;
+              }
+            }, 0);
+          }
+        };
       }
       
-      return {
-        dom: container,
-      };
+      return { dom };
     };
   },
 });
@@ -174,7 +215,7 @@ const MenuBar = ({ editor }) => {
     callback();
   };
 
-  const handleInsertIcon = (iconName) => {
+  const handleIconSelect = (iconName) => {
     editor.chain().focus().insertContent({
       type: 'customIcon',
       attrs: { iconName },
@@ -183,6 +224,7 @@ const MenuBar = ({ editor }) => {
 
   return (
     <div className="flex flex-wrap gap-2 p-2 border-b bg-slate-50">
+      {/* Text Style Dropdown */}
       <select
         onChange={(e) => {
           e.preventDefault();
@@ -201,6 +243,7 @@ const MenuBar = ({ editor }) => {
         <option value="h3">Heading 3</option>
       </select>
 
+      {/* Color Picker */}
       <input
         type="color"
         onChange={(e) => {
@@ -209,6 +252,8 @@ const MenuBar = ({ editor }) => {
         }}
         className="w-8 h-8 p-0 border rounded cursor-pointer"
       />
+
+      {/* Text Formatting Buttons */}
       <button
         onClick={handleButtonClick(() => editor.chain().focus().toggleBold().run())}
         className={`p-2 rounded ${editor.isActive('bold') ? 'bg-slate-200' : 'hover:bg-slate-100'}`}
@@ -217,7 +262,40 @@ const MenuBar = ({ editor }) => {
         <strong>B</strong>
       </button>
 
-      {/* Add the new Horizontal Rule button */}
+      <button
+        onClick={handleButtonClick(() => editor.chain().focus().toggleItalic().run())}
+        className={`p-2 rounded ${editor.isActive('italic') ? 'bg-slate-200' : 'hover:bg-slate-100'}`}
+        type="button"
+      >
+        <i>I</i>
+      </button>
+
+      <button
+        onClick={handleButtonClick(() => editor.chain().focus().toggleUnderline().run())}
+        className={`p-2 rounded ${editor.isActive('underline') ? 'bg-slate-200' : 'hover:bg-slate-100'}`}
+        type="button"
+      >
+        <u>U</u>
+      </button>
+
+      {/* List Buttons */}
+      <button
+        onClick={handleButtonClick(() => editor.chain().focus().toggleBulletList().run())}
+        className={`p-2 rounded ${editor.isActive('bulletList') ? 'bg-slate-200' : 'hover:bg-slate-100'}`}
+        type="button"
+      >
+        •
+      </button>
+
+      <button
+        onClick={handleButtonClick(() => editor.chain().focus().toggleOrderedList().run())}
+        className={`p-2 rounded ${editor.isActive('orderedList') ? 'bg-slate-200' : 'hover:bg-slate-100'}`}
+        type="button"
+      >
+        1.
+      </button>
+
+      {/* Horizontal Rule Button */}
       <button
         onClick={handleButtonClick(() => editor.chain().focus().setHorizontalRule().run())}
         className="p-2 rounded hover:bg-slate-100"
@@ -227,37 +305,7 @@ const MenuBar = ({ editor }) => {
         ―
       </button>
 
-
-      <button
-        onClick={handleButtonClick(() => editor.chain().focus().toggleItalic().run())}
-        className={`p-2 rounded ${editor.isActive('italic') ? 'bg-slate-200' : 'hover:bg-slate-100'}`}
-        type="button"
-      >
-        <i>I</i>
-      </button>
-      <button
-        onClick={handleButtonClick(() => editor.chain().focus().toggleUnderline().run())}
-        className={`p-2 rounded ${editor.isActive('underline') ? 'bg-slate-200' : 'hover:bg-slate-100'}`}
-        type="button"
-      >
-        <u>U</u>
-      </button>
-      <button
-        onClick={handleButtonClick(() => editor.chain().focus().toggleBulletList().run())}
-        className={`p-2 rounded ${editor.isActive('bulletList') ? 'bg-slate-200' : 'hover:bg-slate-100'}`}
-        type="button"
-      >
-        •
-      </button>
-      <button
-        onClick={handleButtonClick(() => editor.chain().focus().toggleOrderedList().run())}
-        className={`p-2 rounded ${editor.isActive('orderedList') ? 'bg-slate-200' : 'hover:bg-slate-100'}`}
-        type="button"
-      >
-        1.
-      </button>
-      
-      {/* Add Icon Button */}
+      {/* Icon Button */}
       <button
         onClick={() => setShowIconSelector(true)}
         className="p-2 rounded hover:bg-slate-100"
@@ -268,7 +316,7 @@ const MenuBar = ({ editor }) => {
 
       {showIconSelector && (
         <IconSelector
-          onSelectIcon={handleInsertIcon}
+          onSelectIcon={handleIconSelect}
           onClose={() => setShowIconSelector(false)}
         />
       )}
@@ -296,7 +344,7 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
             class: 'mb-4'
           }
         },
-        horizontalRule: {  // Add configuration for horizontal rule
+        horizontalRule: {
           HTMLAttributes: {
             class: 'border-t border-gray-300 my-4'
           }
@@ -310,8 +358,7 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
     ],
     content: value,
     onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
-      onChange(html);
+      onChange(editor.getHTML());
     },
     editorProps: {
       attributes: {
