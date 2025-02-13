@@ -20,6 +20,7 @@ const AppConvertingBanner = () => {
   const [userWelcome, setUserWelcome] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [dataInitialized, setDataInitialized] = useState(false);
+  const [isCacheChecked, setIsCacheChecked] = useState(false);
   
   const { db, fetchAndCache, isCacheValid, isInitialized } = useDatabase();
   const user = useSelector(state => state?.user?.user);
@@ -46,31 +47,31 @@ const AppConvertingBanner = () => {
       if (!isInitialized) {
         return;
       }
-
-      setIsLoading(true);
-      
+  
       try {
-        // For non-logged in users - only check database initialization
+        // For non-logged in users
         if (!user?._id) {
           const cacheKey = 'guest_slides';
           
           try {
-            // Try cache first
+            // Check cache first without setting loading state
             const cachedSlides = await db.get('apiCache', cacheKey);
             
             if (cachedSlides && isCacheValid(cachedSlides.timestamp)) {
               setGuestSlides(cachedSlides.data);
-              setIsLoading(false);
               setDataInitialized(true);
+              setIsCacheChecked(true);
               return;
             }
   
+            // Only set loading if we need to fetch
+            setIsLoading(true);
+            
             // Fetch fresh data
             const response = await fetch(SummaryApi.guestSlides.url);
             const data = await response.json();
             if (data.success && data.data) {
               setGuestSlides(data.data);
-              // Update cache
               await db.set('apiCache', {
                 key: cacheKey,
                 data: data.data,
@@ -78,64 +79,63 @@ const AppConvertingBanner = () => {
               });
             }
             setDataInitialized(true);
-            setIsLoading(false);
           } catch (error) {
             console.error('Error fetching guest slides:', error);
+          } finally {
             setIsLoading(false);
+            setIsCacheChecked(true);
           }
           return;
         }
-
+  
+        // Reset guest slides when user logs in
+        setGuestSlides(null);
+        
         // For logged in users
-        if (user?._id && initialized) {
+        if (initialized) {
+          setIsLoading(true);
           const ordersCacheKey = `orders_${user._id}`;
           let userOrders = [];
-
+  
           try {
-            // Try cache first
+            // Check orders cache first without loading state
             const cachedOrders = await db.get('apiCache', ordersCacheKey);
             
             if (cachedOrders && isCacheValid(cachedOrders.timestamp)) {
               userOrders = filterWebsiteOrders(cachedOrders.data);
-            } else {
-              // Fetch fresh orders
-              const ordersResponse = await fetch(SummaryApi.ordersList.url, {
-                method: SummaryApi.ordersList.method,
-                credentials: 'include'
-              });
-              const ordersData = await ordersResponse.json();
+              setOrders(userOrders);
+              setDataInitialized(true);
+              setIsLoading(false);
               
-              if (ordersData.success) {
-                await db.set('apiCache', {
-                  key: ordersCacheKey,
-                  data: ordersData.data,
-                  timestamp: new Date().toISOString()
-                });
-                userOrders = filterWebsiteOrders(ordersData.data);
+              // Only fetch welcome if no orders
+              if (userOrders.length === 0) {
+                await loadUserWelcome();
               }
+              return;
             }
-            setOrders(userOrders);
+  
+            // Fetch fresh orders
+            const ordersResponse = await fetch(SummaryApi.ordersList.url, {
+              method: SummaryApi.ordersList.method,
+              credentials: 'include'
+            });
+            const ordersData = await ordersResponse.json();
             
-            // Only fetch welcome if no orders
-            if (userOrders.length === 0) {
-              const welcomeCacheKey = 'user_welcome';
-              const cachedWelcome = await db.get('apiCache', welcomeCacheKey);
+            if (ordersData.success) {
+              await db.set('apiCache', {
+                key: ordersCacheKey,
+                data: ordersData.data,
+                timestamp: new Date().toISOString()
+              });
+              userOrders = filterWebsiteOrders(ordersData.data);
+              setOrders(userOrders);
               
-              if (cachedWelcome && isCacheValid(cachedWelcome.timestamp)) {
-                setUserWelcome(cachedWelcome.data);
-              } else {
-                const welcomeResponse = await fetch(SummaryApi.userWelcome.url);
-                const welcomeData = await welcomeResponse.json();
-                if (welcomeData.success && welcomeData.data) {
-                  setUserWelcome(welcomeData.data);
-                  await db.set('apiCache', {
-                    key: welcomeCacheKey,
-                    data: welcomeData.data,
-                    timestamp: new Date().toISOString()
-                  });
-                }
+              // Only fetch welcome if no orders
+              if (userOrders.length === 0) {
+                await loadUserWelcome();
               }
             }
+            setDataInitialized(true);
           } catch (error) {
             console.error("Error fetching data:", error);
             // Try to load from cache as fallback
@@ -143,16 +143,42 @@ const AppConvertingBanner = () => {
             if (cachedOrders?.data) {
               setOrders(filterWebsiteOrders(cachedOrders.data));
             }
+          } finally {
+            setIsLoading(false);
           }
-          setDataInitialized(true);
         }
       } catch (error) {
         console.error('Error in data fetching:', error);
-      } finally {
         setIsLoading(false);
       }
     };
-
+  
+    // Separate function for loading user welcome
+    const loadUserWelcome = async () => {
+      const welcomeCacheKey = 'user_welcome';
+      try {
+        const cachedWelcome = await db.get('apiCache', welcomeCacheKey);
+        
+        if (cachedWelcome && isCacheValid(cachedWelcome.timestamp)) {
+          setUserWelcome(cachedWelcome.data);
+          return;
+        }
+  
+        const welcomeResponse = await fetch(SummaryApi.userWelcome.url);
+        const welcomeData = await welcomeResponse.json();
+        if (welcomeData.success && welcomeData.data) {
+          setUserWelcome(welcomeData.data);
+          await db.set('apiCache', {
+            key: welcomeCacheKey,
+            data: welcomeData.data,
+            timestamp: new Date().toISOString()
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching welcome data:', error);
+      }
+    };
+  
     loadData();
   }, [user?._id, initialized, isInitialized, db, isCacheValid]);
 
@@ -199,7 +225,7 @@ const AppConvertingBanner = () => {
     return html.replace(/<[^>]*>/g, '');
   };
   
-  if (isLoading || !dataInitialized) {
+  if (!isInitialized || (!isCacheChecked && !dataInitialized)) {
     return (
       <div className="container mx-auto px-4">
         <div className="bg-white rounded-xl py-6 px-2 shadow-lg max-w-xl mx-auto overflow-hidden">
