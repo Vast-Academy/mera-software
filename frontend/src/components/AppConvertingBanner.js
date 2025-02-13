@@ -120,16 +120,16 @@ const AppConvertingBanner = () => {
     fetchData();
 
     // Only set up polling for logged-in users
-    let interval;
-    if (user?._id && initialized) {
-      interval = setInterval(() => {
-        fetchData();
-      }, 10000);
-    }
+    // let interval;
+    // if (user?._id && initialized) {
+    //   interval = setInterval(() => {
+    //     fetchData();
+    //   }, 10000);
+    // }
 
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    // return () => {
+    //   if (interval) clearInterval(interval);
+    // };
   }, [user?._id, initialized, db, fetchAndCache, dispatch]);
 
   const handleOrderClick = (orderId) => {

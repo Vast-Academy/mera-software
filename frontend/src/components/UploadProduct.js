@@ -8,8 +8,8 @@ import { MdDelete, MdAdd  } from "react-icons/md";
 import SummaryApi from '../common';
 import {toast} from 'react-toastify'
 import Select from 'react-select'
-import packageOptions, { CustomPackageOption, CustomPackageValue } from '../helpers/packageOptions';
-import perfectForOptions, { CustomPerfectForOption, CustomPerfectForValue } from '../helpers/perfectForOptions';
+// import packageOptions, { CustomPackageOption, CustomPackageValue } from '../helpers/packageOptions';
+// import perfectForOptions, { CustomPerfectForOption, CustomPerfectForValue } from '../helpers/perfectForOptions';
 // import defaultFields from '../helpers/defaultFields';
 import RichTextEditor from '../helpers/richTextEditor';
 import PackageSelect from './PackageSelect';
@@ -32,8 +32,8 @@ const UploadProduct = ({
     const [data, setData] = useState({
         serviceName : "",
         category : "",
-        packageIncludes : [],
-        perfectFor : [],
+        packageIncludes : "",
+        perfectFor : "",
         serviceImage : [],
          price : "",
         sellingPrice : "",
@@ -199,22 +199,20 @@ const fetchCompatibleFeatures = async (category) => {
       }));
     };
     
-
-    const handlePackageIncludesChange = (selectedOptions) => {
-      setData((preve) => ({
-        ...preve,
-        packageIncludes: selectedOptions.map((option) => option.value),
+    const handlePackageIncludesChange = (content) => {
+      setData(prev => ({
+          ...prev,
+          packageIncludes: content
       }));
-    };
-    
-    // Add a new handler function for perfectFor
-    const handlePerfectForChange = (selectedOptions) => {
-      setData((preve) => ({
-        ...preve,
-        perfectFor: selectedOptions.map((option) => option.value),
+  };
+  
+  const handlePerfectForChange = (content) => {
+      setData(prev => ({
+          ...prev,
+          perfectFor: content
       }));
-    };
-
+  };
+   
     const handleAdditionalFeaturesChange = (selectedOptions) => {
       setData(prev => ({
         ...prev,
@@ -253,13 +251,15 @@ const fetchCompatibleFeatures = async (category) => {
       e.preventDefault()
 
       // Filter out empty descriptions
-      const validDescriptions = data.formattedDescriptions.filter(
-        content => content.trim() !== ''
-    );
+    //   const validDescriptions = data.formattedDescriptions.filter(
+    //     content => content.trim() !== ''
+    // );
 
       // Create submission data with additional features if applicable
   const submissionData = {
     ...data,
+    packageIncludes: data.packageIncludes,
+        perfectFor: data.perfectFor,
     formattedDescriptions: data.formattedDescriptions.map(content => ({ content }))
   };
       
@@ -296,27 +296,27 @@ const shouldShowFeatureFields = (category) => {
 };
 
 // Custom Option Component for feature display
-const CustomFeatureOption = ({ data, ...props }) => {
-  return (
-    <div 
-      className={`p-2 ${props.isFocused ? 'bg-slate-100' : ''}`}
-      style={{ cursor: 'pointer' }}
-    >
-      <div className="font-medium">{data.label}</div>
-      <div className="text-sm text-gray-600 flex justify-between">
-        <span>{data.upgradeType === 'feature' ? 'Feature' : 'Component'}</span>
-        <span>₹{data.price}</span>
-      </div>
-      {data.description && (
-        <div className="text-xs text-gray-500 mt-1">
-          {data.description.length > 100 
-            ? `${data.description.substring(0, 100)}...` 
-            : data.description}
-        </div>
-      )}
-    </div>
-  );
-};
+// const CustomFeatureOption = ({ data, ...props }) => {
+//   return (
+//     <div 
+//       className={`p-2 ${props.isFocused ? 'bg-slate-100' : ''}`}
+//       style={{ cursor: 'pointer' }}
+//     >
+//       <div className="font-medium">{data.label}</div>
+//       <div className="text-sm text-gray-600 flex justify-between">
+//         <span>{data.upgradeType === 'feature' ? 'Feature' : 'Component'}</span>
+//         <span>₹{data.price}</span>
+//       </div>
+//       {data.description && (
+//         <div className="text-xs text-gray-500 mt-1">
+//           {data.description.length > 100 
+//             ? `${data.description.substring(0, 100)}...` 
+//             : data.description}
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
 
   return (
     <div className='fixed w-full h-full bg-slate-200 bg-opacity-40 top-0 left-0 right-0 bottom-0 flex justify-center items-center'>
@@ -408,39 +408,23 @@ const CustomFeatureOption = ({ data, ...props }) => {
               </div>
             )}
 
-              <label htmlFor='packageIncludes' className='mt-3'>Package Includes:</label>
-          <PackageSelect
-  options={packageOptions}
-  value={data.packageIncludes.map(value => {
-    const option = packageOptions.find(opt => opt.value === value);
-    return option;
-  })}
-   name='packageIncludes'
-  id='packageIncludes'
-  onChange={handlePackageIncludesChange}
-  components={{
-    Option: CustomPackageOption,
-    MultiValue: CustomPackageValue
-  }}
-  placeholder="Select package options"
-/>
+        <label htmlFor='packageIncludes' className='mt-3'>Package Includes:</label>
+        <RichTextEditor
+            value={data.packageIncludes}
+              name='packageIncludes'
+              id='packageIncludes'
+            onChange={handlePackageIncludesChange}
+            placeholder="Enter package inclusions..."
+        />
 
         <label htmlFor='perfectFor' className='mt-3'>Perfect For:</label>
-        <PackageSelect
-  options={perfectForOptions}
-  value={data.perfectFor.map(value => {
-    const option = perfectForOptions.find(opt => opt.value === value);
-    return option;
-  })}
-   name='perfectFor'
-  id='perfectFor'
-  onChange={handlePerfectForChange}
-  components={{
-    Option: CustomPerfectForOption,
-    MultiValue: CustomPerfectForValue
-  }}
-  placeholder="Select target audience"
-/>
+        <RichTextEditor
+            value={data.perfectFor}
+             name='perfectFor'
+            id='perfectFor'
+            onChange={handlePerfectForChange}
+            placeholder="Enter target audience..."
+        />
 
 {compatibleFeatures.length > 0 && (
       <div className="mt-3">
@@ -523,52 +507,6 @@ const CustomFeatureOption = ({ data, ...props }) => {
           )
         }
 
-        <label htmlFor='serviceImage' className='mt-3'>Service Image :</label> 
-        <label htmlFor='uploadImageInput'>
-
-        <div className='p-2 bg-slate-100 border rounded h-32 w-full flex justify-center items-center cursor-pointer'>
-            <div className='text-slate-500 flex justify-center items-center flex-col gap-2'>
-            <span className='text-4xl'><FaCloudUploadAlt/></span>
-            <p className='text-sm'>Upload Product Image</p>
-            <input type='file' id='uploadImageInput' className='hidden' onChange={handleUploadProduct} />
-            </div>   
-        </div>
-
-        </label>
-        <div>
-        {
-          data?.serviceImage[0] ? (
-           <div className='flex items-center gap-2'>
-            {
-              data.serviceImage.map((el,index)=>{
-              return(
-               <div key={index} className='relative group'>
-               <img 
-                  src={el} 
-                  alt={el} 
-                  width={80} 
-                  height={80} 
-                  className='bg-slate-100 border cursor-pointer'
-                  onClick={()=>{
-                    setOpenFullScreenImage(true)
-                    setFullScreenImage(el)
-                  }} />
-
-                  <div className='absolute bottom-0 right-0 p-1 text-white bg-red-600 rounded-full hidden group-hover:block cursor-pointer' onClick={()=>handleDeleteProductImage(index)}>
-                    <MdDelete/>
-                  </div>
-               </div>
-              )
-            })
-            }
-           </div>
-          ) : (
-            <p className='text-red-600 text-xs'>* Please Upload Product Image</p>
-          )
-        }
-            
-        </div>
-
         <label htmlFor='price' className='mt-3'>Price :</label>
         <input 
         type='number' 
@@ -622,6 +560,52 @@ const CustomFeatureOption = ({ data, ...props }) => {
                             </button>
                         </div>
                     ))}
+
+<label htmlFor='serviceImage' className='mt-3'>Service Image :</label> 
+        <label htmlFor='uploadImageInput'>
+
+        <div className='p-2 bg-slate-100 border rounded h-32 w-full flex justify-center items-center cursor-pointer'>
+            <div className='text-slate-500 flex justify-center items-center flex-col gap-2'>
+            <span className='text-4xl'><FaCloudUploadAlt/></span>
+            <p className='text-sm'>Upload Product Image</p>
+            <input type='file' id='uploadImageInput' className='hidden' onChange={handleUploadProduct} />
+            </div>   
+        </div>
+
+        </label>
+        <div>
+        {
+          data?.serviceImage[0] ? (
+           <div className='flex items-center gap-2'>
+            {
+              data.serviceImage.map((el,index)=>{
+              return(
+               <div key={index} className='relative group'>
+               <img 
+                  src={el} 
+                  alt={el} 
+                  width={80} 
+                  height={80} 
+                  className='bg-slate-100 border cursor-pointer'
+                  onClick={()=>{
+                    setOpenFullScreenImage(true)
+                    setFullScreenImage(el)
+                  }} />
+
+                  <div className='absolute bottom-0 right-0 p-1 text-white bg-red-600 rounded-full hidden group-hover:block cursor-pointer' onClick={()=>handleDeleteProductImage(index)}>
+                    <MdDelete/>
+                  </div>
+               </div>
+              )
+            })
+            }
+           </div>
+          ) : (
+            <p className='text-red-600 text-xs'>* Please Upload Product Image</p>
+          )
+        }
+            
+        </div>
        
        {/* Submit Button */}
         <button className='px-3 py-2 bg-red-600 text-white mb-10 hover:bg-red-700'>Upload Service</button>

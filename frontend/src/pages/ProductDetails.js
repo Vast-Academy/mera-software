@@ -134,16 +134,13 @@ const calculateTotalPrice = () => {
         const cachedData = await getCachedProduct(params?.id);
         
         if (cachedData && !isCacheStale(cachedData.lastUpdated)) {
-          // Use cached data if it's not stale
           setData(cachedData);
           setInitialLoading(false);
           setLoading(false);
           
-          // Load additional features from cache if available
           if (cachedData.additionalFeaturesData) {
             setAdditionalFeaturesData(cachedData.additionalFeaturesData);
             
-            // Initialize quantities and selected features from cache
             const initialQuantities = {};
             const initialSelectedFeatures = [];
 
@@ -161,11 +158,9 @@ const calculateTotalPrice = () => {
           // Still fetch fresh data in background
           fetchFreshData();
         } else {
-          // If no cache or stale cache, fetch fresh data
           await fetchFreshData();
         }
         
-        // Clear old cache entries
         clearOldCache().catch(console.error);
         
       } catch (error) {
@@ -187,17 +182,28 @@ const calculateTotalPrice = () => {
         const productData = dataResponse?.data;
         setData(productData);
         
-        if (productData?.additionalFeatures?.length > 0) {
+        // Check if the product has additional features and category
+        if (productData?.additionalFeatures?.length > 0 && productData.category) {
+          // Fetch additional features with category filter
           const featuresPromises = productData.additionalFeatures.map(featureId =>
             fetch(SummaryApi.productDetails.url, {
               method: SummaryApi.productDetails.method,
               headers: { "content-type": "application/json" },
-              body: JSON.stringify({ productId: featureId })
+              body: JSON.stringify({ 
+                productId: featureId,
+                category: productData.category  // Add category to the request
+              })
             }).then(res => res.json())
           );
 
           const featuresData = await Promise.all(featuresPromises);
-          const featuresWithData = featuresData.map(fd => fd.data);
+          const featuresWithData = featuresData
+            .map(fd => fd.data)
+            .filter(feature => 
+              // Filter features that are compatible with current product category
+              feature.compatibleWith && 
+              feature.compatibleWith.includes(productData.category)
+            );
 
           // Sort features
           const sortedFeatures = featuresWithData.sort((a, b) => {
@@ -208,7 +214,7 @@ const calculateTotalPrice = () => {
 
           setAdditionalFeaturesData(sortedFeatures);
 
-          // Cache the complete data including additional features
+          // Cache the complete data
           await cacheProductDetails(params?.id, {
             ...productData,
             additionalFeaturesData: sortedFeatures
@@ -227,9 +233,6 @@ const calculateTotalPrice = () => {
 
           setQuantities(initialQuantities);
           setSelectedFeatures(initialSelectedFeatures);
-        } else {
-          // Cache the product data without additional features
-          await cacheProductDetails(params?.id, productData);
         }
 
         setInitialLoading(false);

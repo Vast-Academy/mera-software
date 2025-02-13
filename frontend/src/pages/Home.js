@@ -16,7 +16,6 @@ const Home = () => {
 
       <HomeSecondBanner/>
       
-      {/* <HorizontalCardProduct category={"static_websites"} heading={"Static Websites"}/>  */}
       {/* <VerticalCardProduct category={"static_websites"} heading={"Static Websites"}/> */}
       <VerticalCardProduct category={"standard_websites"} heading={"Standard Websites"}/>
       <VerticalCardProduct category={"dynamic_websites"} heading={"Dynamic Websites"}/>

@@ -15,8 +15,15 @@ const checkpointSchema = new mongoose.Schema({
 const productSchema = new mongoose.Schema({
     serviceName: String,
     category: String,
-    packageIncludes: [String],
-    perfectFor: [String],
+    packageIncludes: {
+      type: String,
+      required: true
+  },
+  // Changed from array to string to store rich text content
+  perfectFor: {
+      type: String,
+      required: true
+  },
     serviceImage: [],
     price: Number,
     sellingPrice: Number,
@@ -99,7 +106,7 @@ const productSchema = new mongoose.Schema({
 
 // Set isWebsiteService based on category
 productSchema.pre('save', function(next) {
-  const websiteCategories = ['static_websites', 'standard_websites'];
+  const websiteCategories = ['standard_websites', 'dynamic_websites', 'web_applications', 'mobile_apps'];
   this.isWebsiteService = websiteCategories.includes(this.category);
   this.isFeatureUpgrade = this.category === 'feature_upgrades';
 

@@ -6,6 +6,7 @@ import Color from '@tiptap/extension-color';
 import TextStyle from '@tiptap/extension-text-style';
 import Underline from '@tiptap/extension-underline';
 import { Node } from '@tiptap/core';
+import HorizontalRule from '@tiptap/extension-horizontal-rule';
 
 // Import specific icon packages
 import * as Fa from 'react-icons/fa';
@@ -215,6 +216,18 @@ const MenuBar = ({ editor }) => {
       >
         <strong>B</strong>
       </button>
+
+      {/* Add the new Horizontal Rule button */}
+      <button
+        onClick={handleButtonClick(() => editor.chain().focus().setHorizontalRule().run())}
+        className="p-2 rounded hover:bg-slate-100"
+        type="button"
+        title="Insert horizontal line"
+      >
+        ―
+      </button>
+
+
       <button
         onClick={handleButtonClick(() => editor.chain().focus().toggleItalic().run())}
         className={`p-2 rounded ${editor.isActive('italic') ? 'bg-slate-200' : 'hover:bg-slate-100'}`}
@@ -282,12 +295,18 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
           HTMLAttributes: {
             class: 'mb-4'
           }
+        },
+        horizontalRule: {  // Add configuration for horizontal rule
+          HTMLAttributes: {
+            class: 'border-t border-gray-300 my-4'
+          }
         }
       }),
       Color,
       TextStyle,
       Underline,
-      CustomIcon
+      CustomIcon,
+      HorizontalRule
     ],
     content: value,
     onUpdate: ({ editor }) => {
