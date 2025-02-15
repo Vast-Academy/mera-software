@@ -3,7 +3,7 @@ import { FiArrowRight } from "react-icons/fi";
 import { BsCalendar3 } from "react-icons/bs";
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { setUserDetails } from '../store/userSlice';
+// import { setUserDetails } from '../store/userSlice';
 import SummaryApi from '../common';
 import { useDatabase } from '../context/DatabaseContext';
 
@@ -27,47 +27,10 @@ const AppConvertingBanner = () => {
   const user = useSelector(state => state?.user?.user);
   const initialized = useSelector(state => state?.user?.initialized);
 
-   // Effect for loading guest slides
-   useEffect(() => {
-    const loadGuestSlides = async () => {
-      if (!isInitialized) return;
-
-      const cacheKey = 'guest_slides';
-      try {
-        // Try cache first
-        const cachedSlides = await db.get('apiCache', cacheKey);
-        
-        if (cachedSlides && isCacheValid(cachedSlides.timestamp)) {
-          setGuestSlides(cachedSlides.data);
-          setIsLoading(false);
-          setDataInitialized(true);
-          return;
-        }
-
-        // Fetch fresh data if cache miss
-        const response = await fetch(SummaryApi.guestSlides.url);
-        const data = await response.json();
-        if (data.success && data.data) {
-          setGuestSlides(data.data);
-          await db.set('apiCache', {
-            key: cacheKey,
-            data: data.data,
-            timestamp: new Date().toISOString()
-          });
-        }
-        setIsLoading(false);
-        setDataInitialized(true);
-      } catch (error) {
-        console.error('Error loading guest slides:', error);
-        setIsLoading(false);
-      }
-    };
-
-    // Load guest slides if user is not logged in
-    if (!user?._id) {
-      loadGuestSlides();
-    }
-  }, [isInitialized, user?._id, db, isCacheValid]);
+   // Add an effect specifically for handling user state
+  //  useEffect(() => {
+  //   setShouldShowGuest(initialized && !user?._id);
+  // }, [initialized, user]);
 
   // Helper functions
   const filterWebsiteOrders = (orders) => {
@@ -78,83 +41,160 @@ const AppConvertingBanner = () => {
     ) || [];
   };
 
+  // Clear all banner states
+  const clearBannerStates = () => {
+    setOrders(null);
+    setGuestSlides(null);
+    setUserWelcome(null);
+    setCurrentSlide(0);
+    setDataInitialized(false);
+  };
   // const isCacheStale = (lastUpdated) => {
   //   if (!lastUpdated) return true;
   //   const staleTime = 5 * 60 * 1000; 
   //   return Date.now() - new Date(lastUpdated).getTime() > staleTime;
   // };
 
-  // Effect for loading user data
-  useEffect(() => {
-    const loadUserData = async () => {
-      if (!isInitialized || !initialized || !user?._id) return;
-
+  
+   // Effect to handle user state changes
+   useEffect(() => {
+    if (initialized) {
+      clearBannerStates();
       setIsLoading(true);
-      setGuestSlides(null); // Clear guest slides when loading user data
+    }
+  }, [initialized, user?._id]);
 
+  const loadGuestSlides = async () => {
+    if (!isInitialized) return;
+    
+    const cacheKey = 'guest_slides';
+    try {
+      // Add loading state
+      setIsLoading(true);
+      
+      const cachedSlides = await db.get('apiCache', cacheKey);
+      
+      if (cachedSlides && isCacheValid(cachedSlides.timestamp)) {
+        setGuestSlides(cachedSlides.data);
+        setDataInitialized(true);
+        setIsLoading(false);
+        return;
+      }
+  
+      const response = await fetch(SummaryApi.guestSlides.url);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setGuestSlides(data.data);
+        await db.set('apiCache', {
+          key: cacheKey,
+          data: data.data,
+          timestamp: new Date().toISOString()
+        });
+      }
+      setDataInitialized(true);
+    } catch (error) {
+      console.error('Error fetching guest slides:', error);
+      // Try to use cached data even if expired in case of error
+      const cachedSlides = await db.get('apiCache', cacheKey);
+      if (cachedSlides?.data) {
+        setGuestSlides(cachedSlides.data);
+        setDataInitialized(true);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Combined data fetching effect
+  useEffect(() => {
+    const loadData = async () => {
+      if (!isInitialized || !initialized) {
+        return;
+      }
+
+      // Clear states when user changes
+    clearBannerStates();
+    setIsLoading(true);
+  
       try {
-        const ordersCacheKey = `orders_${user._id}`;
-        let userOrders = [];
-
-        // Try cache first for orders
-        const cachedOrders = await db.get('apiCache', ordersCacheKey);
-        
-        if (cachedOrders && isCacheValid(cachedOrders.timestamp)) {
-          userOrders = filterWebsiteOrders(cachedOrders.data);
-          setOrders(userOrders);
-          
-          if (userOrders.length === 0) {
-            await loadUserWelcome();
-          }
-          
-          setIsLoading(false);
-          setDataInitialized(true);
+        // For non-logged in users
+        if (!user?._id) {
+          await loadGuestSlides();
           return;
         }
-
-        // Fetch fresh orders
-        const ordersResponse = await fetch(SummaryApi.ordersList.url, {
-          method: SummaryApi.ordersList.method,
-          credentials: 'include'
-        });
-        const ordersData = await ordersResponse.json();
-        
-        if (ordersData.success) {
-          await db.set('apiCache', {
-            key: ordersCacheKey,
-            data: ordersData.data,
-            timestamp: new Date().toISOString()
-          });
-          userOrders = filterWebsiteOrders(ordersData.data);
-          setOrders(userOrders);
-          
-          if (userOrders.length === 0) {
-            await loadUserWelcome();
+   
+        // For logged in users
+        setIsLoading(true);
+        const ordersCacheKey = `orders_${user._id}`;
+        let userOrders = [];
+   
+        try {
+          const cachedOrders = await db.get('apiCache', ordersCacheKey);
+           
+          if (cachedOrders && isCacheValid(cachedOrders.timestamp)) {
+            userOrders = filterWebsiteOrders(cachedOrders.data);
+            setOrders(userOrders);
+             
+            if (userOrders.length === 0) {
+              await loadUserWelcome();
+            }
+            setDataInitialized(true);
+            setIsLoading(false);
+            return;
           }
+  
+          const ordersResponse = await fetch(SummaryApi.ordersList.url, {
+            method: SummaryApi.ordersList.method,
+            credentials: 'include'
+          });
+          const ordersData = await ordersResponse.json();
+           
+          if (ordersData.success) {
+            await db.set('apiCache', {
+              key: ordersCacheKey,
+              data: ordersData.data,
+              timestamp: new Date().toISOString()
+            });
+            userOrders = filterWebsiteOrders(ordersData.data);
+            setOrders(userOrders);
+             
+            if (userOrders.length === 0) {
+              await loadUserWelcome();
+            }
+          }
+          setDataInitialized(true);
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          const cachedOrders = await db.get('apiCache', ordersCacheKey);
+          if (cachedOrders?.data) {
+            setOrders(filterWebsiteOrders(cachedOrders.data));
+          }
+        } finally {
+          setIsLoading(false);
         }
-        
-        setIsLoading(false);
-        setDataInitialized(true);
       } catch (error) {
-        console.error('Error loading user data:', error);
+        console.error('Error in data fetching:', error);
+      }
+      finally {
         setIsLoading(false);
       }
     };
-
-    loadUserData();
+    
+    loadData();
   }, [user?._id, initialized, isInitialized, db, isCacheValid]);
-
-   // Helper function to load user welcome
-   const loadUserWelcome = async () => {
+  
+  // Keep loadUserWelcome function as is
+  const loadUserWelcome = async () => {
     const welcomeCacheKey = 'user_welcome';
     try {
       const cachedWelcome = await db.get('apiCache', welcomeCacheKey);
-      
+         
       if (cachedWelcome && isCacheValid(cachedWelcome.timestamp)) {
         setUserWelcome(cachedWelcome.data);
         return;
       }
-
+   
       const welcomeResponse = await fetch(SummaryApi.userWelcome.url);
       const welcomeData = await welcomeResponse.json();
       if (welcomeData.success && welcomeData.data) {
@@ -166,7 +206,7 @@ const AppConvertingBanner = () => {
         });
       }
     } catch (error) {
-      console.error('Error loading welcome data:', error);
+      console.error('Error fetching welcome data:', error);
     }
   };
 
@@ -213,7 +253,7 @@ const AppConvertingBanner = () => {
     return html.replace(/<[^>]*>/g, '');
   };
   
-  if (isLoading && !dataInitialized) {
+  if (!isInitialized || !initialized || (isLoading && !dataInitialized)) {
     return (
       <div className="container mx-auto px-4">
         <div className="bg-white rounded-xl py-6 px-2 shadow-lg max-w-xl mx-auto overflow-hidden">
@@ -229,12 +269,13 @@ const AppConvertingBanner = () => {
     );
   }
 
+
   return (
     <div className='container mx-auto px-4'>
       <div className="bg-white rounded-xl py-5 max-w-xl mx-auto overflow-hidden">
         <div className="relative">
           {/* Guest Slides View - Show when user is not logged in */}
-          {!user?._id && guestSlides?.length > 0 && (
+          {!user?._id && dataInitialized && guestSlides?.length > 0 && (
             <>
               <div
                 className="transition-all duration-500 ease-in-out flex"
@@ -291,7 +332,7 @@ const AppConvertingBanner = () => {
           )}
 
           {/* Orders View - Show when user has orders */}
-          {user?._id && orders?.length > 0 &&(
+          {user?._id && dataInitialized && orders?.length > 0 &&(
             <div className="px-4">
               <div
                 className="bg-white rounded-lg hover:shadow-lg transition-shadow cursor-pointer p-3"
@@ -356,7 +397,7 @@ const AppConvertingBanner = () => {
           )}
 
           {/* User Welcome View - Show when user is logged in but has no orders */}
-          {user?._id && orders?.length === 0 && userWelcome &&(
+          {user?._id && dataInitialized && orders?.length === 0 && userWelcome &&(
             <div className="px-4 py-2">
               <h2 className="text-xl font-bold text-gray-800 mb-3">
                 {userWelcome.title.replace('{username}', user?.name || 'User')}

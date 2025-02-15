@@ -7,13 +7,13 @@ const CategoryList = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   // const [error, setError] = useState(null);
-  const { db, fetchAndCache, isCacheValid, isInitialized  } = useDatabase();
+  const { db, isCacheValid, isInitialized  } = useDatabase();
   const categoryLoading = new Array(6).fill(null);
 
   useEffect(() => {
     const loadCategories = async () => {
       if (!isInitialized) {
-        return; // Wait for DB to initialize
+        return;
       }
 
       try {
@@ -25,7 +25,8 @@ const CategoryList = () => {
           setLoading(false);
           
           // Fetch fresh data in background
-          const freshData = await fetchAndCache(SummaryApi.allCategory.url);
+          const response = await fetch(SummaryApi.allCategory.url);
+          const freshData = await response.json();
           if (freshData.success) {
             setCategories(freshData.data);
             await db.set('categories', {
@@ -38,14 +39,15 @@ const CategoryList = () => {
         }
         
         // If no cache or cache is stale, fetch fresh data
-        const response = await fetchAndCache(SummaryApi.allCategory.url);
-        if (response.success) {
-          setCategories(response.data);
+        const response = await fetch(SummaryApi.allCategory.url);
+        const data = await response.json();
+        if (data.success) {
+          setCategories(data.data);
           
           // Update cache
           await db.set('categories', {
             id: 'all',
-            data: response.data,
+            data: data.data,
             timestamp: new Date().toISOString()
           });
         }
@@ -67,7 +69,7 @@ const CategoryList = () => {
     };
 
     loadCategories();
-  }, [db, fetchAndCache, isCacheValid, isInitialized]);
+  }, [db, isCacheValid, isInitialized]);
 
   if (loading) {
     return (

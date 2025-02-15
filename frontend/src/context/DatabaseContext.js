@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 const DatabaseContext = createContext();
 
 const DB_NAME = 'myWebsiteDB';
-const DB_VERSION = 2; // Increased version number to trigger upgrade
+const DB_VERSION = 2;
 
 export const DatabaseProvider = ({ children }) => {
   const [dbInstance, setDbInstance] = useState(null);
@@ -16,28 +16,25 @@ export const DatabaseProvider = ({ children }) => {
 
       request.onerror = (event) => {
         console.error("Database error:", event.target.error);
+        // Set initialized even on error so the app can continue
+        setIsInitialized(true);
       };
 
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
         
-        // Delete existing stores if they exist
-        if (db.objectStoreNames.contains('apiCache')) {
-          db.deleteObjectStore('apiCache');
+        // Create stores only if they don't exist
+        if (!db.objectStoreNames.contains('apiCache')) {
+          db.createObjectStore('apiCache', { keyPath: 'key' });
         }
-        if (db.objectStoreNames.contains('categories')) {
-          db.deleteObjectStore('categories');
+        if (!db.objectStoreNames.contains('categories')) {
+          db.createObjectStore('categories', { keyPath: 'id' });
         }
-        if (db.objectStoreNames.contains('products')) {
-          db.deleteObjectStore('products');
+        if (!db.objectStoreNames.contains('products')) {
+          db.createObjectStore('products', { keyPath: 'id' });
         }
         
-        // Create all stores fresh
-        db.createObjectStore('apiCache', { keyPath: 'key' });
-        db.createObjectStore('categories', { keyPath: 'id' });
-        db.createObjectStore('products', { keyPath: 'id' });
-        
-        console.log('All stores created successfully');
+        console.log('Database upgrade completed');
       };
 
       request.onsuccess = (event) => {
@@ -50,13 +47,53 @@ export const DatabaseProvider = ({ children }) => {
 
     initDB();
 
-    // Cleanup function
     return () => {
       if (dbInstance) {
         dbInstance.close();
       }
     };
   }, []);
+
+  const clearCache = async () => {
+    if (!dbInstance || !isInitialized) return;
+    
+    try {
+      const transaction = dbInstance.transaction(['apiCache'], 'readwrite');
+      const store = transaction.objectStore('apiCache');
+      
+      // Get all keys
+      const keys = await new Promise((resolve, reject) => {
+        const request = store.getAllKeys();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      
+      // Before clearing cache, save guest slides
+      let guestSlidesData = null;
+      const guestSlidesRequest = store.get('guest_slides');
+      await new Promise((resolve) => {
+        guestSlidesRequest.onsuccess = () => {
+          guestSlidesData = guestSlidesRequest.result;
+          resolve();
+        };
+        guestSlidesRequest.onerror = () => resolve();
+      });
+      
+      // Clear all cache
+      for (const key of keys) {
+        await store.delete(key);
+      }
+      
+      // Restore guest slides if they existed
+      if (guestSlidesData) {
+        await store.put(guestSlidesData);
+      }
+      
+      console.log('Cache cleared successfully');
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+    }
+  };
 
   const isCacheValid = (timestamp) => {
     if (!timestamp) return false;
@@ -67,73 +104,53 @@ export const DatabaseProvider = ({ children }) => {
   const db = {
     get: (storeName, key) => {
       return new Promise((resolve, reject) => {
-        if (!dbInstance || !isInitialized) {
-          reject(new Error('Database not initialized'));
+        if (!dbInstance) {
+          resolve(null); // Return null instead of rejecting
           return;
         }
 
-        const transaction = dbInstance.transaction(storeName, 'readonly');
-        const store = transaction.objectStore(storeName);
-        const request = store.get(key);
+        try {
+          const transaction = dbInstance.transaction(storeName, 'readonly');
+          const store = transaction.objectStore(storeName);
+          const request = store.get(key);
 
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => resolve(request.result);
+          request.onerror = () => resolve(null); // Return null on error
+          request.onsuccess = () => resolve(request.result);
+        } catch (error) {
+          console.error('Error in db.get:', error);
+          resolve(null);
+        }
       });
     },
 
     set: (storeName, data) => {
       return new Promise((resolve, reject) => {
-        if (!dbInstance || !isInitialized) {
-          reject(new Error('Database not initialized'));
+        if (!dbInstance) {
+          resolve(false);
           return;
         }
 
-        const transaction = dbInstance.transaction(storeName, 'readwrite');
-        const store = transaction.objectStore(storeName);
-        const request = store.put(data);
+        try {
+          const transaction = dbInstance.transaction(storeName, 'readwrite');
+          const store = transaction.objectStore(storeName);
+          const request = store.put(data);
 
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => resolve(request.result);
+          request.onerror = () => resolve(false);
+          request.onsuccess = () => resolve(true);
+        } catch (error) {
+          console.error('Error in db.set:', error);
+          resolve(false);
+        }
       });
-    }
-  };
-
-  const fetchAndCache = async (url, options = {}) => {
-    try {
-      if (!dbInstance || !isInitialized) {
-        // If DB isn't initialized, just fetch without caching
-        const response = await fetch(url, options);
-        return await response.json();
-      }
-
-      // Rest of fetchAndCache implementation...
-      const response = await fetch(url, options);
-      const data = await response.json();
-
-      // Update cache
-      try {
-        await db.set('apiCache', {
-          key: url,
-          data,
-          timestamp: new Date().toISOString()
-        });
-      } catch (e) {
-        console.warn('Failed to cache data:', e);
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Error in fetchAndCache:', error);
-      throw error;
     }
   };
 
   return (
     <DatabaseContext.Provider value={{ 
       db, 
-      fetchAndCache, 
       isCacheValid,
-      isInitialized 
+      isInitialized,
+      clearCache // Export clearCache function
     }}>
       {children}
     </DatabaseContext.Provider>

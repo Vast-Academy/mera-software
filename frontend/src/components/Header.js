@@ -7,21 +7,20 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import SummaryApi from '../common'; 
 import { toast } from 'react-toastify';
-import { setUserDetails } from '../store/userSlice';
+import { setUserDetails, logout  } from '../store/userSlice';
 import ROLE from '../common/role';
 import Context from '../context';
 import { FaArrowLeftLong } from "react-icons/fa6";
-// import { FaArrowLeft } from "react-icons/fa";
-// import { IoIosNotifications } from "react-icons/io";
-// import { BiSolidUser } from "react-icons/bi";
+import { useDatabase } from '../context/DatabaseContext';
 import { IoWalletOutline } from "react-icons/io5";
 
 const Header = () => {
   const user = useSelector(state => state?.user?.user)
   const dispatch = useDispatch()
-  const [menuDisplay,setMenuDisplay] = useState(false)
+  const { clearCache } = useDatabase();
   const context = useContext(Context)
   const navigate = useNavigate()
+  const [menuDisplay,setMenuDisplay] = useState(false)
   const searchInput = useLocation()
   const URLSearch = new URLSearchParams(searchInput?.search)
   const searchQuery = URLSearch.getAll("q")
@@ -35,24 +34,42 @@ const Header = () => {
   };
 
   const handleLogout = async () => {
-    const fetchData = await fetch(SummaryApi.logout_user.url,{
-       method : SummaryApi.logout_user.method,
-       credentials : 'include'
-    })
+    try {
+      const fetchData = await fetch(SummaryApi.logout_user.url, {
+        method: SummaryApi.logout_user.method,
+        credentials: 'include'
+      });
 
-    const data = await fetchData.json()
+      const data = await fetchData.json();
 
-    if(data.success){
-    toast.success(data.message)
-    dispatch(setUserDetails(null))
-    navigate("/")
-  }
+      if (data.success) {
+        // Clear IndexedDB cache first
+        await clearCache();
+        
+        // Then dispatch Redux logout action
+        dispatch(logout());
+        
+        // Reset local states
+        setMenuDisplay(false);
+        setSearch('');
+        
+        // Show success message
+        toast.success(data.message);
+        
+        // Navigate to home
+        navigate("/");
+      }
 
-  if(data.error){
-    toast.error(data.message)
-  }
-}
+      if (data.error) {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+      toast.error("Logout failed. Please try again.");
+    }
+  };
 
+  
 const handleSearch = (e) =>{
 const { value } = e.target
 setSearch(value)
