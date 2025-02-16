@@ -23,7 +23,8 @@ const AppConvertingBanner = () => {
   // const [isCacheChecked, setIsCacheChecked] = useState(false);
   // const [shouldShowGuest, setShouldShowGuest] = useState(false);
   
-  const { db, isCacheValid, isInitialized } = useDatabase();
+  // const { db, isCacheValid, isInitialized } = useDatabase();
+  const { advancedCache, isInitialized, isOnline } = useDatabase();
   const user = useSelector(state => state?.user?.user);
   const initialized = useSelector(state => state?.user?.initialized);
 
@@ -72,39 +73,34 @@ const AppConvertingBanner = () => {
       // Add loading state
       setIsLoading(true);
       
-      const cachedSlides = await db.get('apiCache', cacheKey);
-      
-      if (cachedSlides && isCacheValid(cachedSlides.timestamp)) {
-        setGuestSlides(cachedSlides.data);
-        setDataInitialized(true);
-        setIsLoading(false);
-        return;
-      }
+      // नया कैशिंग लॉजिक
+    const cachedData = await advancedCache.get('apiCache', cacheKey);
+    
+    if (cachedData) {
+      setGuestSlides(cachedData.data);
+      setDataInitialized(true);
+      setIsLoading(false);
+      return;
+    }
   
+      // ऑनलाइन चेक
+    if (isOnline) {
       const response = await fetch(SummaryApi.guestSlides.url);
       const data = await response.json();
       
       if (data.success && data.data) {
         setGuestSlides(data.data);
-        await db.set('apiCache', {
-          key: cacheKey,
-          data: data.data,
-          timestamp: new Date().toISOString()
-        });
+        // LOW प्राइओरिटी क्योंकि ये बैनर्स हैं
+        await advancedCache.store('apiCache', cacheKey, data.data, 'low');
       }
-      setDataInitialized(true);
-    } catch (error) {
-      console.error('Error fetching guest slides:', error);
-      // Try to use cached data even if expired in case of error
-      const cachedSlides = await db.get('apiCache', cacheKey);
-      if (cachedSlides?.data) {
-        setGuestSlides(cachedSlides.data);
-        setDataInitialized(true);
-      }
-    } finally {
-      setIsLoading(false);
     }
-  };
+    setDataInitialized(true);
+  } catch (error) {
+    console.error('Error:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Combined data fetching effect
   useEffect(() => {
@@ -112,27 +108,28 @@ const AppConvertingBanner = () => {
       if (!isInitialized || !initialized) {
         return;
       }
-
-      // Clear states when user changes
-    clearBannerStates();
-    setIsLoading(true);
   
+      // Clear states when user changes
+      clearBannerStates();
+      setIsLoading(true);
+    
       try {
         // For non-logged in users
         if (!user?._id) {
           await loadGuestSlides();
           return;
         }
-   
+     
         // For logged in users
         setIsLoading(true);
         const ordersCacheKey = `orders_${user._id}`;
         let userOrders = [];
-   
+     
         try {
-          const cachedOrders = await db.get('apiCache', ordersCacheKey);
-           
-          if (cachedOrders && isCacheValid(cachedOrders.timestamp)) {
+          // नया कैशिंग कोड
+          const cachedOrders = await advancedCache.get('apiCache', ordersCacheKey);
+          
+          if (cachedOrders) {
             userOrders = filterWebsiteOrders(cachedOrders.data);
             setOrders(userOrders);
              
@@ -144,29 +141,27 @@ const AppConvertingBanner = () => {
             return;
           }
   
-          const ordersResponse = await fetch(SummaryApi.ordersList.url, {
-            method: SummaryApi.ordersList.method,
-            credentials: 'include'
-          });
-          const ordersData = await ordersResponse.json();
-           
-          if (ordersData.success) {
-            await db.set('apiCache', {
-              key: ordersCacheKey,
-              data: ordersData.data,
-              timestamp: new Date().toISOString()
+          if (isOnline) {
+            const ordersResponse = await fetch(SummaryApi.ordersList.url, {
+              method: SummaryApi.ordersList.method,
+              credentials: 'include'
             });
-            userOrders = filterWebsiteOrders(ordersData.data);
-            setOrders(userOrders);
+            const ordersData = await ordersResponse.json();
              
-            if (userOrders.length === 0) {
-              await loadUserWelcome();
+            if (ordersData.success) {
+              await advancedCache.store('apiCache', ordersCacheKey, ordersData.data, 'high');
+              userOrders = filterWebsiteOrders(ordersData.data);
+              setOrders(userOrders);
+               
+              if (userOrders.length === 0) {
+                await loadUserWelcome();
+              }
             }
           }
           setDataInitialized(true);
         } catch (error) {
           console.error("Error fetching data:", error);
-          const cachedOrders = await db.get('apiCache', ordersCacheKey);
+          const cachedOrders = await advancedCache.get('apiCache', ordersCacheKey);
           if (cachedOrders?.data) {
             setOrders(filterWebsiteOrders(cachedOrders.data));
           }
@@ -175,35 +170,32 @@ const AppConvertingBanner = () => {
         }
       } catch (error) {
         console.error('Error in data fetching:', error);
-      }
-      finally {
+      } finally {
         setIsLoading(false);
       }
     };
-    
+      
     loadData();
-  }, [user?._id, initialized, isInitialized, db, isCacheValid]);
+  }, [user?._id, initialized, isInitialized, advancedCache, isOnline]);
   
-  // Keep loadUserWelcome function as is
+  // loadUserWelcome फंक्शन को भी अपडेट करें
   const loadUserWelcome = async () => {
     const welcomeCacheKey = 'user_welcome';
     try {
-      const cachedWelcome = await db.get('apiCache', welcomeCacheKey);
+      const cachedWelcome = await advancedCache.get('apiCache', welcomeCacheKey);
          
-      if (cachedWelcome && isCacheValid(cachedWelcome.timestamp)) {
+      if (cachedWelcome) {
         setUserWelcome(cachedWelcome.data);
         return;
       }
    
-      const welcomeResponse = await fetch(SummaryApi.userWelcome.url);
-      const welcomeData = await welcomeResponse.json();
-      if (welcomeData.success && welcomeData.data) {
-        setUserWelcome(welcomeData.data);
-        await db.set('apiCache', {
-          key: welcomeCacheKey,
-          data: welcomeData.data,
-          timestamp: new Date().toISOString()
-        });
+      if (isOnline) {
+        const welcomeResponse = await fetch(SummaryApi.userWelcome.url);
+        const welcomeData = await welcomeResponse.json();
+        if (welcomeData.success && welcomeData.data) {
+          setUserWelcome(welcomeData.data);
+          await advancedCache.store('apiCache', welcomeCacheKey, welcomeData.data, 'low');
+        }
       }
     } catch (error) {
       console.error('Error fetching welcome data:', error);

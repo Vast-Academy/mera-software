@@ -17,7 +17,8 @@ import { IoWalletOutline } from "react-icons/io5";
 const Header = () => {
   const user = useSelector(state => state?.user?.user)
   const dispatch = useDispatch()
-  const { clearCache } = useDatabase();
+  // const { clearCache } = useDatabase();
+  const { advancedCache, offlineSupport, clearCache } = useDatabase();
   const context = useContext(Context)
   const navigate = useNavigate()
   const [menuDisplay,setMenuDisplay] = useState(false)
@@ -39,28 +40,33 @@ const Header = () => {
         method: SummaryApi.logout_user.method,
         credentials: 'include'
       });
-
+  
       const data = await fetchData.json();
-
+  
       if (data.success) {
-        // Clear IndexedDB cache first
-        await clearCache();
-        
-        // Then dispatch Redux logout action
-        dispatch(logout());
-        
-        // Reset local states
-        setMenuDisplay(false);
-        setSearch('');
-        
-        // Show success message
-        toast.success(data.message);
-        
-        // Navigate to home
-        navigate("/");
-      }
-
-      if (data.error) {
+        try {
+          // Clear all caches
+          await clearCache();
+          
+          // Clear local storage
+          localStorage.clear();
+          
+          // Dispatch Redux logout
+          dispatch(logout());
+          
+          // Reset component states
+          setMenuDisplay(false);
+          setSearch('');
+          
+          toast.success(data.message);
+          navigate("/");
+        } catch (cacheError) {
+          console.error("Cache clearing error:", cacheError);
+          // Still proceed with logout even if cache clearing fails
+          dispatch(logout());
+          navigate("/");
+        }
+      } else {
         toast.error(data.message);
       }
     } catch (error) {

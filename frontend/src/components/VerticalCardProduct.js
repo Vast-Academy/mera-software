@@ -12,7 +12,8 @@ const VerticalCardProduct = ({category, heading}) => {
     const [loading, setLoading] = useState(true)
     const loadingList = new Array(8).fill(null)
     const scrollElement = useRef()
-    const { db, fetchAndCache, isCacheValid, isInitialized  } = useDatabase();
+    const { advancedCache, offlineSupport, isInitialized, isOnline } = useDatabase();
+    // const { db, fetchAndCache, isCacheValid, isInitialized  } = useDatabase();
 
     const colorStyles = {
         'static_websites': {
@@ -56,67 +57,49 @@ const VerticalCardProduct = ({category, heading}) => {
 
     useEffect(() => {
         const loadProducts = async () => {
-            if (!isInitialized) {
-                return; // Wait for DB to initialize
-              }
-
-          const cacheKey = `products_${category}`;
-          
-          try {
-            // Try to get data from cache first
-            const cachedData = await db.get('products', cacheKey);
+            if (!isInitialized) return;
             
-            if (cachedData && isCacheValid(cachedData.timestamp)) {
-              setData(cachedData.data);
-              setLoading(false);
+            const cacheKey = `products_${category}`;
+            try {
+              const cachedData = await advancedCache.get('products', cacheKey);
               
-              // Fetch fresh data in background
-              const freshData = await fetchCategoryWiseProduct(category);
-              if (freshData?.data) {
-                const sortedData = freshData.data.sort((a, b) => 
-                  a.serviceName.localeCompare(b.serviceName)
-                );
-                setData(sortedData);
+              if (cachedData?.data) {
+                setData(cachedData.data);
+                setLoading(false);
                 
-                // Update cache with fresh data
-                await db.set('products', {
-                  id: cacheKey,
-                  data: sortedData,
-                  timestamp: new Date().toISOString()
-                });
+                if (isOnline) {
+                  const freshData = await fetchCategoryWiseProduct(category);
+                  if (freshData?.data) {
+                    const sortedData = freshData.data.sort((a, b) => 
+                      a.serviceName.localeCompare(b.serviceName)
+                    );
+                    setData(sortedData);
+                    await advancedCache.store('products', cacheKey, sortedData, 'high');
+                  }
+                }
+                return;
               }
-              return;
+          
+              if (isOnline) {
+                const response = await fetchCategoryWiseProduct(category);
+                if (response?.data) {
+                  const sortedData = response.data.sort((a, b) => 
+                    a.serviceName.localeCompare(b.serviceName)
+                  );
+                  setData(sortedData);
+                  await advancedCache.store('products', cacheKey, sortedData, 'high');
+                }
+              }
+            } catch (error) {
+              console.error('Error:', error);
+            } finally {
+              setLoading(false);
             }
-    
-            // If no cache or stale, fetch fresh data
-            const response = await fetchCategoryWiseProduct(category);
-            if (response?.data) {
-              const sortedData = response.data.sort((a, b) => 
-                a.serviceName.localeCompare(b.serviceName)
-              );
-              setData(sortedData);
-              
-              // Update cache
-              await db.set('products', {
-                id: cacheKey,
-                data: sortedData,
-                timestamp: new Date().toISOString()
-              });
-            }
-          } catch (error) {
-            console.error('Error loading products:', error);
-            // Try to load from cache in case of error
-            const cachedData = await db.get('products', cacheKey);
-            if (cachedData?.data) {
-              setData(cachedData.data);
-            }
-          } finally {
-            setLoading(false);
-          }
-        };
-    
+          };
+      
         loadProducts();
-      }, [category, db, isCacheValid, isInitialized]);
+      }, [category, advancedCache, isInitialized, isOnline]);
+
 
     const scrollRight = () => {
         scrollElement.current.scrollLeft += 300

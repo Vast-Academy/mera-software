@@ -7,69 +7,52 @@ const CategoryList = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   // const [error, setError] = useState(null);
-  const { db, isCacheValid, isInitialized  } = useDatabase();
+  // const { db, isCacheValid, isInitialized  } = useDatabase();
+  const { advancedCache, isInitialized, isOnline } = useDatabase();
   const categoryLoading = new Array(6).fill(null);
 
   useEffect(() => {
     const loadCategories = async () => {
-      if (!isInitialized) {
-        return;
-      }
-
+      if (!isInitialized) return;
+    
       try {
-        // Try to get data from cache first
-        const cachedData = await db.get('categories', 'all');
+        const cachedData = await advancedCache.get('categories', 'categories_all');
         
-        if (cachedData && isCacheValid(cachedData.timestamp)) {
+        if (cachedData?.data) {
           setCategories(cachedData.data);
           setLoading(false);
           
-          // Fetch fresh data in background
-          const response = await fetch(SummaryApi.allCategory.url);
-          const freshData = await response.json();
-          if (freshData.success) {
-            setCategories(freshData.data);
-            await db.set('categories', {
-              id: 'all',
-              data: freshData.data,
-              timestamp: new Date().toISOString()
-            });
+          if (isOnline) {
+            const response = await fetch(SummaryApi.allCategory.url);
+            const freshData = await response.json();
+            if (freshData.success) {
+              setCategories(freshData.data);
+              // Add unique key for categories
+              await advancedCache.store('categories', 'categories_all', freshData.data, 'medium');
+            }
           }
           return;
         }
-        
-        // If no cache or cache is stale, fetch fresh data
-        const response = await fetch(SummaryApi.allCategory.url);
-        const data = await response.json();
-        if (data.success) {
-          setCategories(data.data);
-          
-          // Update cache
-          await db.set('categories', {
-            id: 'all',
-            data: data.data,
-            timestamp: new Date().toISOString()
-          });
+    
+        if (isOnline) {
+          const response = await fetch(SummaryApi.allCategory.url);
+          const data = await response.json();
+          if (data.success) {
+            setCategories(data.data);
+            // Add unique key for categories
+            await advancedCache.store('categories', 'categories_all', data.data, 'medium');
+          }
         }
       } catch (error) {
-        console.error('Error loading categories:', error);
-        
-        // Try to load from cache in case of error
-        try {
-          const cachedData = await db.get('categories', 'all');
-          if (cachedData?.data) {
-            setCategories(cachedData.data);
-          }
-        } catch (cacheError) {
-          console.error('Error loading from cache:', cacheError);
-        }
+        console.error('Error:', error);
       } finally {
         setLoading(false);
       }
     };
-
+  
     loadCategories();
-  }, [db, isCacheValid, isInitialized]);
+  }, [advancedCache, isInitialized, isOnline]);
+
 
   if (loading) {
     return (

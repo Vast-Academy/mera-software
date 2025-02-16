@@ -9,98 +9,64 @@ const BannerProduct = ({ serviceName = "home" }) => {
     const [loading, setLoading] = useState(true);
     const [touchStart, setTouchStart] = useState(null);
     const [touchEnd, setTouchEnd] = useState(null);
-    const { db, fetchAndCache, isCacheValid, isInitialized } = useDatabase();
+    // const { db, fetchAndCache, isCacheValid, isInitialized } = useDatabase();
+    const { advancedCache, isInitialized, isOnline } = useDatabase();
     
     // Minimum swipe distance (in px)
     const minSwipeDistance = 50;
 
     useEffect(() => {
         const loadBanners = async () => {
-            if (!isInitialized) {
-                return;
-            }
-
-            const cacheKey = `banners_${serviceName}`;
+          if (!isInitialized) return;
+      
+          const cacheKey = `banners_${serviceName}`;
+          try {
+            const cachedData = await advancedCache.get('apiCache', cacheKey);
             
-            try {
-                // Try to get data from cache first
-                const cachedData = await db.get('apiCache', cacheKey);
-                
-                if (cachedData && isCacheValid(cachedData.timestamp)) {
-                    const filteredBanners = cachedData.data.filter(banner => 
-                        banner.position === serviceName && banner.isActive
-                    );
-                    const sortedBanners = filteredBanners.sort((a, b) => a.order - b.order);
-                    setBanners(sortedBanners);
-                    setLoading(false);
-                    
-                    // Fetch fresh data in background
-                    fetchFreshBanners();
-                    return;
-                }
-
-                // If no cache or stale, fetch fresh data
-                const response = await fetch(SummaryApi.allBanner.url);
-                const data = await response.json();
-                
-                if (data.success) {
-                    const filteredBanners = data.data.filter(banner => 
-                        banner.position === serviceName && banner.isActive
-                    );
-                    const sortedBanners = filteredBanners.sort((a, b) => a.order - b.order);
-                    setBanners(sortedBanners);
-
-                    // Update cache
-                    await db.set('apiCache', {
-                        key: cacheKey,
-                        data: data.data,
-                        timestamp: new Date().toISOString()
-                    });
-                }
-            } catch (error) {
-                console.error("Error fetching banners:", error);
-                
-                // Try to load from cache in case of error
-                const cachedData = await db.get('apiCache', cacheKey);
-                if (cachedData?.data) {
-                    const filteredBanners = cachedData.data.filter(banner => 
-                        banner.position === serviceName && banner.isActive
-                    );
-                    const sortedBanners = filteredBanners.sort((a, b) => a.order - b.order);
-                    setBanners(sortedBanners);
-                }
-            } finally {
-                setLoading(false);
+            if (cachedData) {
+              const filteredBanners = cachedData.data.filter(banner => 
+                banner.position === serviceName && banner.isActive
+              );
+              setBanners(filteredBanners.sort((a, b) => a.order - b.order));
+              setLoading(false);
+              
+              if (isOnline) {
+                fetchFreshBanners();
+              }
+              return;
             }
+      
+            if (isOnline) {
+              await fetchFreshBanners();
+            }
+          } catch (error) {
+            console.error('Error:', error);
+          } finally {
+            setLoading(false);
+          }
         };
-
-    // Fetch banners from API
-    const fetchFreshBanners = async () => {
-        try {
+      
+        const fetchFreshBanners = async () => {
+          try {
             const response = await fetch(SummaryApi.allBanner.url);
             const data = await response.json();
             
             if (data.success) {
-                const filteredBanners = data.data.filter(banner => 
-                    banner.position === serviceName && banner.isActive
-                );
-                const sortedBanners = filteredBanners.sort((a, b) => a.order - b.order);
-                setBanners(sortedBanners);
-
-                // Update cache
-                await db.set('apiCache', {
-                    key: `banners_${serviceName}`,
-                    data: data.data,
-                    timestamp: new Date().toISOString()
-                });
+              const filteredBanners = data.data.filter(banner => 
+                banner.position === serviceName && banner.isActive
+              );
+              const sortedBanners = filteredBanners.sort((a, b) => a.order - b.order);
+              setBanners(sortedBanners);
+              
+              await advancedCache.store('apiCache', `banners_${serviceName}`, data.data, 'low');
             }
-        } catch (error) {
-            console.error("Error fetching fresh banners:", error);
-        }
-    };
-
-    loadBanners();
-}, [serviceName, db, isCacheValid, isInitialized]);
+          } catch (error) {
+            console.error('Error:', error);
+          }
+        };
+      
+        loadBanners();
+      }, [serviceName, advancedCache, isInitialized, isOnline]);
 
     // useEffect(() => {
     //     fetchBanners();
