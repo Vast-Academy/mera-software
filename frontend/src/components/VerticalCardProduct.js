@@ -12,7 +12,7 @@ const VerticalCardProduct = ({category, heading}) => {
     const [loading, setLoading] = useState(true)
     const loadingList = new Array(8).fill(null)
     const scrollElement = useRef()
-    const { advancedCache, offlineSupport, isInitialized, isOnline } = useDatabase();
+    const { hybridCache, isInitialized, isOnline } = useDatabase();
     // const { db, fetchAndCache, isCacheValid, isInitialized  } = useDatabase();
 
     const colorStyles = {
@@ -45,10 +45,6 @@ const VerticalCardProduct = ({category, heading}) => {
         }
     }
 
-    const getColorStyle = (productCategory) => {
-        return colorStyles[productCategory] || colorStyles.standard_websites
-    }
-
     // const handleAddToCart = async (e, id) => {
     //     e.preventDefault()
     //     await addToCart(e, id)
@@ -61,45 +57,65 @@ const VerticalCardProduct = ({category, heading}) => {
             
             const cacheKey = `products_${category}`;
             try {
-              const cachedData = await advancedCache.get('products', cacheKey);
-              
-              if (cachedData?.data) {
-                setData(cachedData.data);
-                setLoading(false);
+                setLoading(true);
                 
-                if (isOnline) {
-                  const freshData = await fetchCategoryWiseProduct(category);
-                  if (freshData?.data) {
-                    const sortedData = freshData.data.sort((a, b) => 
-                      a.serviceName.localeCompare(b.serviceName)
+                // Try to get data from hybrid cache first
+                const cachedData = await hybridCache.get('products', cacheKey);
+                
+                if (cachedData?.data) {
+                    const sortedData = cachedData.data.sort((a, b) => 
+                        a.serviceName.localeCompare(b.serviceName)
                     );
                     setData(sortedData);
-                    await advancedCache.store('products', cacheKey, sortedData, 'high');
-                  }
+                    setLoading(false);
+                    
+                    // If online, fetch fresh data in background
+                    if (isOnline) {
+                        await fetchFreshProducts(cacheKey);
+                    }
+                    return;
                 }
-                return;
-              }
           
-              if (isOnline) {
+                // If no cached data and online, fetch fresh data
+                if (isOnline) {
+                    await fetchFreshProducts(cacheKey);
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
+                // Try to use cached data as fallback
+                const cachedFallback = await hybridCache.get('products', cacheKey);
+                if (cachedFallback?.data) {
+                    setData(cachedFallback.data.sort((a, b) => 
+                        a.serviceName.localeCompare(b.serviceName)
+                    ));
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const fetchFreshProducts = async (cacheKey) => {
+            try {
                 const response = await fetchCategoryWiseProduct(category);
                 if (response?.data) {
-                  const sortedData = response.data.sort((a, b) => 
-                    a.serviceName.localeCompare(b.serviceName)
-                  );
-                  setData(sortedData);
-                  await advancedCache.store('products', cacheKey, sortedData, 'high');
+                    const sortedData = response.data.sort((a, b) => 
+                        a.serviceName.localeCompare(b.serviceName)
+                    );
+                    setData(sortedData);
+                    // Store in hybrid cache with high priority since these are product details
+                    await hybridCache.store('products', cacheKey, sortedData, 'high');
                 }
-              }
             } catch (error) {
-              console.error('Error:', error);
-            } finally {
-              setLoading(false);
+                console.error('Error fetching fresh products:', error);
             }
-          };
+        };
       
         loadProducts();
-      }, [category, advancedCache, isInitialized, isOnline]);
+    }, [category, hybridCache, isInitialized, isOnline]);
 
+    const getColorStyle = (productCategory) => {
+        return colorStyles[productCategory] || colorStyles.standard_websites
+    }
 
     const scrollRight = () => {
         scrollElement.current.scrollLeft += 300

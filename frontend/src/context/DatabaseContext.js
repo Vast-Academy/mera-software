@@ -4,22 +4,22 @@ import { openDB } from 'idb';
 const DatabaseContext = createContext();
 
 const DB_NAME = 'ecommerceDB';
-const DB_VERSION = 1;
-const CACHE_DURATION =  24 * 60 * 60 * 1000; // 24 hours
+const DB_VERSION = 2; // Version बढ़ा दी है
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
-// कैश प्राइओरिटी लेवल्स
 const PRIORITY_LEVELS = {
-  HIGH: 'high',      // जैसे कार्ट डेटा
-  MEDIUM: 'medium',  // जैसे प्रोडक्ट डिटेल्स
-  LOW: 'low'        // जैसे बैनर्स
+  HIGH: 'high',
+  MEDIUM: 'medium',
+  LOW: 'low'
 };
+
+const LS_PREFIX = 'ecom_';
 
 export function DatabaseProvider({ children }) {
   const [db, setDb] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isOnline, setIsOnline] = useState(window.navigator.onLine);
 
-  // ऑनलाइन/ऑफलाइन स्टेटस ट्रैक करें
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -33,28 +33,33 @@ export function DatabaseProvider({ children }) {
     };
   }, []);
 
-  // डेटाबेस इनिशियलाइज़ेशन
   useEffect(() => {
     const initDB = async () => {
       try {
         const database = await openDB(DB_NAME, DB_VERSION, {
           upgrade(db, oldVersion, newVersion) {
-            // Database Migration लॉजिक
-            if (oldVersion < 1) {
-              // बेसिक स्टोर्स
-              db.createObjectStore('products', { keyPath: 'id' });
-              db.createObjectStore('categories', { keyPath: 'id' });
-              db.createObjectStore('apiCache', { keyPath: 'key' });
-              db.createObjectStore('userData', { keyPath: 'id' });
-              
-              // ऑफलाइन सपोर्ट के लिए स्टोर्स
-              db.createObjectStore('offlineCart', { keyPath: 'id' });
-              db.createObjectStore('pendingRequests', { keyPath: 'id', autoIncrement: true });
-            }
-            
+            // Delete existing stores if they exist
             if (oldVersion < 2) {
-              // भविष्य के अपडेट्स के लिए
-              // नए स्टोर्स या इंडेक्स एड करें
+              const stores = ['products', 'categories', 'apiCache', 'userData'];
+              stores.forEach(store => {
+                if (db.objectStoreNames.contains(store)) {
+                  db.deleteObjectStore(store);
+                }
+              });
+
+              // Create new stores with correct keyPath
+              db.createObjectStore('products', { 
+                keyPath: ['storeName', 'key'] 
+              });
+              db.createObjectStore('categories', { 
+                keyPath: ['storeName', 'key'] 
+              });
+              db.createObjectStore('apiCache', { 
+                keyPath: ['storeName', 'key'] 
+              });
+              db.createObjectStore('userData', { 
+                keyPath: ['storeName', 'key'] 
+              });
             }
           },
         });
@@ -69,113 +74,116 @@ export function DatabaseProvider({ children }) {
     initDB();
   }, []);
 
-  // एडवांस्ड कैशिंग फंक्शन्स
-  const advancedCache = {
-    // कैश वैलिडिटी चेक
+  const hybridCache = {
     isValid: (timestamp, duration = CACHE_DURATION) => {
       return timestamp && (Date.now() - new Date(timestamp).getTime() < duration);
     },
 
-    // प्राइओरिटी बेस्ड स्टोरेज
     store: async (storeName, key, data, priority = PRIORITY_LEVELS.MEDIUM) => {
-      if (!db) return null;
-      
       try {
-        // Ensure data has a proper structure
-        const storeData = {
-          id: key, // Add id field which is required as keyPath
+        // Prepare cache data with composite key
+        const cacheData = {
+          storeName,
           key,
           data,
           priority,
           timestamp: new Date().toISOString()
         };
-        
-        const store = db.transaction(storeName, 'readwrite').objectStore(storeName);
-        await store.put(storeData);
+
+        // Store in IndexedDB
+        if (db) {
+          const store = db.transaction(storeName, 'readwrite').objectStore(storeName);
+          await store.put(cacheData);
+        }
+
+        // Store in LocalStorage
+        const lsKey = `${LS_PREFIX}${storeName}_${key}`;
+        localStorage.setItem(lsKey, JSON.stringify(cacheData));
+
+        return true;
       } catch (error) {
         console.error('Store error:', error);
-        return null;
+        return false;
       }
     },
 
-    // स्मार्ट फेचिंग
     get: async (storeName, key) => {
-      if (!db) return null;
-      
       try {
-        const data = await db.get(storeName, key);
-        return data && advancedCache.isValid(data.timestamp) ? data : null;
+        // Check LocalStorage first
+        const lsKey = `${LS_PREFIX}${storeName}_${key}`;
+        const lsData = localStorage.getItem(lsKey);
+        
+        if (lsData) {
+          const parsedData = JSON.parse(lsData);
+          if (hybridCache.isValid(parsedData.timestamp)) {
+            return parsedData;
+          }
+        }
+
+        // If not in LocalStorage or invalid, check IndexedDB
+        if (db) {
+          const idbData = await db.get(storeName, [storeName, key]);
+          if (idbData && hybridCache.isValid(idbData.timestamp)) {
+            localStorage.setItem(lsKey, JSON.stringify(idbData));
+            return idbData;
+          }
+        }
+
+        return null;
       } catch (error) {
         console.error('Cache read error:', error);
         return null;
       }
-    }
-  };
-
-  const clearCache = async () => {
-    if (!db) return;
-    
-    try {
-      // Clear all object stores
-      const stores = ['products', 'categories', 'apiCache', 'userData'];
-      await Promise.all(stores.map(store => 
-        db.clear(store).catch(err => 
-          console.warn(`Error clearing ${store}:`, err)
-        )
-      ));
-      
-      return true;
-    } catch (error) {
-      console.error('Error in clearCache:', error);
-      return false;
-    }
-  };
-
-  // ऑफलाइन सपोर्ट फंक्शन्स
-  const offlineSupport = {
-    // ऑफलाइन एक्शन्स को स्टोर करें
-    queueAction: async (action) => {
-      if (!db) return;
-      
-      await db.add('pendingRequests', {
-        action,
-        timestamp: new Date().toISOString()
-      });
     },
 
-    // जब ऑनलाइन हों तो पेंडिंग एक्शन्स को प्रोसेस करें
-    processPendingActions: async () => {
-      if (!db || !isOnline) return;
-      
-      const pendingActions = await db.getAll('pendingRequests');
-      
-      for (const action of pendingActions) {
-        try {
-          // एक्शन को प्रोसेस करें
-          await processOfflineAction(action);
-          // सफल एक्शन को डिलीट करें
-          await db.delete('pendingRequests', action.id);
-        } catch (error) {
-          console.error('Error processing offline action:', error);
+    clear: async (storeName, key) => {
+      try {
+        // Clear LocalStorage
+        const lsKey = `${LS_PREFIX}${storeName}_${key}`;
+        localStorage.removeItem(lsKey);
+
+        // Clear IndexedDB
+        if (db) {
+          await db.delete(storeName, [storeName, key]);
         }
+
+        return true;
+      } catch (error) {
+        console.error('Clear cache error:', error);
+        return false;
+      }
+    },
+
+    clearAll: async () => {
+      try {
+        // Clear LocalStorage
+        Object.keys(localStorage)
+          .filter(key => key.startsWith(LS_PREFIX))
+          .forEach(key => localStorage.removeItem(key));
+
+        // Clear IndexedDB stores
+        if (db) {
+          const stores = ['products', 'categories', 'apiCache', 'userData'];
+          await Promise.all(stores.map(store => 
+            db.clear(store).catch(err => 
+              console.warn(`Error clearing ${store}:`, err)
+            )
+          ));
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Clear all cache error:', error);
+        return false;
       }
     }
   };
-
-  // जब ऑनलाइन हों तो पेंडिंग एक्शन्स को प्रोसेस करें
-  useEffect(() => {
-    if (isOnline && isInitialized) {
-      offlineSupport.processPendingActions();
-    }
-  }, [isOnline, isInitialized]);
 
   const value = {
     db,
     isInitialized,
     isOnline,
-    advancedCache,
-    offlineSupport,
-    clearCache  // Add this
+    hybridCache
   };
 
   return (
@@ -191,20 +199,4 @@ export function useDatabase() {
     throw new Error('useDatabase must be used within a DatabaseProvider');
   }
   return context;
-}
-
-// ऑफलाइन एक्शन को प्रोसेस करने का फंक्शन
-async function processOfflineAction(action) {
-  // API कॉल्स को प्रोसेस करें
-  switch (action.type) {
-    case 'ADD_TO_CART':
-      // कार्ट API कॉल
-      break;
-    case 'UPDATE_CART':
-      // अपडेट API कॉल
-      break;
-    // और केसेज...
-    default:
-      console.warn('Unknown action type:', action.type);
-  }
 }

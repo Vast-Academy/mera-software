@@ -8,50 +8,65 @@ const CategoryList = () => {
   const [loading, setLoading] = useState(true);
   // const [error, setError] = useState(null);
   // const { db, isCacheValid, isInitialized  } = useDatabase();
-  const { advancedCache, isInitialized, isOnline } = useDatabase();
+  const { hybridCache, isInitialized, isOnline } = useDatabase();
   const categoryLoading = new Array(6).fill(null);
 
   useEffect(() => {
     const loadCategories = async () => {
       if (!isInitialized) return;
-    
+
+      const cacheKey = 'categories_all';
+      
       try {
-        const cachedData = await advancedCache.get('categories', 'categories_all');
+        // First try to get from hybrid cache
+        const cachedData = await hybridCache.get('categories', cacheKey);
         
-        if (cachedData?.data) {
+        if (cachedData) {
+          // Immediately show cached data
           setCategories(cachedData.data);
           setLoading(false);
           
+          // If online, fetch fresh data in background
           if (isOnline) {
-            const response = await fetch(SummaryApi.allCategory.url);
-            const freshData = await response.json();
-            if (freshData.success) {
-              setCategories(freshData.data);
-              // Add unique key for categories
-              await advancedCache.store('categories', 'categories_all', freshData.data, 'medium');
-            }
+            fetchFreshCategories(cacheKey);
           }
           return;
         }
     
+        // If no cache and online, fetch fresh data
         if (isOnline) {
-          const response = await fetch(SummaryApi.allCategory.url);
-          const data = await response.json();
-          if (data.success) {
-            setCategories(data.data);
-            // Add unique key for categories
-            await advancedCache.store('categories', 'categories_all', data.data, 'medium');
-          }
+          await fetchFreshCategories(cacheKey);
         }
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Error loading categories:', error);
+        
+        // On error, try to use cached data as fallback
+        const cachedFallback = await hybridCache.get('categories', cacheKey);
+        if (cachedFallback?.data) {
+          setCategories(cachedFallback.data);
+        }
       } finally {
         setLoading(false);
       }
     };
+
+    const fetchFreshCategories = async (cacheKey) => {
+      try {
+        const response = await fetch(SummaryApi.allCategory.url);
+        const data = await response.json();
+        
+        if (data.success) {
+          setCategories(data.data);
+          // Store in hybrid cache with medium priority
+          await hybridCache.store('categories', cacheKey, data.data, 'medium');
+        }
+      } catch (error) {
+        console.error('Error fetching fresh categories:', error);
+      }
+    };
   
     loadCategories();
-  }, [advancedCache, isInitialized, isOnline]);
+  }, [hybridCache, isInitialized, isOnline]);
 
 
   if (loading) {

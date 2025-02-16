@@ -18,7 +18,7 @@ const Header = () => {
   const user = useSelector(state => state?.user?.user)
   const dispatch = useDispatch()
   // const { clearCache } = useDatabase();
-  const { advancedCache, offlineSupport, clearCache } = useDatabase();
+  const { hybridCache } = useDatabase();
   const context = useContext(Context)
   const navigate = useNavigate()
   const [menuDisplay,setMenuDisplay] = useState(false)
@@ -45,11 +45,19 @@ const Header = () => {
   
       if (data.success) {
         try {
-          // Clear all caches
-          await clearCache();
+          // Clear all caches using new hybridCache
+          await hybridCache.clearAll();
           
-          // Clear local storage
-          localStorage.clear();
+          // Clear local storage except for necessary items
+          // Create an array of keys to keep
+          const keysToKeep = ['theme', 'language']; // Add any keys you want to preserve
+          
+          // Clear localStorage except for keys to keep
+          Object.keys(localStorage).forEach(key => {
+            if (!keysToKeep.includes(key)) {
+              localStorage.removeItem(key);
+            }
+          });
           
           // Dispatch Redux logout
           dispatch(logout());

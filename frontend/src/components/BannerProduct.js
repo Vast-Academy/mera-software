@@ -10,63 +10,69 @@ const BannerProduct = ({ serviceName = "home" }) => {
     const [touchStart, setTouchStart] = useState(null);
     const [touchEnd, setTouchEnd] = useState(null);
     // const { db, fetchAndCache, isCacheValid, isInitialized } = useDatabase();
-    const { advancedCache, isInitialized, isOnline } = useDatabase();
+    const { hybridCache, isInitialized, isOnline } = useDatabase();
     
     // Minimum swipe distance (in px)
     const minSwipeDistance = 50;
 
     useEffect(() => {
         const loadBanners = async () => {
-          if (!isInitialized) return;
-      
-          const cacheKey = `banners_${serviceName}`;
-          try {
-            const cachedData = await advancedCache.get('apiCache', cacheKey);
-            
-            if (cachedData) {
-              const filteredBanners = cachedData.data.filter(banner => 
-                banner.position === serviceName && banner.isActive
-              );
-              setBanners(filteredBanners.sort((a, b) => a.order - b.order));
-              setLoading(false);
-              
-              if (isOnline) {
-                fetchFreshBanners();
-              }
-              return;
+            if (!isInitialized) return;
+
+            const cacheKey = `banners_${serviceName}`;
+            try {
+                setLoading(true);
+                
+                // Try to get data from cache first
+                const cachedData = await hybridCache.get('apiCache', cacheKey);
+                
+                if (cachedData) {
+                    const filteredBanners = cachedData.data.filter(banner => 
+                        banner.position === serviceName && banner.isActive
+                    );
+                    setBanners(filteredBanners.sort((a, b) => a.order - b.order));
+                    setLoading(false);
+                    
+                    // If online, fetch fresh data in background
+                    if (isOnline) {
+                        fetchFreshBanners();
+                    }
+                    return;
+                }
+
+                // If no cached data and online, fetch fresh data
+                if (isOnline) {
+                    await fetchFreshBanners();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                setLoading(false);
             }
-      
-            if (isOnline) {
-              await fetchFreshBanners();
-            }
-          } catch (error) {
-            console.error('Error:', error);
-          } finally {
-            setLoading(false);
-          }
         };
-      
+
         const fetchFreshBanners = async () => {
-          try {
-            const response = await fetch(SummaryApi.allBanner.url);
-            const data = await response.json();
-            
-            if (data.success) {
-              const filteredBanners = data.data.filter(banner => 
-                banner.position === serviceName && banner.isActive
-              );
-              const sortedBanners = filteredBanners.sort((a, b) => a.order - b.order);
-              setBanners(sortedBanners);
-              
-              await advancedCache.store('apiCache', `banners_${serviceName}`, data.data, 'low');
+            try {
+                const response = await fetch(SummaryApi.allBanner.url);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const filteredBanners = data.data.filter(banner => 
+                        banner.position === serviceName && banner.isActive
+                    );
+                    const sortedBanners = filteredBanners.sort((a, b) => a.order - b.order);
+                    setBanners(sortedBanners);
+                    
+                    // Store in hybrid cache
+                    await hybridCache.store('apiCache', `banners_${serviceName}`, data.data, 'low');
+                }
+            } catch (error) {
+                console.error('Error fetching fresh banners:', error);
             }
-          } catch (error) {
-            console.error('Error:', error);
-          }
         };
-      
+
         loadBanners();
-      }, [serviceName, advancedCache, isInitialized, isOnline]);
+    }, [serviceName, hybridCache, isInitialized, isOnline]);
 
     // useEffect(() => {
     //     fetchBanners();

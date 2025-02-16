@@ -24,14 +24,9 @@ const AppConvertingBanner = () => {
   // const [shouldShowGuest, setShouldShowGuest] = useState(false);
   
   // const { db, isCacheValid, isInitialized } = useDatabase();
-  const { advancedCache, isInitialized, isOnline } = useDatabase();
+  const { hybridCache, isInitialized, isOnline } = useDatabase();
   const user = useSelector(state => state?.user?.user);
   const initialized = useSelector(state => state?.user?.initialized);
-
-   // Add an effect specifically for handling user state
-  //  useEffect(() => {
-  //   setShouldShowGuest(initialized && !user?._id);
-  // }, [initialized, user]);
 
   // Helper functions
   const filterWebsiteOrders = (orders) => {
@@ -50,57 +45,73 @@ const AppConvertingBanner = () => {
     setCurrentSlide(0);
     setDataInitialized(false);
   };
-  // const isCacheStale = (lastUpdated) => {
-  //   if (!lastUpdated) return true;
-  //   const staleTime = 5 * 60 * 1000; 
-  //   return Date.now() - new Date(lastUpdated).getTime() > staleTime;
-  // };
-
   
    // Effect to handle user state changes
-   useEffect(() => {
+   // Effect to handle user state changes
+  useEffect(() => {
     if (initialized) {
       clearBannerStates();
       setIsLoading(true);
     }
   }, [initialized, user?._id]);
 
+
   const loadGuestSlides = async () => {
     if (!isInitialized) return;
     
     const cacheKey = 'guest_slides';
     try {
-      // Add loading state
-      setIsLoading(true);
       
-      // नया कैशिंग लॉजिक
-    const cachedData = await advancedCache.get('apiCache', cacheKey);
-    
-    if (cachedData) {
-      setGuestSlides(cachedData.data);
-      setDataInitialized(true);
-      setIsLoading(false);
-      return;
-    }
-  
-      // ऑनलाइन चेक
-    if (isOnline) {
-      const response = await fetch(SummaryApi.guestSlides.url);
-      const data = await response.json();
+      // Try to get data from hybrid cache first
+      const cachedData = await hybridCache.get('apiCache', cacheKey);
       
-      if (data.success && data.data) {
-        setGuestSlides(data.data);
-        // LOW प्राइओरिटी क्योंकि ये बैनर्स हैं
-        await advancedCache.store('apiCache', cacheKey, data.data, 'low');
+      if (cachedData?.data) {
+        // Immediately set loading to false and show cached data
+        setGuestSlides(cachedData.data);
+        setDataInitialized(true);
+        setIsLoading(false);
+        
+        // If online, fetch fresh data in background
+        if (isOnline) {
+          try {
+            const response = await fetch(SummaryApi.guestSlides.url);
+            const data = await response.json();
+            
+            if (data.success && data.data) {
+              setGuestSlides(data.data);
+              await hybridCache.store('apiCache', cacheKey, data.data, 'low');
+            }
+          } catch (error) {
+            console.error('Error fetching fresh guest slides:', error);
+            // Keep showing cached data on error
+          }
+        }
+        return;
       }
+
+      // If no cached data and online, fetch fresh data
+      if (isOnline) {
+        const response = await fetch(SummaryApi.guestSlides.url);
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          setGuestSlides(data.data);
+          await hybridCache.store('apiCache', cacheKey, data.data, 'low');
+          setDataInitialized(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      // Try to get data from cache as fallback
+      const fallbackData = await hybridCache.get('apiCache', cacheKey);
+      if (fallbackData?.data) {
+        setGuestSlides(fallbackData.data);
+        setDataInitialized(true);
+      }
+    } finally {
+      setIsLoading(false); // Always set loading to false
     }
-    setDataInitialized(true);
-  } catch (error) {
-    console.error('Error:', error);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   // Combined data fetching effect
   useEffect(() => {
@@ -109,11 +120,11 @@ const AppConvertingBanner = () => {
         return;
       }
   
-      // Clear states when user changes
-      clearBannerStates();
-      setIsLoading(true);
-    
       try {
+         // Clear states when user changes
+      // clearBannerStates();
+      setIsLoading(true);
+
         // For non-logged in users
         if (!user?._id) {
           await loadGuestSlides();
@@ -126,8 +137,8 @@ const AppConvertingBanner = () => {
         let userOrders = [];
      
         try {
-          // नया कैशिंग कोड
-          const cachedOrders = await advancedCache.get('apiCache', ordersCacheKey);
+          // Check hybrid cache first
+          const cachedOrders = await hybridCache.get('apiCache', ordersCacheKey);
           
           if (cachedOrders) {
             userOrders = filterWebsiteOrders(cachedOrders.data);
@@ -137,36 +148,25 @@ const AppConvertingBanner = () => {
               await loadUserWelcome();
             }
             setDataInitialized(true);
+            
+            // If online, fetch fresh data in background
+            if (isOnline) {
+              await fetchFreshOrders(ordersCacheKey);
+            }
             setIsLoading(false);
             return;
           }
   
           if (isOnline) {
-            const ordersResponse = await fetch(SummaryApi.ordersList.url, {
-              method: SummaryApi.ordersList.method,
-              credentials: 'include'
-            });
-            const ordersData = await ordersResponse.json();
-             
-            if (ordersData.success) {
-              await advancedCache.store('apiCache', ordersCacheKey, ordersData.data, 'high');
-              userOrders = filterWebsiteOrders(ordersData.data);
-              setOrders(userOrders);
-               
-              if (userOrders.length === 0) {
-                await loadUserWelcome();
-              }
-            }
+            await fetchFreshOrders(ordersCacheKey);
           }
           setDataInitialized(true);
         } catch (error) {
           console.error("Error fetching data:", error);
-          const cachedOrders = await advancedCache.get('apiCache', ordersCacheKey);
+          const cachedOrders = await hybridCache.get('apiCache', ordersCacheKey);
           if (cachedOrders?.data) {
             setOrders(filterWebsiteOrders(cachedOrders.data));
           }
-        } finally {
-          setIsLoading(false);
         }
       } catch (error) {
         console.error('Error in data fetching:', error);
@@ -174,18 +174,50 @@ const AppConvertingBanner = () => {
         setIsLoading(false);
       }
     };
+
+    const fetchFreshOrders = async (ordersCacheKey) => {
+      try {
+        const ordersResponse = await fetch(SummaryApi.ordersList.url, {
+          method: SummaryApi.ordersList.method,
+          credentials: 'include'
+        });
+        const ordersData = await ordersResponse.json();
+         
+        if (ordersData.success) {
+          await hybridCache.store('apiCache', ordersCacheKey, ordersData.data, 'high');
+          const userOrders = filterWebsiteOrders(ordersData.data);
+          setOrders(userOrders);
+           
+          if (userOrders.length === 0) {
+            await loadUserWelcome();
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching fresh orders:', error);
+      }
+    };
       
     loadData();
-  }, [user?._id, initialized, isInitialized, advancedCache, isOnline]);
+  }, [user?._id, initialized, isInitialized,  isOnline]);
   
-  // loadUserWelcome फंक्शन को भी अपडेट करें
   const loadUserWelcome = async () => {
     const welcomeCacheKey = 'user_welcome';
     try {
-      const cachedWelcome = await advancedCache.get('apiCache', welcomeCacheKey);
+      // Check hybrid cache first
+      const cachedWelcome = await hybridCache.get('apiCache', welcomeCacheKey);
          
       if (cachedWelcome) {
         setUserWelcome(cachedWelcome.data);
+        
+        // If online, fetch fresh data in background
+        if (isOnline) {
+          const welcomeResponse = await fetch(SummaryApi.userWelcome.url);
+          const welcomeData = await welcomeResponse.json();
+          if (welcomeData.success && welcomeData.data) {
+            setUserWelcome(welcomeData.data);
+            await hybridCache.store('apiCache', welcomeCacheKey, welcomeData.data, 'low');
+          }
+        }
         return;
       }
    
@@ -194,7 +226,7 @@ const AppConvertingBanner = () => {
         const welcomeData = await welcomeResponse.json();
         if (welcomeData.success && welcomeData.data) {
           setUserWelcome(welcomeData.data);
-          await advancedCache.store('apiCache', welcomeCacheKey, welcomeData.data, 'low');
+          await hybridCache.store('apiCache', welcomeCacheKey, welcomeData.data, 'low');
         }
       }
     } catch (error) {
@@ -260,6 +292,12 @@ const AppConvertingBanner = () => {
       </div>
     );
   }
+
+  // No data state
+  if (!guestSlides || guestSlides.length === 0) {
+    return null;
+  }
+
 
 
   return (
