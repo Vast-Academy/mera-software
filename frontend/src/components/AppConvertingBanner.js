@@ -294,9 +294,9 @@ const AppConvertingBanner = () => {
   }
 
   // No data state
-  if (!guestSlides || guestSlides.length === 0) {
-    return null;
-  }
+  // if (!guestSlides || guestSlides.length === 0) {
+  //   return null;
+  // }
 
 
 
