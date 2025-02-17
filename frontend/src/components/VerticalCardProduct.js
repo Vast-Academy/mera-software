@@ -236,13 +236,11 @@ const VerticalCardProduct = ({category, heading}) => {
             </div>
             
             <div className={`pt-2 border-t ${style.border} flex`}>
-                
                     {/* {displayINRCurrency(product?.sellingPrice)} */}
                     <div className={`text-base font-bold ${style.text} flex`}>
                     <span className={`text-xs font-normal ${style.icon} ml-1`}>Customize Plan </span>
                     <span className={`text-sm font-normal ${style.icon} ml-1 mt-0.5`}><FaLongArrowAltRight/></span>
                     </div>
-                
             </div>
         </div>
     </div>
