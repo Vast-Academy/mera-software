@@ -48,68 +48,68 @@ const AppConvertingBanner = () => {
   
    // Effect to handle user state changes
    // Effect to handle user state changes
-  useEffect(() => {
-    if (initialized) {
-      clearBannerStates();
-      setIsLoading(true);
+   useEffect(() => {
+    if (!user?._id && isInitialized) {
+      loadGuestSlides();
     }
-  }, [initialized, user?._id]);
+  }, [isInitialized, user?._id]);
+
 
 
   const loadGuestSlides = async () => {
     if (!isInitialized) return;
     
+    setIsLoading(true);
     const cacheKey = 'guest_slides';
+    
     try {
-      
-      // Try to get data from hybrid cache first
+      // Always check cache first
       const cachedData = await hybridCache.get('apiCache', cacheKey);
       
       if (cachedData?.data) {
-        // Immediately set loading to false and show cached data
         setGuestSlides(cachedData.data);
         setDataInitialized(true);
         setIsLoading(false);
-        
-        // If online, fetch fresh data in background
-        if (isOnline) {
-          try {
-            const response = await fetch(SummaryApi.guestSlides.url);
-            const data = await response.json();
-            
-            if (data.success && data.data) {
-              setGuestSlides(data.data);
-              await hybridCache.store('apiCache', cacheKey, data.data, 'low');
-            }
-          } catch (error) {
-            console.error('Error fetching fresh guest slides:', error);
-            // Keep showing cached data on error
-          }
-        }
-        return;
       }
-
-      // If no cached data and online, fetch fresh data
+      
+      // If online, fetch fresh data
       if (isOnline) {
-        const response = await fetch(SummaryApi.guestSlides.url);
-        const data = await response.json();
-        
-        if (data.success && data.data) {
-          setGuestSlides(data.data);
-          await hybridCache.store('apiCache', cacheKey, data.data, 'low');
-          setDataInitialized(true);
+        try {
+          const response = await fetch(SummaryApi.guestSlides.url);
+          const data = await response.json();
+          
+          if (data.success && data.data) {
+            setGuestSlides(data.data);
+            // Store in cache with low priority
+            await hybridCache.store('apiCache', cacheKey, data.data, 'low');
+            setDataInitialized(true);
+          }
+        } catch (error) {
+          console.error('Error fetching fresh guest slides:', error);
+          // If we haven't set data from cache yet, try one more time
+          if (!cachedData?.data) {
+            const fallbackCache = await hybridCache.get('apiCache', cacheKey);
+            if (fallbackCache?.data) {
+              setGuestSlides(fallbackCache.data);
+              setDataInitialized(true);
+            }
+          }
         }
       }
     } catch (error) {
-      console.error('Error:', error);
-      // Try to get data from cache as fallback
-      const fallbackData = await hybridCache.get('apiCache', cacheKey);
-      if (fallbackData?.data) {
-        setGuestSlides(fallbackData.data);
-        setDataInitialized(true);
+      console.error('Error in loadGuestSlides:', error);
+      // Final fallback attempt
+      try {
+        const fallbackData = await hybridCache.get('apiCache', cacheKey);
+        if (fallbackData?.data) {
+          setGuestSlides(fallbackData.data);
+          setDataInitialized(true);
+        }
+      } catch (err) {
+        console.error('Final cache fallback failed:', err);
       }
     } finally {
-      setIsLoading(false); // Always set loading to false
+      setIsLoading(false);
     }
   };
 

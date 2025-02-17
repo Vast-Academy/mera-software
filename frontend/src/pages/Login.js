@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
 import SummaryApi from "../common";
 import Context from "../context";
+import CookieManager from '../utils/cookieManager';
 
 const Login = () => {
    const [showPassword, setShowPassword] = useState(false);
@@ -29,28 +30,46 @@ const Login = () => {
     const handleSubmit = async (e) =>{
       e.preventDefault ()
 
-      const dataResponse = await fetch(SummaryApi.signIn.url,{
-        method : SummaryApi.signIn.method,
-        credentials : "include",
-        headers : {
-          "content-type" : "application/json"
-        },
-        body : JSON.stringify(data)
-      })
+      try {
+        const dataResponse = await fetch(SummaryApi.signIn.url, {
+          method: SummaryApi.signIn.method,
+          credentials: "include",
+          headers: {
+            "content-type": "application/json"
+          },
+          body: JSON.stringify(data)
+        });
   
-      const dataApi = await  dataResponse.json()
-
-      if(dataApi.success){
-        toast.success(dataApi.message)
-        navigate("/")
-        fetchUserDetails()
-        fetchUserAddToCart()
-      }
+        const dataApi = await dataResponse.json();
+        
+        if (dataApi.success) {
+          // Set user details in cookie (Token को API handle कर रही है)
+          CookieManager.setUserDetails({
+            _id: dataApi.data.user._id,
+            name: dataApi.data.user.name,
+            email: dataApi.data.user.email,
+            role: dataApi.data.user.role
+          });
   
-      if(dataApi.error){
-        toast.error(dataApi.message)
+          // Wallet balance को अलग से store करें
+          // CookieManager.setWalletBalance(dataApi.data.walletBalance);
+  
+          // Fetch user details और cart
+          await fetchUserDetails();
+          await fetchUserAddToCart();
+  
+          toast.success(dataApi.message);
+          navigate("/");
+        }
+  
+        if (dataApi.error) {
+          toast.error(dataApi.message);
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        toast.error("Login failed. Please try again.");
       }
-    }  
+    };
 
   return (
     <section id="login">

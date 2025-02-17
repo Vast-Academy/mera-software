@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 import { ToastContainer } from 'react-toastify';
 import SummaryApi from './common';
 import Context from './context';
+import CookieManager from './utils/cookieManager';
 
 const AppContent = () => {
     const dispatch = useDispatch();
@@ -23,6 +24,7 @@ const AppContent = () => {
       });
       
       if (response.ok) {
+        CookieManager.clearAll();
         // Clear database cache
         await clearCache();
         // Dispatch logout action
@@ -62,6 +64,12 @@ const AppContent = () => {
       const dataApi = await dataResponse.json();
       
       if (dataApi.success && dataApi.data) {
+        CookieManager.setUserDetails({
+          _id: dataApi.data._id,
+          name: dataApi.data.name,
+          email: dataApi.data.email,
+          role: dataApi.data.role
+        });
         dispatch(setUserDetails(dataApi.data));
         
         // Update wallet balance if it exists in user data

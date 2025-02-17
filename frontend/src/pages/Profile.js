@@ -12,6 +12,7 @@ import EditProfileModal from '../components/EditProfileModal';
 import { Link, useNavigate } from 'react-router-dom';
 import TriangleMazeLoader from '../components/TriangleMazeLoader';
 import Context from '../context';
+import CookieManager from '../utils/cookieManager';
 
 const Profile = () => {
     const dispatch = useDispatch();
@@ -83,6 +84,12 @@ const Profile = () => {
             const data = await response.json();
             
             if (data.success) {
+                CookieManager.setUserDetails({
+                    _id: data.data._id,
+                    name: data.data.name,
+                    email: data.data.email,
+                    role: data.data.role
+                  });
                 dispatch(setUserDetails(data.data));
                 setShowEditModal(false);
                 toast.success("Profile updated successfully");

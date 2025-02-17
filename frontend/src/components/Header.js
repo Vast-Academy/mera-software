@@ -13,6 +13,7 @@ import Context from '../context';
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { useDatabase } from '../context/DatabaseContext';
 import { IoWalletOutline } from "react-icons/io5";
+import CookieManager from '../utils/cookieManager';
 
 const Header = () => {
   const user = useSelector(state => state?.user?.user)
@@ -45,6 +46,7 @@ const Header = () => {
   
       if (data.success) {
         try {
+          CookieManager.clearAll();
           // Clear all caches using new hybridCache
           await hybridCache.clearAll();
           

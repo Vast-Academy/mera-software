@@ -6,6 +6,7 @@ import { MdDelete } from "react-icons/md";
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import TriangleMazeLoader from '../components/TriangleMazeLoader';
+import CookieManager from '../utils/cookieManager';
 // import {loadStripe} from '@stripe/stripe-js'
 
 const Cart = () => {
@@ -138,6 +139,8 @@ const Cart = () => {
             toast.error("Insufficient wallet balance!");
             return;
           }
+
+          CookieManager.setCartItems(data);
       
           // Deduct from wallet
           const deductResponse = await fetch(SummaryApi.wallet.deduct.url, {
