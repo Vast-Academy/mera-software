@@ -4,6 +4,7 @@ import displayINRCurrency from '../helpers/displayCurrency'
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
 import { Link } from 'react-router-dom'
 import { useDatabase } from '../context/DatabaseContext';
+import { FaLongArrowAltRight } from "react-icons/fa";
 // import addToCart from '../helpers/addToCart'
 // import Context from '../context'
 
@@ -192,13 +193,13 @@ const VerticalCardProduct = ({category, heading}) => {
                         const style = getColorStyle(product?.category)
                         return (
                             <div key={product?._id} className={`bg-gradient-to-br ${style.bg} rounded-xl shadow-lg border ${style.border}
-                                w-full min-w-[320px] max-w-[320px] 
+                                w-full min-w-[220px] max-w-[220px] 
                                 lg:min-w-[250px] lg:max-w-[250px]`}>
                                 
                                 {/* Mobile Layout (Horizontal) */}
                                 <div className="lg:hidden">
-    <div className="flex gap-3 p-3">
-        <Link to={`product/${product?._id}`} className="relative w-28 flex-shrink-0">
+    <div className="flex gap-3 py-3 px-5">
+        {/* <Link to={`product/${product?._id}`} className="relative w-28 flex-shrink-0">
             <div className={`rounded-lg overflow-hidden bg-gradient-to-r border ${style.gradient}`}>
                 <img
                     src={product?.serviceImage[0]}
@@ -206,7 +207,7 @@ const VerticalCardProduct = ({category, heading}) => {
                     className="w-full h-full object-cover opacity-90"
                 />
             </div>
-        </Link>
+        </Link> */}
         
         <div className="flex-1">
             <Link to={`product/${product?._id}`}>
@@ -234,10 +235,13 @@ const VerticalCardProduct = ({category, heading}) => {
                 )}
             </div>
             
-            <div className={`pt-2 border-t ${style.border}`}>
+            <div className={`pt-2 border-t ${style.border} flex`}>
                 <p className={`text-base font-bold ${style.text}`}>
-                    {displayINRCurrency(product?.sellingPrice)}
-                    <span className={`text-xs font-normal ${style.icon} ml-1`}>onwards</span>
+                    {/* {displayINRCurrency(product?.sellingPrice)} */}
+                    <div className='flex '>
+                    <span className={`text-xs font-normal ${style.icon} ml-1`}>Customize Plan </span>
+                    <span className={`text-sm font-normal ${style.icon} ml-1 mt-0.5`}><FaLongArrowAltRight/></span>
+                    </div>
                 </p>
             </div>
         </div>

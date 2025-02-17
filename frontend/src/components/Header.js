@@ -48,20 +48,17 @@ const Header = () => {
       if (data.success) {
         try {
           CookieManager.clearAll();
-          StorageService.clearAll();
+          StorageService.clearUserData(); 
           // Clear all caches using new hybridCache
           await hybridCache.clearAll();
           
-          // Clear local storage except for necessary items
           // Create an array of keys to keep
-          const keysToKeep = ['theme', 'language']; // Add any keys you want to preserve
-          
-          // Clear localStorage except for keys to keep
-          Object.keys(localStorage).forEach(key => {
-            if (!keysToKeep.includes(key)) {
-              localStorage.removeItem(key);
-            }
-          });
+          const keysToKeep = ['theme', 'language'];
+        Object.keys(localStorage).forEach(key => {
+          if (!keysToKeep.includes(key) && key !== 'guestSlides') { // Don't remove guest slides
+            localStorage.removeItem(key);
+          }
+        });
           
           // Dispatch Redux logout
           dispatch(logout());

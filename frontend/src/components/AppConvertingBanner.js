@@ -45,16 +45,25 @@ const AppConvertingBanner = () => {
     setUserWelcome(null);
     setCurrentSlide(0);
     setDataInitialized(false);
+    setIsLoading(true);
   };
   
    // Effect to handle user state changes
-   // Effect to handle user state changes
    useEffect(() => {
-    if (!user?._id && isInitialized) {
-      loadGuestSlides();
-    }
-  }, [isInitialized, user?._id]);
+    const handleUserStateChange = async () => {
+      if (!isInitialized) return;
 
+      if (!user?._id) {
+        // Clear only user-specific states
+        setOrders(null);
+        setUserWelcome(null);
+        
+        // Load guest slides without clearing them first
+        await loadGuestSlides();
+      }
+    };
+    handleUserStateChange();
+  }, [isInitialized, user?._id]);
 
 
   const loadGuestSlides = async () => {
@@ -69,21 +78,39 @@ const AppConvertingBanner = () => {
         setGuestSlides(cachedSlides);
         setDataInitialized(true);
         setIsLoading(false);
-      }
-      
-      // Background mein API se fresh data fetch karo
-      if (isOnline) {
-        try {
-          const response = await fetch(SummaryApi.guestSlides.url);
-          const data = await response.json();
-          
-          if (data.success && data.data) {
-            setGuestSlides(data.data);
-            StorageService.setGuestSlides(data.data);
-            setDataInitialized(true);
+  
+        // Background mein API se fresh data fetch karo
+        if (isOnline) {
+          try {
+            const response = await fetch(SummaryApi.guestSlides.url);
+            const data = await response.json();
+            
+            if (data.success && data.data) {
+              // Compare new data with cached data
+              const isDataDifferent = JSON.stringify(data.data) !== JSON.stringify(cachedSlides);
+              
+              if (isDataDifferent) {
+                setGuestSlides(data.data);
+                StorageService.setGuestSlides(data.data);
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching fresh guest slides:', error);
+            // No need to set cached data again as it's already set
           }
-        } catch (error) {
-          console.error('Error fetching fresh guest slides:', error);
+        }
+        return; // Exit early if we have cache
+      }
+  
+      // If no cache, then fetch from API
+      if (isOnline) {
+        const response = await fetch(SummaryApi.guestSlides.url);
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          setGuestSlides(data.data);
+          StorageService.setGuestSlides(data.data);
+          setDataInitialized(true);
         }
       }
     } catch (error) {
@@ -108,21 +135,15 @@ const AppConvertingBanner = () => {
         }
      
         // For logged in users
-        // Pehle localStorage se orders check karo
         const cachedOrders = StorageService.getUserOrders(user._id);
+        
+        // Fetch welcome message immediately for logged-in users
+        await loadUserWelcome();
+        
         if (cachedOrders) {
           const filteredOrders = filterWebsiteOrders(cachedOrders);
           setOrders(filteredOrders);
-          
-          if (filteredOrders.length === 0) {
-            const cachedWelcome = StorageService.getUserWelcome();
-            if (cachedWelcome) {
-              setUserWelcome(cachedWelcome);
-            }
-          }
-          
           setDataInitialized(true);
-          setIsLoading(false);
         }
 
         // Background mein fresh data fetch karo
@@ -138,10 +159,6 @@ const AppConvertingBanner = () => {
               StorageService.setUserOrders(user._id, ordersData.data);
               const userOrders = filterWebsiteOrders(ordersData.data);
               setOrders(userOrders);
-               
-              if (userOrders.length === 0) {
-                await loadUserWelcome();
-              }
             }
           } catch (error) {
             console.error('Error fetching fresh orders:', error);

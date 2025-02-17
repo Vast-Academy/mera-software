@@ -156,21 +156,49 @@ export function DatabaseProvider({ children }) {
 
     clearAll: async () => {
       try {
-        // Clear LocalStorage
+        // Save guest slides and other persistent data before clearing
+        const persistentData = {
+          guestSlides: localStorage.getItem(`${LS_PREFIX}apiCache_guest_slides`),
+          theme: localStorage.getItem('theme'),
+          language: localStorage.getItem('language')
+        };
+    
+        // Clear LocalStorage except persistent items
         Object.keys(localStorage)
           .filter(key => key.startsWith(LS_PREFIX))
-          .forEach(key => localStorage.removeItem(key));
-
-        // Clear IndexedDB stores
+          .forEach(key => {
+            // Don't remove guest slides related data
+            if (!key.includes('guest_slides')) {
+              localStorage.removeItem(key);
+            }
+          });
+    
+        // Restore persistent data
+        if (persistentData.guestSlides) {
+          localStorage.setItem(`${LS_PREFIX}apiCache_guest_slides`, persistentData.guestSlides);
+        }
+        if (persistentData.theme) localStorage.setItem('theme', persistentData.theme);
+        if (persistentData.language) localStorage.setItem('language', persistentData.language);
+    
+        // Clear IndexedDB stores except guest slides
         if (db) {
           const stores = ['products', 'categories', 'apiCache', 'userData'];
-          await Promise.all(stores.map(store => 
-            db.clear(store).catch(err => 
-              console.warn(`Error clearing ${store}:`, err)
-            )
-          ));
+          await Promise.all(stores.map(async store => {
+            if (store === 'apiCache') {
+              // For apiCache, only clear non-guest items
+              const allItems = await db.getAll(store);
+              const itemsToDelete = allItems.filter(item => 
+                !item.key.includes('guest_slides')
+              );
+              await Promise.all(itemsToDelete.map(item => 
+                db.delete(store, [item.storeName, item.key])
+              ));
+            } else {
+              await db.clear(store);
+            }
+          }));
         }
-
+    
         return true;
       } catch (error) {
         console.error('Clear all cache error:', error);

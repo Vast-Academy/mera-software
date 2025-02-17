@@ -66,15 +66,32 @@ const STORAGE_KEYS = {
         return 0;
       }
     },
+    clearUserData: () => {
+        try {
+          // Clear only user-specific data
+          localStorage.removeItem(STORAGE_KEYS.USER_DETAILS);
+          localStorage.removeItem(STORAGE_KEYS.WALLET_BALANCE);
+          localStorage.removeItem(STORAGE_KEYS.CART_COUNT);
+          // Do NOT clear guest slides
+        } catch (error) {
+          console.error('Error clearing user data:', error);
+        }
+      },
   
     // Logout ke time clear karne ke liye
     clearAll: () => {
       try {
+        const guestSlides = StorageService.getGuestSlides();
+
         Object.values(STORAGE_KEYS).forEach(key => {
           localStorage.removeItem(key);
         });
+        // Restore guest slides if they existed
+      if (guestSlides) {
+        StorageService.setGuestSlides(guestSlides);
+      }
       } catch (error) {
-        console.error('Error clearing storage:', error);
+        console.error('Error in clearAll:', error);
       }
     },
 
