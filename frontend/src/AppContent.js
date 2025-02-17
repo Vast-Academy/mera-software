@@ -9,6 +9,7 @@ import { ToastContainer } from 'react-toastify';
 import SummaryApi from './common';
 import Context from './context';
 import CookieManager from './utils/cookieManager';
+import StorageService from './utils/storageService';
 
 const AppContent = () => {
     const dispatch = useDispatch();
@@ -25,6 +26,7 @@ const AppContent = () => {
       
       if (response.ok) {
         CookieManager.clearAll();
+        StorageService.clearAll();
         // Clear database cache
         await clearCache();
         // Dispatch logout action
@@ -40,6 +42,11 @@ const AppContent = () => {
 
   const fetchWalletBalance = async () => {
     try {
+      // Pehle localStorage se balance get karo
+      const cachedBalance = StorageService.getWalletBalance();
+      setWalletBalance(cachedBalance);
+      dispatch(updateWalletBalance(cachedBalance));
+
       const response = await fetch(SummaryApi.wallet.balance.url, {
         method: SummaryApi.wallet.balance.method,
         credentials: 'include'
@@ -49,6 +56,7 @@ const AppContent = () => {
         const balance = data.data.balance;
         setWalletBalance(balance); // Update local state
         dispatch(updateWalletBalance(balance)); // Update Redux state
+        StorageService.setWalletBalance(balance); 
       }
     } catch (error) {
       console.error("Error fetching wallet balance:", error);
@@ -57,6 +65,14 @@ const AppContent = () => {
 
   const fetchUserDetails = async () => {
     try {
+      // Pehle localStorage se details get karo
+      const cachedDetails = StorageService.getUserDetails();
+      if (cachedDetails) {
+        dispatch(setUserDetails(cachedDetails));
+        setWalletBalance(cachedDetails.walletBalance || 0);
+        dispatch(updateWalletBalance(cachedDetails.walletBalance || 0));
+      }
+
       const dataResponse = await fetch(SummaryApi.current_user.url, {
         method: SummaryApi.current_user.method,
         credentials: 'include'
@@ -70,12 +86,14 @@ const AppContent = () => {
           email: dataApi.data.email,
           role: dataApi.data.role
         });
+        StorageService.setUserDetails(dataApi.data);
         dispatch(setUserDetails(dataApi.data));
         
         // Update wallet balance if it exists in user data
         if (dataApi.data.walletBalance !== undefined) {
           setWalletBalance(dataApi.data.walletBalance); // Update local state
           dispatch(updateWalletBalance(dataApi.data.walletBalance)); // Update Redux state
+          StorageService.setWalletBalance(dataApi.data.walletBalance);
         }
         
         // Fetch latest wallet balance
@@ -88,12 +106,18 @@ const AppContent = () => {
 
   const fetchUserAddToCart = async () => {
     try {
+       // Pehle localStorage se cart count get karo
+       const cachedCount = StorageService.getCartCount();
+       setCartProductCount(cachedCount);
+
       const dataResponse = await fetch(SummaryApi.addToCartProductCount.url, {
         method: SummaryApi.addToCartProductCount.method,
         credentials: 'include'
       });
-      const dataApi = await dataResponse.json();
-      setCartProductCount(dataApi?.data?.count);
+     const dataApi = await dataResponse.json();
+      const newCount = dataApi?.data?.count || 0;
+      setCartProductCount(newCount);
+      StorageService.setCartCount(newCount); // Update localStorage
     } catch (error) {
       console.error("Error fetching cart count:", error);
     }
