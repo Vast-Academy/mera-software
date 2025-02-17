@@ -3,7 +3,10 @@
 const STORAGE_KEYS = {
     USER_DETAILS: 'userDetails',
     WALLET_BALANCE: 'walletBalance',
-    CART_COUNT: 'cartCount'
+    CART_COUNT: 'cartCount',
+    GUEST_SLIDES: 'guestSlides',
+    USER_ORDERS: 'userOrders',
+    USER_WELCOME: 'userWelcome'
   };
   
   const StorageService = {
@@ -73,7 +76,64 @@ const STORAGE_KEYS = {
       } catch (error) {
         console.error('Error clearing storage:', error);
       }
+    },
+
+    // Guest Slides ke liye
+  setGuestSlides: (slides) => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.GUEST_SLIDES, JSON.stringify(slides));
+    } catch (error) {
+      console.error('Error storing guest slides:', error);
     }
-  };
+  },
+
+  getGuestSlides: () => {
+    try {
+      const slides = localStorage.getItem(STORAGE_KEYS.GUEST_SLIDES);
+      return slides ? JSON.parse(slides) : null;
+    } catch (error) {
+      console.error('Error getting guest slides:', error);
+      return null;
+    }
+  },
+
+  // User Orders ke liye
+  setUserOrders: (userId, orders) => {
+    try {
+      localStorage.setItem(`${STORAGE_KEYS.USER_ORDERS}_${userId}`, JSON.stringify(orders));
+    } catch (error) {
+      console.error('Error storing user orders:', error);
+    }
+  },
+
+  getUserOrders: (userId) => {
+    try {
+      const orders = localStorage.getItem(`${STORAGE_KEYS.USER_ORDERS}_${userId}`);
+      return orders ? JSON.parse(orders) : null;
+    } catch (error) {
+      console.error('Error getting user orders:', error);
+      return null;
+    }
+  },
+
+  // User Welcome ke liye
+  setUserWelcome: (welcome) => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.USER_WELCOME, JSON.stringify(welcome));
+    } catch (error) {
+      console.error('Error storing user welcome:', error);
+    }
+  },
+
+  getUserWelcome: () => {
+    try {
+      const welcome = localStorage.getItem(STORAGE_KEYS.USER_WELCOME);
+      return welcome ? JSON.parse(welcome) : null;
+    } catch (error) {
+      console.error('Error getting user welcome:', error);
+      return null;
+    }
+  }
+};
   
   export default StorageService;

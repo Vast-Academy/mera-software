@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 // import { setUserDetails } from '../store/userSlice';
 import SummaryApi from '../common';
 import { useDatabase } from '../context/DatabaseContext';
+import StorageService from '../utils/storageService';
 
 const AppConvertingBanner = () => {
   const navigate = useNavigate();
@@ -60,19 +61,17 @@ const AppConvertingBanner = () => {
     if (!isInitialized) return;
     
     setIsLoading(true);
-    const cacheKey = 'guest_slides';
     
     try {
-      // Always check cache first
-      const cachedData = await hybridCache.get('apiCache', cacheKey);
-      
-      if (cachedData?.data) {
-        setGuestSlides(cachedData.data);
+      // Pehle localStorage se check karo
+      const cachedSlides = StorageService.getGuestSlides();
+      if (cachedSlides) {
+        setGuestSlides(cachedSlides);
         setDataInitialized(true);
         setIsLoading(false);
       }
       
-      // If online, fetch fresh data
+      // Background mein API se fresh data fetch karo
       if (isOnline) {
         try {
           const response = await fetch(SummaryApi.guestSlides.url);
@@ -80,92 +79,72 @@ const AppConvertingBanner = () => {
           
           if (data.success && data.data) {
             setGuestSlides(data.data);
-            // Store in cache with low priority
-            await hybridCache.store('apiCache', cacheKey, data.data, 'low');
+            StorageService.setGuestSlides(data.data);
             setDataInitialized(true);
           }
         } catch (error) {
           console.error('Error fetching fresh guest slides:', error);
-          // If we haven't set data from cache yet, try one more time
-          if (!cachedData?.data) {
-            const fallbackCache = await hybridCache.get('apiCache', cacheKey);
-            if (fallbackCache?.data) {
-              setGuestSlides(fallbackCache.data);
-              setDataInitialized(true);
-            }
-          }
         }
       }
     } catch (error) {
       console.error('Error in loadGuestSlides:', error);
-      // Final fallback attempt
-      try {
-        const fallbackData = await hybridCache.get('apiCache', cacheKey);
-        if (fallbackData?.data) {
-          setGuestSlides(fallbackData.data);
-          setDataInitialized(true);
-        }
-      } catch (err) {
-        console.error('Final cache fallback failed:', err);
-      }
     } finally {
       setIsLoading(false);
     }
   };
 
+
   // Combined data fetching effect
   useEffect(() => {
     const loadData = async () => {
-      if (!isInitialized || !initialized) {
-        return;
-      }
+      if (!isInitialized || !initialized) return;
   
       try {
-         // Clear states when user changes
-      // clearBannerStates();
-      setIsLoading(true);
+        setIsLoading(true);
 
-        // For non-logged in users
         if (!user?._id) {
           await loadGuestSlides();
           return;
         }
      
         // For logged in users
-        setIsLoading(true);
-        const ordersCacheKey = `orders_${user._id}`;
-        let userOrders = [];
-     
-        try {
-          // Check hybrid cache first
-          const cachedOrders = await hybridCache.get('apiCache', ordersCacheKey);
+        // Pehle localStorage se orders check karo
+        const cachedOrders = StorageService.getUserOrders(user._id);
+        if (cachedOrders) {
+          const filteredOrders = filterWebsiteOrders(cachedOrders);
+          setOrders(filteredOrders);
           
-          if (cachedOrders) {
-            userOrders = filterWebsiteOrders(cachedOrders.data);
-            setOrders(userOrders);
-             
-            if (userOrders.length === 0) {
-              await loadUserWelcome();
+          if (filteredOrders.length === 0) {
+            const cachedWelcome = StorageService.getUserWelcome();
+            if (cachedWelcome) {
+              setUserWelcome(cachedWelcome);
             }
-            setDataInitialized(true);
-            
-            // If online, fetch fresh data in background
-            if (isOnline) {
-              await fetchFreshOrders(ordersCacheKey);
-            }
-            setIsLoading(false);
-            return;
           }
-  
-          if (isOnline) {
-            await fetchFreshOrders(ordersCacheKey);
-          }
+          
           setDataInitialized(true);
-        } catch (error) {
-          console.error("Error fetching data:", error);
-          const cachedOrders = await hybridCache.get('apiCache', ordersCacheKey);
-          if (cachedOrders?.data) {
-            setOrders(filterWebsiteOrders(cachedOrders.data));
+          setIsLoading(false);
+        }
+
+        // Background mein fresh data fetch karo
+        if (isOnline) {
+          try {
+            const ordersResponse = await fetch(SummaryApi.ordersList.url, {
+              method: SummaryApi.ordersList.method,
+              credentials: 'include'
+            });
+            const ordersData = await ordersResponse.json();
+             
+            if (ordersData.success) {
+              StorageService.setUserOrders(user._id, ordersData.data);
+              const userOrders = filterWebsiteOrders(ordersData.data);
+              setOrders(userOrders);
+               
+              if (userOrders.length === 0) {
+                await loadUserWelcome();
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching fresh orders:', error);
           }
         }
       } catch (error) {
@@ -174,59 +153,26 @@ const AppConvertingBanner = () => {
         setIsLoading(false);
       }
     };
-
-    const fetchFreshOrders = async (ordersCacheKey) => {
-      try {
-        const ordersResponse = await fetch(SummaryApi.ordersList.url, {
-          method: SummaryApi.ordersList.method,
-          credentials: 'include'
-        });
-        const ordersData = await ordersResponse.json();
-         
-        if (ordersData.success) {
-          await hybridCache.store('apiCache', ordersCacheKey, ordersData.data, 'high');
-          const userOrders = filterWebsiteOrders(ordersData.data);
-          setOrders(userOrders);
-           
-          if (userOrders.length === 0) {
-            await loadUserWelcome();
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching fresh orders:', error);
-      }
-    };
       
     loadData();
-  }, [user?._id, initialized, isInitialized,  isOnline]);
+  }, [user?._id, initialized, isInitialized, isOnline]);
   
   const loadUserWelcome = async () => {
-    const welcomeCacheKey = 'user_welcome';
     try {
-      // Check hybrid cache first
-      const cachedWelcome = await hybridCache.get('apiCache', welcomeCacheKey);
-         
+      // Pehle localStorage se check karo
+      const cachedWelcome = StorageService.getUserWelcome();
       if (cachedWelcome) {
-        setUserWelcome(cachedWelcome.data);
-        
-        // If online, fetch fresh data in background
-        if (isOnline) {
-          const welcomeResponse = await fetch(SummaryApi.userWelcome.url);
-          const welcomeData = await welcomeResponse.json();
-          if (welcomeData.success && welcomeData.data) {
-            setUserWelcome(welcomeData.data);
-            await hybridCache.store('apiCache', welcomeCacheKey, welcomeData.data, 'low');
-          }
-        }
-        return;
+        setUserWelcome(cachedWelcome);
+        setDataInitialized(true);
       }
-   
+      
+      // Background mein fresh data fetch karo
       if (isOnline) {
         const welcomeResponse = await fetch(SummaryApi.userWelcome.url);
         const welcomeData = await welcomeResponse.json();
         if (welcomeData.success && welcomeData.data) {
           setUserWelcome(welcomeData.data);
-          await hybridCache.store('apiCache', welcomeCacheKey, welcomeData.data, 'low');
+          StorageService.setUserWelcome(welcomeData.data);
         }
       }
     } catch (error) {
