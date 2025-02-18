@@ -178,18 +178,31 @@ const AppContent = () => {
   };
 
   useEffect(() => {
-    // First check for logout state in PWA
-    const wasForcedLogout = checkPWALogoutState();
+    // Always check for PWA logout state first
+    const logoutTimestamp = localStorage.getItem('logout_timestamp');
+    const authState = localStorage.getItem('auth_state');
+    const userCookie = CookieManager.get('user-details');
     
-    if (!wasForcedLogout) {
-      // Only fetch data if we didn't just force a logout
-      const initializeData = async () => {
-        await fetchUserDetails(); // This will also fetch wallet balance
-        await fetchUserAddToCart();
-      };
+    // Force logout if needed in PWA
+    if (isPWA() && logoutTimestamp && (userCookie || authState === 'logged_in')) {
+      console.log('Detected PWA auth inconsistency, forcing logout');
+      // Force logout
+      CookieManager.clearAll();
+      dispatch(logout());
       
-      initializeData();
+      // Clear Redux state
+      setCartProductCount(0);
+      setWalletBalance(0);
+      return;
     }
+    
+    // Only proceed if no forced logout was needed
+    const initializeData = async () => {
+      await fetchUserDetails();
+      await fetchUserAddToCart();
+    };
+    
+    initializeData();
   }, []);
 
 

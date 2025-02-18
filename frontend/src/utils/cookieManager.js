@@ -27,14 +27,19 @@ class CookieManager {
       role: userDetails.role,
     };
     
+   // More aggressive cookie setting for PWA
+  if (isPWA()) {
+    // Set cookie with HTTP only for better security in PWA
+    document.cookie = `user-details=${JSON.stringify(minimalUserData)}; path=/; max-age=${7 * 24 * 60 * 60}`;
+  } else {
     cookies.set('user-details', minimalUserData, {
       ...DEFAULT_CONFIG,
       maxAge: 7 * 24 * 60 * 60 * 1000  // 7 days
     });
-    
-    // Set a flag in localStorage to detect PWA logout issues
-    localStorage.setItem('auth_state', 'logged_in');
   }
+   
+  localStorage.setItem('auth_state', 'logged_in');
+}
   
   // Cart Items - temporary storage
   static setCartItems(cartItems) {
