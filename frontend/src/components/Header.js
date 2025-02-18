@@ -64,7 +64,7 @@ const Header = () => {
   
       if (data.success) {
         try {
-          // 3. Clear cookies
+          // 3. Clear cookies with forced expiration for PWA
           CookieManager.clearAll();
           
           // 4. Clear only user data
@@ -91,10 +91,15 @@ const Header = () => {
             }
           }
           
-          // 7. Dispatch Redux logout
+          // 7. Set explicit logout state for PWA
+          localStorage.removeItem('auth_state');
+          localStorage.setItem('logout_timestamp', Date.now().toString());
+          sessionStorage.setItem('logout_timestamp', Date.now().toString());
+          
+          // 8. Dispatch Redux logout
           dispatch(logout());
           
-          // 8. Reset component states
+          // 9. Reset component states
           setMenuDisplay(false);
           setSearch('');
           

@@ -11,29 +11,61 @@ import Context from './context';
 import CookieManager from './utils/cookieManager';
 import StorageService from './utils/storageService';
 
+// Add this PWA detection helper
+const isPWA = () => {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         window.navigator.standalone === true;
+};
+
 const AppContent = () => {
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const { clearCache } = useDatabase();
   const [cartProductCount, setCartProductCount] = useState(0);
   const [walletBalance, setWalletBalance] = useState(0);
 
   const handleLogout = async () => {
     try {
+      // First preserve guest slides if needed
+      const guestSlides = StorageService.getGuestSlides();
+      if (guestSlides) {
+        sessionStorage.setItem('sessionGuestSlides', JSON.stringify(guestSlides));
+        localStorage.setItem('preservedGuestSlides', JSON.stringify(guestSlides));
+      }
+
       const response = await fetch(SummaryApi.logout.url, {
         method: SummaryApi.logout.method,
         credentials: 'include'
       });
       
       if (response.ok) {
+        // Set explicit logout flags
+        localStorage.removeItem('auth_state');
+        localStorage.setItem('logout_timestamp', Date.now().toString());
+        sessionStorage.setItem('logout_timestamp', Date.now().toString());
+        
+        // Clear cookies with improved method
         CookieManager.clearAll();
-        StorageService.clearAll();
+        
+        // Clear user data but preserve guest data
+        StorageService.clearUserData(); // Use clearUserData instead of clearAll
+        
         // Clear database cache
         await clearCache();
+        
         // Dispatch logout action
         dispatch(logout());
+        
         // Reset local states
         setCartProductCount(0);
         setWalletBalance(0);
+        
+        // Additional for PWA - force cookie expiration
+        if (isPWA()) {
+          document.cookie.split(";").forEach(function(c) {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, 
+              "=;expires=" + new Date().toUTCString() + ";path=/");
+          });
+        }
       }
     } catch (error) {
       console.error("Error during logout:", error);
@@ -80,6 +112,9 @@ const AppContent = () => {
       const dataApi = await dataResponse.json();
       
       if (dataApi.success && dataApi.data) {
+        // Set auth state flag in localStorage
+        localStorage.setItem('auth_state', 'logged_in');
+        
         CookieManager.setUserDetails({
           _id: dataApi.data._id,
           name: dataApi.data.name,
@@ -123,14 +158,38 @@ const AppContent = () => {
     }
   };
 
+  // Add PWA logout state check
+  const checkPWALogoutState = () => {
+    if (isPWA()) {
+      const logoutTimestamp = localStorage.getItem('logout_timestamp');
+      const authState = localStorage.getItem('auth_state');
+      const userCookie = CookieManager.get('user-details');
+      
+      // If we have a logout timestamp but still have auth cookie or auth state
+      if (logoutTimestamp && (userCookie || authState)) {
+        console.log('Detected PWA refresh after logout, forcing logout state');
+        // Force logout
+        CookieManager.clearAll();
+        dispatch(logout());
+        return true;
+      }
+    }
+    return false;
+  };
+
   useEffect(() => {
-    // Fetch initial data
-    const initializeData = async () => {
-      await fetchUserDetails(); // This will also fetch wallet balance
-      await fetchUserAddToCart();
-    };
+    // First check for logout state in PWA
+    const wasForcedLogout = checkPWALogoutState();
     
-    initializeData();
+    if (!wasForcedLogout) {
+      // Only fetch data if we didn't just force a logout
+      const initializeData = async () => {
+        await fetchUserDetails(); // This will also fetch wallet balance
+        await fetchUserAddToCart();
+      };
+      
+      initializeData();
+    }
   }, []);
 
 
