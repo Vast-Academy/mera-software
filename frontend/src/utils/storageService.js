@@ -67,52 +67,95 @@ const STORAGE_KEYS = {
       }
     },
     clearUserData: () => {
-        try {
-          // Clear only user-specific data
-          localStorage.removeItem(STORAGE_KEYS.USER_DETAILS);
-          localStorage.removeItem(STORAGE_KEYS.WALLET_BALANCE);
-          localStorage.removeItem(STORAGE_KEYS.CART_COUNT);
-          // Do NOT clear guest slides
-        } catch (error) {
-          console.error('Error clearing user data:', error);
-        }
-      },
+      try {
+        // Clear only user-specific data
+        localStorage.removeItem(STORAGE_KEYS.USER_DETAILS);
+        localStorage.removeItem(STORAGE_KEYS.WALLET_BALANCE);
+        localStorage.removeItem(STORAGE_KEYS.CART_COUNT);
+        
+        // Clear all user orders by pattern matching
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith(`${STORAGE_KEYS.USER_ORDERS}_`)) {
+            localStorage.removeItem(key);
+          }
+        });
+        
+        // IMPORTANT: Do NOT clear guest slides
+      } catch (error) {
+        console.error('Error clearing user data:', error);
+      }
+    },
   
     // Logout ke time clear karne ke liye
     clearAll: () => {
       try {
+        // First save guest slides
         const guestSlides = StorageService.getGuestSlides();
-
+        const savedSlides = guestSlides ? {
+          data: guestSlides,
+          timestamp: new Date().toISOString()
+        } : null;
+    
+        // Clear all localStorage items except theme/language
+        const keysToKeep = ['theme', 'language'];
         Object.values(STORAGE_KEYS).forEach(key => {
-          localStorage.removeItem(key);
+          if (!keysToKeep.includes(key) && key !== STORAGE_KEYS.GUEST_SLIDES) {
+            localStorage.removeItem(key);
+          }
         });
+    
         // Restore guest slides if they existed
-      if (guestSlides) {
-        StorageService.setGuestSlides(guestSlides);
-      }
+        if (savedSlides) {
+          localStorage.setItem(STORAGE_KEYS.GUEST_SLIDES, JSON.stringify(savedSlides));
+          // Also keep in sessionStorage as backup
+          sessionStorage.setItem(STORAGE_KEYS.GUEST_SLIDES, JSON.stringify(savedSlides));
+        }
       } catch (error) {
         console.error('Error in clearAll:', error);
       }
     },
 
     // Guest Slides ke liye
-  setGuestSlides: (slides) => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.GUEST_SLIDES, JSON.stringify(slides));
-    } catch (error) {
-      console.error('Error storing guest slides:', error);
-    }
-  },
+    setGuestSlides: (slides) => {
+      try {
+        // Add timestamp to track when slides were last updated
+        const slidesWithTimestamp = {
+          data: slides,
+          timestamp: new Date().toISOString()
+        };
+        localStorage.setItem(STORAGE_KEYS.GUEST_SLIDES, JSON.stringify(slidesWithTimestamp));
+        
+        // Also store in sessionStorage as backup
+        sessionStorage.setItem(STORAGE_KEYS.GUEST_SLIDES, JSON.stringify(slidesWithTimestamp));
+      } catch (error) {
+        console.error('Error storing guest slides:', error);
+      }
+    },
 
-  getGuestSlides: () => {
-    try {
-      const slides = localStorage.getItem(STORAGE_KEYS.GUEST_SLIDES);
-      return slides ? JSON.parse(slides) : null;
-    } catch (error) {
-      console.error('Error getting guest slides:', error);
-      return null;
-    }
-  },
+    getGuestSlides: () => {
+      try {
+        // First try localStorage
+        let slides = localStorage.getItem(STORAGE_KEYS.GUEST_SLIDES);
+        
+        // If not in localStorage, try sessionStorage as fallback
+        if (!slides) {
+          slides = sessionStorage.getItem(STORAGE_KEYS.GUEST_SLIDES);
+          // If found in sessionStorage, restore to localStorage
+          if (slides) {
+            localStorage.setItem(STORAGE_KEYS.GUEST_SLIDES, slides);
+          }
+        }
+        
+        if (slides) {
+          const parsed = JSON.parse(slides);
+          return parsed.data || null;
+        }
+        return null;
+      } catch (error) {
+        console.error('Error getting guest slides:', error);
+        return null;
+      }
+    },
 
   // User Orders ke liye
   setUserOrders: (userId, orders) => {

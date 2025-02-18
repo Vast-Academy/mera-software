@@ -53,73 +53,273 @@ const AppConvertingBanner = () => {
     const handleUserStateChange = async () => {
       if (!isInitialized) return;
 
+      // Clear states when user changes
+      clearBannerStates();
+
       if (!user?._id) {
-        // Clear only user-specific states
-        setOrders(null);
-        setUserWelcome(null);
-        
-        // Load guest slides without clearing them first
+        // Load guest slides for non-logged in users
         await loadGuestSlides();
+      } else {
+        // Start fresh load for logged-in users
+        setIsLoading(true);
+        setDataInitialized(false);
       }
     };
+    
     handleUserStateChange();
   }, [isInitialized, user?._id]);
 
 
-  const loadGuestSlides = async () => {
-    if (!isInitialized) return;
-    
-    setIsLoading(true);
-    
-    try {
-      // Pehle localStorage se check karo
-      const cachedSlides = StorageService.getGuestSlides();
-      if (cachedSlides) {
-        setGuestSlides(cachedSlides);
-        setDataInitialized(true);
-        setIsLoading(false);
+ // Constants
+const GUEST_SLIDES_STORAGE_KEY = 'guestSlides';
+const GUEST_SLIDES_SESSION_KEY = 'sessionGuestSlides';
+const GUEST_SLIDES_INDEXED_DB_KEY = 'indexedDBGuestSlides';
+const LAST_LOGOUT_TIMESTAMP = 'lastLogoutTimestamp';
+
+// ----- Enhanced loadGuestSlides function -----
+const loadGuestSlides = async () => {
+  if (!isInitialized) return;
   
-        // Background mein API se fresh data fetch karo
+  setIsLoading(true);
+  let hasLoadedData = false;
+  
+  try {
+    // Check if this is first load after logout (within last 5 seconds)
+    const lastLogout = localStorage.getItem(LAST_LOGOUT_TIMESTAMP);
+    const isRecentLogout = lastLogout && (Date.now() - parseInt(lastLogout)) < 5000;
+    
+    // 1. First try to load from all available sources
+    const slidesData = await getGuestSlidesFromAllSources(isRecentLogout);
+    
+    if (slidesData && slidesData.length > 0) {
+      console.log('Found guest slides in storage', slidesData.length);
+      setGuestSlides(slidesData);
+      setDataInitialized(true);
+      hasLoadedData = true;
+      
+      // Save to all storage mechanisms to ensure persistence
+      saveGuestSlidesToAllStorages(slidesData);
+      
+      // Background refresh if online
+      if (isOnline) {
+        fetchFreshGuestSlides(slidesData);
+      }
+    } else if (isOnline) {
+      // 2. If no cached data or after recent logout, fetch from API
+      console.log('Fetching guest slides from API');
+      const freshSlides = await fetchFreshGuestSlides();
+      if (freshSlides && freshSlides.length > 0) {
+        hasLoadedData = true;
+      }
+    }
+  } catch (error) {
+    console.error('Error in loadGuestSlides:', error);
+  } finally {
+    if (!hasLoadedData) {
+      // If we still couldn't load data, attempt one last API call
+      // but don't block the UI
+      if (isOnline) {
+        console.log('Making final attempt to fetch guest slides');
+        fetchFreshGuestSlides().catch(e => 
+          console.error('Final guest slides fetch failed:', e)
+        );
+      }
+    }
+    setIsLoading(false);
+  }
+};
+
+// Helper function to fetch fresh slides
+const fetchFreshGuestSlides = async (existingSlides = null) => {
+  if (!isOnline) {
+    console.log('Cannot fetch slides: offline');
+    return null;
+  }
+  
+  try {
+    console.log('Fetching fresh guest slides from API');
+    const response = await fetch(SummaryApi.guestSlides.url);
+    const data = await response.json();
+    
+    if (data.success && data.data && data.data.length > 0) {
+      // Only update if we got valid data that's different
+      const isNewData = !existingSlides || 
+        JSON.stringify(data.data) !== JSON.stringify(existingSlides);
+      
+      if (isNewData) {
+        setGuestSlides(data.data);
+        setDataInitialized(true);
+        
+        // Save to all storage mechanisms
+        saveGuestSlidesToAllStorages(data.data);
+      }
+      return data.data;
+    }
+    return null;
+  } catch (error) {
+    console.error('API fetch error:', error);
+    return null;
+  }
+};
+
+// Helper to try all storage mechanisms
+const getGuestSlidesFromAllSources = async (isRecentLogout) => {
+  // During recent logout, prioritize sessionStorage as it's less likely to be cleared
+  if (isRecentLogout) {
+    // Try sessionStorage first
+    try {
+      const sessionData = sessionStorage.getItem(GUEST_SLIDES_SESSION_KEY);
+      if (sessionData) {
+        const parsedData = JSON.parse(sessionData);
+        if (parsedData && parsedData.length > 0) {
+          console.log('Found slides in sessionStorage after logout');
+          return parsedData;
+        }
+      }
+    } catch (e) {
+      console.error('Session storage read error:', e);
+    }
+  }
+  
+  // Try localStorage (standard approach)
+  try {
+    // First through StorageService
+    const serviceSlides = StorageService.getGuestSlides();
+    if (serviceSlides && serviceSlides.length > 0) {
+      console.log('Found slides via StorageService');
+      return serviceSlides;
+    }
+    
+    // Direct localStorage access
+    const localData = localStorage.getItem(GUEST_SLIDES_STORAGE_KEY);
+    if (localData) {
+      try {
+        const parsedData = JSON.parse(localData);
+        const slidesData = parsedData.data || parsedData;
+        if (slidesData && slidesData.length > 0) {
+          console.log('Found slides in direct localStorage');
+          return slidesData;
+        }
+      } catch (parseError) {
+        console.error('Error parsing localStorage data:', parseError);
+      }
+    }
+  } catch (e) {
+    console.error('Local storage read error:', e);
+  }
+  
+  // Try sessionStorage (if not already tried)
+  if (!isRecentLogout) {
+    try {
+      const sessionData = sessionStorage.getItem(GUEST_SLIDES_SESSION_KEY);
+      if (sessionData) {
+        const parsedData = JSON.parse(sessionData);
+        if (parsedData && parsedData.length > 0) {
+          console.log('Found slides in sessionStorage');
+          return parsedData;
+        }
+      }
+    } catch (e) {
+      console.error('Session storage read error:', e);
+    }
+  }
+  
+  // Try IndexedDB last (if available)
+  if (hybridCache) {
+    try {
+      const cacheData = await hybridCache.get('apiCache', 'guest_slides');
+      if (cacheData && cacheData.data) {
+        console.log('Found slides in hybridCache');
+        return cacheData.data;
+      }
+    } catch (e) {
+      console.error('IndexedDB read error:', e);
+    }
+  }
+  
+  console.log('No guest slides found in any storage');
+  return null;
+};
+
+// Save data to all available storage mechanisms
+const saveGuestSlidesToAllStorages = (slides) => {
+  if (!slides || slides.length === 0) return;
+  
+  console.log('Saving guest slides to all storage mechanisms');
+  
+  // 1. Save via StorageService
+  try {
+    StorageService.setGuestSlides(slides);
+  } catch (e) {
+    console.error('Error saving to StorageService:', e);
+  }
+  
+  // 2. Direct localStorage save
+  try {
+    localStorage.setItem(GUEST_SLIDES_STORAGE_KEY, JSON.stringify(slides));
+  } catch (e) {
+    console.error('Error saving to direct localStorage:', e);
+  }
+  
+  // 3. SessionStorage (survives page refresh but not tab close)
+  try {
+    sessionStorage.setItem(GUEST_SLIDES_SESSION_KEY, JSON.stringify(slides));
+  } catch (e) {
+    console.error('Error saving to sessionStorage:', e);
+  }
+  
+  // 4. IndexedDB via hybridCache
+  if (hybridCache) {
+    try {
+      hybridCache.store('apiCache', 'guest_slides', slides, 'high')
+        .catch(e => console.error('Error saving to hybridCache:', e));
+    } catch (e) {
+      console.error('Error calling hybridCache.store:', e);
+    }
+  }
+};
+
+  const loadUserWelcome = async () => {
+    try {
+      // First check localStorage
+      const cachedWelcome = StorageService.getUserWelcome();
+      if (cachedWelcome) {
+        setUserWelcome(cachedWelcome);
+        // Don't set dataInitialized here to avoid race condition
+        
+        // Background refresh if online
         if (isOnline) {
           try {
-            const response = await fetch(SummaryApi.guestSlides.url);
-            const data = await response.json();
-            
-            if (data.success && data.data) {
-              // Compare new data with cached data
-              const isDataDifferent = JSON.stringify(data.data) !== JSON.stringify(cachedSlides);
-              
-              if (isDataDifferent) {
-                setGuestSlides(data.data);
-                StorageService.setGuestSlides(data.data);
-              }
+            const welcomeResponse = await fetch(SummaryApi.userWelcome.url);
+            const welcomeData = await welcomeResponse.json();
+            if (welcomeData.success && welcomeData.data) {
+              setUserWelcome(welcomeData.data);
+              StorageService.setUserWelcome(welcomeData.data);
             }
           } catch (error) {
-            console.error('Error fetching fresh guest slides:', error);
-            // No need to set cached data again as it's already set
+            console.error('Error fetching fresh welcome data:', error);
           }
         }
-        return; // Exit early if we have cache
+        return cachedWelcome;
       }
-  
-      // If no cache, then fetch from API
+      
+      // If no cache and online, fetch from API
       if (isOnline) {
-        const response = await fetch(SummaryApi.guestSlides.url);
-        const data = await response.json();
-        
-        if (data.success && data.data) {
-          setGuestSlides(data.data);
-          StorageService.setGuestSlides(data.data);
-          setDataInitialized(true);
+        const welcomeResponse = await fetch(SummaryApi.userWelcome.url);
+        const welcomeData = await welcomeResponse.json();
+        if (welcomeData.success && welcomeData.data) {
+          setUserWelcome(welcomeData.data);
+          StorageService.setUserWelcome(welcomeData.data);
+          return welcomeData.data;
         }
       }
+      
+      return null;
     } catch (error) {
-      console.error('Error in loadGuestSlides:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Error fetching welcome data:', error);
+      return null;
     }
   };
-
 
   // Combined data fetching effect
   useEffect(() => {
@@ -129,24 +329,25 @@ const AppConvertingBanner = () => {
       try {
         setIsLoading(true);
 
+        // For non-logged in users, just load guest slides
         if (!user?._id) {
           await loadGuestSlides();
           return;
         }
      
-        // For logged in users
+        // For logged in users, process in this order:
+        // 1. Check for cached orders
         const cachedOrders = StorageService.getUserOrders(user._id);
+        const filteredOrders = cachedOrders ? filterWebsiteOrders(cachedOrders) : [];
+        setOrders(filteredOrders);
         
-        // Fetch welcome message immediately for logged-in users
-        await loadUserWelcome();
+        // 2. Load welcome message with await to ensure it completes
+        const welcomeData = await loadUserWelcome();
         
-        if (cachedOrders) {
-          const filteredOrders = filterWebsiteOrders(cachedOrders);
-          setOrders(filteredOrders);
-          setDataInitialized(true);
-        }
+        // 3. Now that both operations are complete, we can mark data as initialized
+        setDataInitialized(true);
 
-        // Background mein fresh data fetch karo
+        // 4. Background refresh orders if online
         if (isOnline) {
           try {
             const ordersResponse = await fetch(SummaryApi.ordersList.url, {
@@ -173,29 +374,6 @@ const AppConvertingBanner = () => {
       
     loadData();
   }, [user?._id, initialized, isInitialized, isOnline]);
-  
-  const loadUserWelcome = async () => {
-    try {
-      // Pehle localStorage se check karo
-      const cachedWelcome = StorageService.getUserWelcome();
-      if (cachedWelcome) {
-        setUserWelcome(cachedWelcome);
-        setDataInitialized(true);
-      }
-      
-      // Background mein fresh data fetch karo
-      if (isOnline) {
-        const welcomeResponse = await fetch(SummaryApi.userWelcome.url);
-        const welcomeData = await welcomeResponse.json();
-        if (welcomeData.success && welcomeData.data) {
-          setUserWelcome(welcomeData.data);
-          StorageService.setUserWelcome(welcomeData.data);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching welcome data:', error);
-    }
-  };
 
   const handleOrderClick = (orderId) => {
     navigate(`/project-details/${orderId}`);
