@@ -38,111 +38,100 @@ const Header = () => {
 
   const handleLogout = async () => {
     try {
-      // 1. BEFORE ANYTHING ELSE - Save guest slides to multiple locations
+      // 1. First preserve guest slides
       const guestSlides = StorageService.getGuestSlides();
       if (guestSlides) {
-        console.log('Preserving guest slides before logout');
-        try {
-          // Save to sessionStorage as primary backup during logout
-          sessionStorage.setItem('sessionGuestSlides', JSON.stringify(guestSlides));
-          // Also save to a special localStorage key that won't be cleared
-          localStorage.setItem('preservedGuestSlides', JSON.stringify(guestSlides));
-          // Mark logout timestamp for post-refresh detection
-          localStorage.setItem('lastLogoutTimestamp', Date.now().toString());
-        } catch (backupError) {
-          console.error('Failed to backup slides before logout:', backupError);
-        }
+        sessionStorage.setItem('sessionGuestSlides', JSON.stringify(guestSlides));
+        localStorage.setItem('preservedGuestSlides', JSON.stringify(guestSlides));
+      }
+      
+      // 2. Disable auto-redirects during logout process
+      const isInMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isInMobile) {
+        // Set a flag to prevent auto login during the logout-refresh cycle
+        sessionStorage.setItem('logout_in_progress', 'true');
+        localStorage.setItem('logout_in_progress', 'true');
+        document.cookie = `logout_in_progress=true; path=/; max-age=60;`;
       }
   
-      // 2. Call logout API with proper error handling
+      // 3. API Logout - even if it fails, we'll continue with local logout
       try {
-        const fetchData = await fetch(SummaryApi.logout_user.url, {
-          method: SummaryApi.logout_user.method,
-          credentials: 'include'
+        const response = await fetch(SummaryApi.logout_user.url, {
+          method: SummaryApi.logout_user.method, 
+          credentials: 'include',
+          cache: 'no-store' // Prevent caching the logout request
         });
-        const data = await fetchData.json();
-        if (data.success) {
-          toast.success(data.message);
-        }
+        await response.json(); // Process but don't depend on the result
       } catch (apiError) {
-        console.error("API logout error:", apiError);
-        // Continue with local logout even if API fails
-      }
-  
-      // 3. Aggressively clear cookies, especially for PWA
-      const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                    window.navigator.standalone === true;
-      
-      if (isPWA) {
-        // Force expire all cookies in PWA mode
-        document.cookie.split(";").forEach(function(c) {
-          document.cookie = c.replace(/^ +/, "").replace(/=.*/, 
-            "=;expires=" + new Date().toUTCString() + ";path=/");
-        });
+        console.error("API logout failed:", apiError);
+        // Continue with local logout regardless
       }
       
-      // Use CookieManager for standard cookie clearing
+      // 4. AGGRESSIVE Cookie Clearing - critical for mobile browsers
+      // Force expire all cookies using multiple techniques
+      const cookieNames = ['user-details', 'cart-items', 'token', 'auth_token', 'connect.sid', 'user_session'];
+      cookieNames.forEach(name => {
+        // Standard approach
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
+        // Also try with domain
+        const domain = window.location.hostname;
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${domain};`;
+        // Also try secure version
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure;`;
+      });
+      
+      // 5. Clear all cookies using react-cookie library as backup
       CookieManager.clearAll();
       
-      // 4. Set explicit logout state flags
+      // 6. Clear browser storage
+      // Preserve only what's explicitly needed
+      const keysToKeep = ['preservedGuestSlides', 'theme', 'language', 'logout_in_progress'];
+      
+      // Clear localStorage
+      Object.keys(localStorage)
+        .filter(key => !keysToKeep.includes(key))
+        .forEach(key => localStorage.removeItem(key));
+      
+      // Clear sessionStorage
+      Object.keys(sessionStorage)
+        .filter(key => !keysToKeep.includes(key) && key !== 'sessionGuestSlides')
+        .forEach(key => sessionStorage.removeItem(key));
+      
+      // 7. Set explicit logout markers with timestamps
+      const logoutTimestamp = Date.now().toString();
+      localStorage.setItem('logout_timestamp', logoutTimestamp);
+      sessionStorage.setItem('logout_timestamp', logoutTimestamp);
+      
+      // 8. Ensure auth_state is removed
       localStorage.removeItem('auth_state');
-      localStorage.setItem('logout_timestamp', Date.now().toString());
-      sessionStorage.setItem('logout_timestamp', Date.now().toString());
+      sessionStorage.removeItem('auth_state');
       
-      // 5. Clear only user data with StorageService
-      StorageService.clearUserData();
-      
-      // 6. Do a controlled clear of hybridCache to preserve guest slides
-      try {
-        if (hybridCache && typeof hybridCache.clearAll === 'function') {
-          await hybridCache.clearAll();
-        }
-      } catch (cacheError) {
-        console.error("Cache clearing error:", cacheError);
-        // Continue even if cache clearing fails
-      }
-      
-      // 7. Restore guest slides if needed
-      try {
-        if (!localStorage.getItem('guestSlides')) {
-          console.log('Restoring guest slides after logout');
-          const preserved = localStorage.getItem('preservedGuestSlides');
-          const sessionBackup = sessionStorage.getItem('sessionGuestSlides');
-          
-          // Prioritize preserved data if available
-          if (preserved) {
-            localStorage.setItem('guestSlides', preserved);
-          } else if (sessionBackup) {
-            localStorage.setItem('guestSlides', sessionBackup);
-          }
-        }
-      } catch (restoreError) {
-        console.error("Error restoring slides:", restoreError);
-      }
-      
-      // 8. Dispatch Redux logout
+      // 9. Redux logout
       dispatch(logout());
       
-      // 9. Reset component states
+      // 10. Reset UI state
       setMenuDisplay(false);
       setSearch('');
       
-      // 10. Navigate to home page
-      navigate("/");
+      // 11. For mobile, add a small delay before navigation to ensure storage changes are committed
+      if (isInMobile) {
+        toast.info("Logging out...");
+        setTimeout(() => {
+          // Navigate and force page reload to ensure clean state
+          window.location.href = '/';
+        }, 300);
+      } else {
+        // Desktop can use normal navigation
+        navigate('/');
+      }
       
     } catch (error) {
       console.error("Critical error during logout:", error);
-      
-      // Fallback logout - even with errors, try to log the user out
-      try {
-        CookieManager.clearAll();
-        dispatch(logout());
-        navigate("/");
-      } catch (fallbackError) {
-        // Last resort - alert user if everything fails
-        console.error("Fallback logout failed:", fallbackError);
-        toast.error("Logout failed. Please close the app and restart.");
-      }
+      // Force logout anyway - last resort
+      dispatch(logout());
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/';
     }
   };
   

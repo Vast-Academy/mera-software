@@ -73,15 +73,22 @@ class CookieManager {
   
   // Clear all cookies
   static clearAll() {
-    // Known cookies
-    const cookieNames = ['user-details', 'cart-items', 'token', 'wallet-balance'];
+    // Get all cookie names
+    const allCookies = document.cookie.split(';');
+    const cookieNames = allCookies.map(cookie => cookie.split('=')[0].trim());
     
-    // Clear specific cookies
+    // Aggressively clear all cookies
     cookieNames.forEach(name => {
-      this.remove(name);
+      // Standard removal
+      cookies.remove(name, { path: '/' });
+      
+      // Multiple approaches for stubborn cookies
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname};`;
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${window.location.hostname};`;
     });
     
-    // Clear auth state in localStorage
+    // Clear auth state
     localStorage.removeItem('auth_state');
     
     // Set logout timestamp for detection

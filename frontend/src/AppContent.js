@@ -178,31 +178,47 @@ const AppContent = () => {
   };
 
   useEffect(() => {
-    // Always check for PWA logout state first
-    const logoutTimestamp = localStorage.getItem('logout_timestamp');
-    const authState = localStorage.getItem('auth_state');
-    const userCookie = CookieManager.get('user-details');
-    
-    // Force logout if needed in PWA
-    if (isPWA() && logoutTimestamp && (userCookie || authState === 'logged_in')) {
-      console.log('Detected PWA auth inconsistency, forcing logout');
-      // Force logout
-      CookieManager.clearAll();
-      dispatch(logout());
+    const checkLogoutState = () => {
+      // Check for logout in progress or recent logout
+      const logoutInProgress = localStorage.getItem('logout_in_progress') === 'true' || 
+                             sessionStorage.getItem('logout_in_progress') === 'true' ||
+                             document.cookie.includes('logout_in_progress=true');
+                             
+      const logoutTimestamp = localStorage.getItem('logout_timestamp');
+      const recentLogout = logoutTimestamp && 
+                          (Date.now() - parseInt(logoutTimestamp) < 30000); // Within 30 seconds
       
-      // Clear Redux state
-      setCartProductCount(0);
-      setWalletBalance(0);
-      return;
-    }
-    
-    // Only proceed if no forced logout was needed
-    const initializeData = async () => {
-      await fetchUserDetails();
-      await fetchUserAddToCart();
+      // If logout was in progress, prevent auto-login
+      if (logoutInProgress || recentLogout) {
+        console.log('Detected recent logout, preventing auto-login');
+        
+        // Clear any remaining auth state
+        CookieManager.clearAll();
+        dispatch(logout());
+        
+        // Clear the in-progress flag after using it
+        localStorage.removeItem('logout_in_progress');
+        sessionStorage.removeItem('logout_in_progress');
+        document.cookie = 'logout_in_progress=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
+        
+        return true; // Signal that we forced logout
+      }
+      
+      return false; // No forced logout needed
     };
     
-    initializeData();
+    // Check logout state before attempting to initialize user data
+    const wasLoggedOut = checkLogoutState();
+    
+    if (!wasLoggedOut) {
+      // Only fetch user data if we didn't just force a logout
+      const initializeData = async () => {
+        await fetchUserDetails();
+        await fetchUserAddToCart();
+      };
+      
+      initializeData();
+    }
   }, []);
 
 
