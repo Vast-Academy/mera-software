@@ -38,23 +38,6 @@ const Header = () => {
 
   const handleLogout = async () => {
     try {
-      // 1. BEFORE ANYTHING ELSE - Save guest slides to multiple locations
-      const guestSlides = StorageService.getGuestSlides();
-      if (guestSlides) {
-        console.log('Preserving guest slides before logout');
-        try {
-          // Save to sessionStorage as primary backup during logout
-          sessionStorage.setItem('sessionGuestSlides', JSON.stringify(guestSlides));
-          // Also save to a special localStorage key that won't be cleared
-          localStorage.setItem('preservedGuestSlides', JSON.stringify(guestSlides));
-          // Mark logout timestamp for post-refresh detection
-          localStorage.setItem('lastLogoutTimestamp', Date.now().toString());
-        } catch (backupError) {
-          console.error('Failed to backup slides before logout:', backupError);
-        }
-      }
-  
-      // 2. Call logout API
       const fetchData = await fetch(SummaryApi.logout_user.url, {
         method: SummaryApi.logout_user.method,
         credentials: 'include'
@@ -64,42 +47,23 @@ const Header = () => {
   
       if (data.success) {
         try {
-          // 3. Clear cookies with forced expiration for PWA
           CookieManager.clearAll();
+          StorageService.clearUserData(); 
+          // Clear all caches using new hybridCache
+          await hybridCache.clearAll();
           
-          // 4. Clear only user data
-          StorageService.clearUserData();
-          
-          // 5. Do a controlled clear of hybridCache to preserve guest slides
-          if (hybridCache && typeof hybridCache.clearAll === 'function') {
-            await hybridCache.clearAll();
+          // Create an array of keys to keep
+          const keysToKeep = ['theme', 'language'];
+        Object.keys(localStorage).forEach(key => {
+          if (!keysToKeep.includes(key) && key !== 'guestSlides') { // Don't remove guest slides
+            localStorage.removeItem(key);
           }
+        });
           
-          // 6. Restore guest slides from our backups if the main key was cleared
-          if (!localStorage.getItem('guestSlides')) {
-            console.log('Restoring guest slides after cache clear');
-            const preserved = localStorage.getItem('preservedGuestSlides');
-            const sessionBackup = sessionStorage.getItem('sessionGuestSlides');
-            
-            // Prioritize preserved data if available
-            if (preserved) {
-              localStorage.setItem('guestSlides', preserved);
-              StorageService.setGuestSlides(JSON.parse(preserved));
-            } else if (sessionBackup) {
-              localStorage.setItem('guestSlides', sessionBackup);
-              StorageService.setGuestSlides(JSON.parse(sessionBackup));
-            }
-          }
-          
-          // 7. Set explicit logout state for PWA
-          localStorage.removeItem('auth_state');
-          localStorage.setItem('logout_timestamp', Date.now().toString());
-          sessionStorage.setItem('logout_timestamp', Date.now().toString());
-          
-          // 8. Dispatch Redux logout
+          // Dispatch Redux logout
           dispatch(logout());
           
-          // 9. Reset component states
+          // Reset component states
           setMenuDisplay(false);
           setSearch('');
           
