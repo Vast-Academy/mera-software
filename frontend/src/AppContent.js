@@ -11,61 +11,29 @@ import Context from './context';
 import CookieManager from './utils/cookieManager';
 import StorageService from './utils/storageService';
 
-// Add this PWA detection helper
-const isPWA = () => {
-  return window.matchMedia('(display-mode: standalone)').matches || 
-         window.navigator.standalone === true;
-};
-
 const AppContent = () => {
-  const dispatch = useDispatch();
+    const dispatch = useDispatch();
   const { clearCache } = useDatabase();
   const [cartProductCount, setCartProductCount] = useState(0);
   const [walletBalance, setWalletBalance] = useState(0);
 
   const handleLogout = async () => {
     try {
-      // First preserve guest slides if needed
-      const guestSlides = StorageService.getGuestSlides();
-      if (guestSlides) {
-        sessionStorage.setItem('sessionGuestSlides', JSON.stringify(guestSlides));
-        localStorage.setItem('preservedGuestSlides', JSON.stringify(guestSlides));
-      }
-
       const response = await fetch(SummaryApi.logout.url, {
         method: SummaryApi.logout.method,
         credentials: 'include'
       });
       
       if (response.ok) {
-        // Set explicit logout flags
-        localStorage.removeItem('auth_state');
-        localStorage.setItem('logout_timestamp', Date.now().toString());
-        sessionStorage.setItem('logout_timestamp', Date.now().toString());
-        
-        // Clear cookies with improved method
         CookieManager.clearAll();
-        
-        // Clear user data but preserve guest data
-        StorageService.clearUserData(); // Use clearUserData instead of clearAll
-        
+        StorageService.clearAll();
         // Clear database cache
         await clearCache();
-        
         // Dispatch logout action
         dispatch(logout());
-        
         // Reset local states
         setCartProductCount(0);
         setWalletBalance(0);
-        
-        // Additional for PWA - force cookie expiration
-        if (isPWA()) {
-          document.cookie.split(";").forEach(function(c) {
-            document.cookie = c.replace(/^ +/, "").replace(/=.*/, 
-              "=;expires=" + new Date().toUTCString() + ";path=/");
-          });
-        }
       }
     } catch (error) {
       console.error("Error during logout:", error);
@@ -112,9 +80,6 @@ const AppContent = () => {
       const dataApi = await dataResponse.json();
       
       if (dataApi.success && dataApi.data) {
-        // Set auth state flag in localStorage
-        localStorage.setItem('auth_state', 'logged_in');
-        
         CookieManager.setUserDetails({
           _id: dataApi.data._id,
           name: dataApi.data.name,
@@ -158,88 +123,16 @@ const AppContent = () => {
     }
   };
 
-  // Add PWA logout state check
-  const checkPWALogoutState = () => {
-    if (isPWA()) {
-      const logoutTimestamp = localStorage.getItem('logout_timestamp');
-      const authState = localStorage.getItem('auth_state');
-      const userCookie = CookieManager.get('user-details');
-      
-      // If we have a logout timestamp but still have auth cookie or auth state
-      if (logoutTimestamp && (userCookie || authState)) {
-        console.log('Detected PWA refresh after logout, forcing logout state');
-        // Force logout
-        CookieManager.clearAll();
-        dispatch(logout());
-        return true;
-      }
-    }
-    return false;
-  };
-
   useEffect(() => {
-    const checkLogoutState = () => {
-      // First check if CookieManager detects PWA logout state
-      if (CookieManager.checkPWALogoutState()) {
-        console.log('CookieManager detected logout state, preventing auto-login');
-        return true;
-      }
-      
-      // Check for logout in progress or recent logout
-      const logoutInProgress = localStorage.getItem('logout_in_progress') === 'true' || 
-                             sessionStorage.getItem('logout_in_progress') === 'true' ||
-                             document.cookie.includes('logout_in_progress=true');
-                             
-      const logoutTimestamp = localStorage.getItem('logout_timestamp');
-      const recentLogout = logoutTimestamp && 
-                          (Date.now() - parseInt(logoutTimestamp) < 60000); // Within 60 seconds
-      
-      // If logout was in progress, prevent auto-login
-      if (logoutInProgress || recentLogout) {
-        console.log('Detected recent logout, preventing auto-login');
-        
-        // Clear any remaining auth state
-        CookieManager.clearAll();
-        dispatch(logout());
-        
-        // Clear the in-progress flag after using it
-        localStorage.removeItem('logout_in_progress');
-        sessionStorage.removeItem('logout_in_progress');
-        document.cookie = 'logout_in_progress=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;';
-        
-        return true; // Signal that we forced logout
-      }
-      
-      return false; // No forced logout needed
+    // Fetch initial data
+    const initializeData = async () => {
+      await fetchUserDetails(); // This will also fetch wallet balance
+      await fetchUserAddToCart();
     };
     
-    // Check for PWA inconsistency - critical for mobile
-    const appIsInPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                      window.navigator.standalone === true;
-    const authState = localStorage.getItem('auth_state');
-    const userCookie = CookieManager.get('user-details');
-    
-    // Detect inconsistent state: one has auth, the other doesn't
-    if ((authState && !userCookie) || (!authState && userCookie)) {
-      console.log('Detected inconsistent auth state, forcing logout');
-      CookieManager.clearAll();
-      dispatch(logout());
-      return;
-    }
-    
-    // Check logout state before attempting to initialize user data
-    const wasLoggedOut = checkLogoutState();
-    
-    if (!wasLoggedOut) {
-      // Only fetch user data if we didn't just force a logout
-      const initializeData = async () => {
-        await fetchUserDetails();
-        await fetchUserAddToCart();
-      };
-      
-      initializeData();
-    }
+    initializeData();
   }, []);
+
 
   return (
      <Context.Provider value={{

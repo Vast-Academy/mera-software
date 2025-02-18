@@ -3,7 +3,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import SummaryApi from '../common';
-import { setUserDetails } from '../store/userSlice';
+import { setUserDetails, logout } from '../store/userSlice';
 import { FaEdit } from "react-icons/fa";
 import { IoCartOutline } from "react-icons/io5";
 import { IoWalletOutline } from "react-icons/io5";
@@ -13,10 +13,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import TriangleMazeLoader from '../components/TriangleMazeLoader';
 import Context from '../context';
 import CookieManager from '../utils/cookieManager';
+import StorageService from '../utils/storageService';
+import { useDatabase } from '../context/DatabaseContext';
 
 const Profile = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { hybridCache } = useDatabase();
     const user = useSelector(state => state?.user?.user);
     const context = useContext(Context);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -47,95 +50,82 @@ const Profile = () => {
 
     const handleLogout = async () => {
         try {
-            // 1. First set logout in progress flags (critical for mobile)
-            localStorage.setItem('logout_in_progress', 'true');
-            sessionStorage.setItem('logout_in_progress', 'true');
-            document.cookie = `logout_in_progress=true; path=/; max-age=60;`;
-            
-            // 2. Preserve guest slides if needed
-            const guestSlides = localStorage.getItem('guestSlides');
-            if (guestSlides) {
-                sessionStorage.setItem('sessionGuestSlides', guestSlides);
-                localStorage.setItem('preservedGuestSlides', guestSlides);
-            }
-            
-            // 3. Call the API, but don't block on success
-            let apiSuccess = false;
+          // 1. BEFORE ANYTHING ELSE - Save guest slides to multiple locations
+          const guestSlides = StorageService.getGuestSlides();
+          if (guestSlides) {
+            console.log('Preserving guest slides before logout');
             try {
-                const response = await fetch(SummaryApi.logout_user.url, {
-                    method: SummaryApi.logout_user.method,
-                    credentials: 'include',
-                    cache: 'no-store' // Prevent caching
-                });
-                const data = await response.json();
-                apiSuccess = data.success;
-            } catch (apiError) {
-                console.error("API logout failed:", apiError);
-                // Continue with local logout regardless
+              // Save to sessionStorage as primary backup during logout
+              sessionStorage.setItem('sessionGuestSlides', JSON.stringify(guestSlides));
+              // Also save to a special localStorage key that won't be cleared
+              localStorage.setItem('preservedGuestSlides', JSON.stringify(guestSlides));
+              // Mark logout timestamp for post-refresh detection
+              localStorage.setItem('lastLogoutTimestamp', Date.now().toString());
+            } catch (backupError) {
+              console.error('Failed to backup slides before logout:', backupError);
             }
-            
-            // 4. Clear cookies with CookieManager
-            CookieManager.clearAll();
-            
-            // 5. Clear critical auth tokens
-            localStorage.removeItem('auth_state');
-            localStorage.setItem('logout_timestamp', Date.now().toString());
-            sessionStorage.setItem('logout_timestamp', Date.now().toString());
-            
-            // 6. Also clear cookies using document.cookie for mobile
-            const cookieNames = ['user-details', 'cart-items', 'token', 'auth_token', 'connect.sid'];
-            cookieNames.forEach(name => {
-                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
-                // Also try with domain
-                const domain = window.location.hostname;
-                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${domain};`;
-            });
-            
-            // 7. Force expire all cookies
-            document.cookie.split(";").forEach(function(c) {
-                document.cookie = c.replace(/^ +/, "").replace(/=.*/, 
-                    "=;expires=" + new Date().toUTCString() + ";path=/");
-            });
-            
-            // 8. Dispatch Redux action
-            dispatch(setUserDetails(null));
-            
-            // 9. Show success message
-            if (apiSuccess) {
-                toast.success("Logged out successfully");
+          }
+      
+          // 2. Call logout API
+          const fetchData = await fetch(SummaryApi.logout_user.url, {
+            method: SummaryApi.logout_user.method,
+            credentials: 'include'
+          });
+      
+          const data = await fetchData.json();
+      
+          if (data.success) {
+            try {
+              // 3. Clear cookies
+              CookieManager.clearAll();
+              
+              // 4. Clear only user data
+              StorageService.clearUserData();
+              
+              // 5. Do a controlled clear of hybridCache to preserve guest slides
+              if (hybridCache && typeof hybridCache.clearAll === 'function') {
+                await hybridCache.clearAll();
+              }
+              
+              // 6. Restore guest slides from our backups if the main key was cleared
+              if (!localStorage.getItem('guestSlides')) {
+                console.log('Restoring guest slides after cache clear');
+                const preserved = localStorage.getItem('preservedGuestSlides');
+                const sessionBackup = sessionStorage.getItem('sessionGuestSlides');
+                
+                // Prioritize preserved data if available
+                if (preserved) {
+                  localStorage.setItem('guestSlides', preserved);
+                  StorageService.setGuestSlides(JSON.parse(preserved));
+                } else if (sessionBackup) {
+                  localStorage.setItem('guestSlides', sessionBackup);
+                  StorageService.setGuestSlides(JSON.parse(sessionBackup));
+                }
+              }
+              
+              // 7. Dispatch Redux logout
+              dispatch(logout());
+              
+              // 8. Reset component states
+            //   setMenuDisplay(false);
+            //   setSearch('');
+              
+              toast.success(data.message);
+              navigate("/");
+            } catch (cacheError) {
+              console.error("Cache clearing error:", cacheError);
+              // Still proceed with logout even if cache clearing fails
+              dispatch(logout());
+              navigate("/");
             }
-            
-            // 10. Check if we're on mobile/PWA for special handling
-            const isInMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-            const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                          window.navigator.standalone === true;
-                          
-            if (isInMobile || isPWA) {
-                toast.info("Logging out...");
-                // Use timeout to ensure storage changes are committed
-                setTimeout(() => {
-                    // Force reload to clear any in-memory state
-                    window.location.href = '/?logout=' + Date.now();
-                }, 300);
-            } else {
-                // Desktop can use normal navigation
-                navigate("/");
-            }
+          } else {
+            toast.error(data.message);
+          }
         } catch (error) {
-            console.error("Error during logout:", error);
-            toast.error("Failed to logout");
-            
-            // Fallback logout - attempt to force logout even if errors occur
-            try {
-                CookieManager.clearAll();
-                dispatch(setUserDetails(null));
-                localStorage.removeItem('auth_state');
-                window.location.href = '/';
-            } catch (finalError) {
-                console.error("Critical error during forced logout:", finalError);
-            }
+          console.error("Error during logout:", error);
+          toast.error("Logout failed. Please try again.");
         }
-    };
+      };
 
     const handleProfileUpdate = async (updatedData) => {
         setUpdateLoading(true);
