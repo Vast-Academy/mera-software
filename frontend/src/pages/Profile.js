@@ -47,25 +47,93 @@ const Profile = () => {
 
     const handleLogout = async () => {
         try {
-            const fetchData = await fetch(SummaryApi.logout_user.url, {
-                method: SummaryApi.logout_user.method,
-                credentials: 'include'
-            });
-
-            const data = await fetchData.json();
-
-            if (data.success) {
-                toast.success(data.message);
-                dispatch(setUserDetails(null));
-                navigate("/");
+            // 1. First set logout in progress flags (critical for mobile)
+            localStorage.setItem('logout_in_progress', 'true');
+            sessionStorage.setItem('logout_in_progress', 'true');
+            document.cookie = `logout_in_progress=true; path=/; max-age=60;`;
+            
+            // 2. Preserve guest slides if needed
+            const guestSlides = localStorage.getItem('guestSlides');
+            if (guestSlides) {
+                sessionStorage.setItem('sessionGuestSlides', guestSlides);
+                localStorage.setItem('preservedGuestSlides', guestSlides);
             }
-
-            if (data.error) {
-                toast.error(data.message);
+            
+            // 3. Call the API, but don't block on success
+            let apiSuccess = false;
+            try {
+                const response = await fetch(SummaryApi.logout_user.url, {
+                    method: SummaryApi.logout_user.method,
+                    credentials: 'include',
+                    cache: 'no-store' // Prevent caching
+                });
+                const data = await response.json();
+                apiSuccess = data.success;
+            } catch (apiError) {
+                console.error("API logout failed:", apiError);
+                // Continue with local logout regardless
+            }
+            
+            // 4. Clear cookies with CookieManager
+            CookieManager.clearAll();
+            
+            // 5. Clear critical auth tokens
+            localStorage.removeItem('auth_state');
+            localStorage.setItem('logout_timestamp', Date.now().toString());
+            sessionStorage.setItem('logout_timestamp', Date.now().toString());
+            
+            // 6. Also clear cookies using document.cookie for mobile
+            const cookieNames = ['user-details', 'cart-items', 'token', 'auth_token', 'connect.sid'];
+            cookieNames.forEach(name => {
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
+                // Also try with domain
+                const domain = window.location.hostname;
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${domain};`;
+            });
+            
+            // 7. Force expire all cookies
+            document.cookie.split(";").forEach(function(c) {
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, 
+                    "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+            
+            // 8. Dispatch Redux action
+            dispatch(setUserDetails(null));
+            
+            // 9. Show success message
+            if (apiSuccess) {
+                toast.success("Logged out successfully");
+            }
+            
+            // 10. Check if we're on mobile/PWA for special handling
+            const isInMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                          window.navigator.standalone === true;
+                          
+            if (isInMobile || isPWA) {
+                toast.info("Logging out...");
+                // Use timeout to ensure storage changes are committed
+                setTimeout(() => {
+                    // Force reload to clear any in-memory state
+                    window.location.href = '/?logout=' + Date.now();
+                }, 300);
+            } else {
+                // Desktop can use normal navigation
+                navigate("/");
             }
         } catch (error) {
             console.error("Error during logout:", error);
             toast.error("Failed to logout");
+            
+            // Fallback logout - attempt to force logout even if errors occur
+            try {
+                CookieManager.clearAll();
+                dispatch(setUserDetails(null));
+                localStorage.removeItem('auth_state');
+                window.location.href = '/';
+            } catch (finalError) {
+                console.error("Critical error during forced logout:", finalError);
+            }
         }
     };
 
