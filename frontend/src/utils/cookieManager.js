@@ -2,21 +2,21 @@
 import { Cookies } from 'react-cookie';
 const cookies = new Cookies();
 
-// API के अनुसार base configuration
+// Base configuration
 const DEFAULT_CONFIG = {
   path: '/',
-  secure: process.env.NODE_ENV === 'production',  // Only in production
-  sameSite: 'lax',  // Changed from 'none' for better PWA compatibility
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',  // Better for PWA compatibility
 };
 
-// Mobile PWA detection
+// PWA detection helper
 const isPWA = () => {
-  return window.matchMedia('(display-mode: standalone)').matches || 
+  return window.matchMedia('(display-mode: standalone)').matches ||
          window.navigator.standalone === true;
 };
 
 class CookieManager {
-  // User Details - कम समय के लिए
+  // Set user details
   static setUserDetails(userDetails) {
     if (!userDetails) return;
     
@@ -27,19 +27,21 @@ class CookieManager {
       role: userDetails.role,
     };
     
-   // More aggressive cookie setting for PWA
-  if (isPWA()) {
-    // Set cookie with HTTP only for better security in PWA
-    document.cookie = `user-details=${JSON.stringify(minimalUserData)}; path=/; max-age=${7 * 24 * 60 * 60}`;
-  } else {
-    cookies.set('user-details', minimalUserData, {
-      ...DEFAULT_CONFIG,
-      maxAge: 7 * 24 * 60 * 60 * 1000  // 7 days
-    });
+    // More aggressive cookie setting for PWA
+    if (isPWA()) {
+      // Set cookie with shorter expiration for PWA
+      document.cookie = `user-details=${JSON.stringify(minimalUserData)}; path=/; max-age=${3 * 24 * 60 * 60}`;
+    } else {
+      cookies.set('user-details', minimalUserData, {
+        ...DEFAULT_CONFIG,
+        maxAge: 7 * 24 * 60 * 60 * 1000  // 7 days for regular browser
+      });
+    }
+    
+    // Set auth state marker
+    localStorage.setItem('auth_state', 'logged_in');
+    sessionStorage.setItem('auth_state', 'logged_in');
   }
-   
-  localStorage.setItem('auth_state', 'logged_in');
-}
   
   // Cart Items - temporary storage
   static setCartItems(cartItems) {
@@ -56,18 +58,20 @@ class CookieManager {
   
   // Remove specific cookie with PWA-friendly options
   static remove(name) {
-    // Normal removal
+    // Standard removal methods
     cookies.remove(name, { path: '/' });
-    
-    // Additional options for different environments
     cookies.remove(name, { path: '/', sameSite: 'lax' });
     cookies.remove(name, { path: '/', secure: true, sameSite: 'none' });
     cookies.remove(name, { path: '/', secure: true });
     
-    // For PWA context
-    if (isPWA()) {
-      // Force expiration by setting a past date
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
+    // Force expiration by setting a past date
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
+    
+    // Try with domain variations
+    const domain = window.location.hostname;
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${domain};`;
+    if (domain !== 'localhost') {
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${domain};`;
     }
   }
   
@@ -79,36 +83,36 @@ class CookieManager {
     
     // Aggressively clear all cookies
     cookieNames.forEach(name => {
-      // Standard removal
-      cookies.remove(name, { path: '/' });
-      
-      // Multiple approaches for stubborn cookies
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname};`;
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${window.location.hostname};`;
+      this.remove(name);
     });
     
-    // Clear auth state
+    // Clear auth state markers
     localStorage.removeItem('auth_state');
+    sessionStorage.removeItem('auth_state');
     
     // Set logout timestamp for detection
-    localStorage.setItem('logout_timestamp', Date.now().toString());
-    sessionStorage.setItem('logout_timestamp', Date.now().toString());
+    const timestamp = Date.now().toString();
+    localStorage.setItem('logout_timestamp', timestamp);
+    sessionStorage.setItem('logout_timestamp', timestamp);
+    document.cookie = `logout_timestamp=${timestamp}; path=/; max-age=60;`;
   }
   
   // Check if user should be logged out (for PWA refresh detection)
   static checkPWALogoutState() {
-    const authState = localStorage.getItem('auth_state');
-    const logoutTimestamp = localStorage.getItem('logout_timestamp');
-    const userCookie = this.get('user-details');
-    
-    // If we have a logout timestamp but still have auth cookie in PWA
-    if (logoutTimestamp && userCookie && isPWA()) {
-      // Force cookie removal again
-      this.clearAll();
-      return true;
+    if (isPWA()) {
+      const logoutTimestamp = localStorage.getItem('logout_timestamp');
+      const recentLogout = logoutTimestamp && 
+                          (Date.now() - parseInt(logoutTimestamp) < 60000); // 1 minute
+      
+      const userCookie = this.get('user-details');
+      
+      // Force logout if recent timestamp exists but we still have auth cookie
+      if ((recentLogout && userCookie) || 
+          (localStorage.getItem('logout_in_progress') === 'true')) {
+        this.clearAll();
+        return true;
+      }
     }
-    
     return false;
   }
 }

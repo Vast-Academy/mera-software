@@ -179,6 +179,12 @@ const AppContent = () => {
 
   useEffect(() => {
     const checkLogoutState = () => {
+      // First check if CookieManager detects PWA logout state
+      if (CookieManager.checkPWALogoutState()) {
+        console.log('CookieManager detected logout state, preventing auto-login');
+        return true;
+      }
+      
       // Check for logout in progress or recent logout
       const logoutInProgress = localStorage.getItem('logout_in_progress') === 'true' || 
                              sessionStorage.getItem('logout_in_progress') === 'true' ||
@@ -186,7 +192,7 @@ const AppContent = () => {
                              
       const logoutTimestamp = localStorage.getItem('logout_timestamp');
       const recentLogout = logoutTimestamp && 
-                          (Date.now() - parseInt(logoutTimestamp) < 30000); // Within 30 seconds
+                          (Date.now() - parseInt(logoutTimestamp) < 60000); // Within 60 seconds
       
       // If logout was in progress, prevent auto-login
       if (logoutInProgress || recentLogout) {
@@ -207,6 +213,20 @@ const AppContent = () => {
       return false; // No forced logout needed
     };
     
+    // Check for PWA inconsistency - critical for mobile
+    const appIsInPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                      window.navigator.standalone === true;
+    const authState = localStorage.getItem('auth_state');
+    const userCookie = CookieManager.get('user-details');
+    
+    // Detect inconsistent state: one has auth, the other doesn't
+    if ((authState && !userCookie) || (!authState && userCookie)) {
+      console.log('Detected inconsistent auth state, forcing logout');
+      CookieManager.clearAll();
+      dispatch(logout());
+      return;
+    }
+    
     // Check logout state before attempting to initialize user data
     const wasLoggedOut = checkLogoutState();
     
@@ -220,7 +240,6 @@ const AppContent = () => {
       initializeData();
     }
   }, []);
-
 
   return (
      <Context.Provider value={{

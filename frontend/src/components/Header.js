@@ -16,6 +16,11 @@ import { IoWalletOutline } from "react-icons/io5";
 import CookieManager from '../utils/cookieManager';
 import StorageService from '../utils/storageService';
 
+const isPWA = () => {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         window.navigator.standalone === true;
+};
+
 const Header = () => {
   const user = useSelector(state => state?.user?.user)
   const dispatch = useDispatch()
