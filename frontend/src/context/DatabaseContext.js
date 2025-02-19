@@ -36,24 +36,40 @@ export function DatabaseProvider({ children }) {
   const preserveGuestSlidesOnStartup = () => {
     console.log('Preserving guest slides during initialization');
     try {
-      // Check all possible sources
+      // Check all possible sources with improved format handling
       const sources = [
         { key: 'guestSlides', storage: localStorage },
         { key: 'preservedGuestSlides', storage: localStorage },
-        { key: 'sessionGuestSlides', storage: sessionStorage }
+        { key: 'sessionGuestSlides', storage: sessionStorage },
+        { key: `${LS_PREFIX}apiCache_guest_slides`, storage: localStorage }
       ];
       
-      // Find first valid data source
-      let guestSlidesData = null;
+      // Find first valid data source with proper format handling
+      let bestSlides = null;
+      
       for (const source of sources) {
         try {
           const data = source.storage.getItem(source.key);
           if (data) {
-            const parsed = JSON.parse(data);
-            if (parsed && (Array.isArray(parsed) || parsed.data)) {
-              guestSlidesData = parsed;
-              console.log(`Found guest slides in ${source.key}`);
-              break;
+            let parsedData;
+            try {
+              parsedData = JSON.parse(data);
+            } catch (parseError) {
+              console.error(`Error parsing ${source.key}:`, parseError);
+              continue;
+            }
+            
+            // Handle all possible formats
+            const slides = Array.isArray(parsedData) ? parsedData : 
+                         (parsedData.data && Array.isArray(parsedData.data) ? parsedData.data : null);
+            
+            if (slides && slides.length > 0) {
+              console.log(`Found guest slides in ${source.key}, count:`, slides.length);
+              
+              // Keep the one with most items if multiple sources found
+              if (!bestSlides || slides.length > bestSlides.length) {
+                bestSlides = slides;
+              }
             }
           }
         } catch (e) {
@@ -61,16 +77,22 @@ export function DatabaseProvider({ children }) {
         }
       }
       
-      // If we found data, ensure it's saved to all locations
-      if (guestSlidesData) {
-        const slides = Array.isArray(guestSlidesData) ? guestSlidesData : 
-                       (guestSlidesData.data || null);
-                       
-        if (slides) {
-          // Save to both standard locations
-          localStorage.setItem('guestSlides', JSON.stringify(slides));
-          sessionStorage.setItem('sessionGuestSlides', JSON.stringify(slides));
-        }
+      // If we found data, ensure it's saved to all standard locations
+      if (bestSlides && bestSlides.length > 0) {
+        console.log('Saving best guest slides to all locations, count:', bestSlides.length);
+        
+        // Always save as plain arrays for consistency
+        localStorage.setItem('guestSlides', JSON.stringify(bestSlides));
+        sessionStorage.setItem('sessionGuestSlides', JSON.stringify(bestSlides));
+        
+        // Also save in IndexedDB format
+        localStorage.setItem(`${LS_PREFIX}apiCache_guest_slides`, JSON.stringify({
+          storeName: 'apiCache',
+          key: 'guest_slides',
+          data: bestSlides,
+          priority: 'high',
+          timestamp: new Date().toISOString()
+        }));
       }
     } catch (error) {
       console.error('Error preserving guest slides on startup:', error);
@@ -116,6 +138,7 @@ export function DatabaseProvider({ children }) {
         setIsInitialized(true);
       } catch (error) {
         console.error('Error initializing database:', error);
+        setIsInitialized(true);
       }
     };
 
@@ -202,98 +225,110 @@ export function DatabaseProvider({ children }) {
       }
     },
 
-   clearAll: async () => {
-  try {
-    // 1. First collect ALL guest slides data from multiple sources
-    const guestSlidesData = {};
+    clearAll: async () => {
+      try {
+        // 1. First collect ALL guest slides data from multiple sources
+        let bestGuestSlides = null;
+        const backupSources = [
+          { key: 'guestSlides', storage: localStorage },
+          { key: 'preservedGuestSlides', storage: localStorage },
+          { key: 'sessionGuestSlides', storage: sessionStorage },
+          { key: `${LS_PREFIX}apiCache_guest_slides`, storage: localStorage }
+        ];
+        
+        // Find best available slides from all sources
+        for (const source of backupSources) {
+          try {
+            const data = source.storage.getItem(source.key);
+            if (data) {
+              const parsed = JSON.parse(data);
+              // Handle all possible formats consistently
+              const slides = Array.isArray(parsed) ? parsed : 
+                            (parsed.data && Array.isArray(parsed.data) ? parsed.data : null);
+              
+              if (slides && slides.length > 0) {
+                console.log(`Found slides in ${source.key}, count:`, slides.length);
+                if (!bestGuestSlides || slides.length > bestGuestSlides.length) {
+                  bestGuestSlides = slides;
+                }
+              }
+            }
+          } catch (e) {
+            console.error(`Error reading from ${source.key}:`, e);
+          }
+        }
+        
+        // Important persistent data to preserve
+        const persistentData = {
+          theme: localStorage.getItem('theme'),
+          language: localStorage.getItem('language'),
+          lastLogoutTimestamp: localStorage.getItem('lastLogoutTimestamp')
+        };
     
-    // From localStorage standard key
-    try {
-      const slides = localStorage.getItem('guestSlides');
-      if (slides) guestSlidesData.standard = JSON.parse(slides);
-    } catch (e) {}
+        // 2. Clear localStorage except for preserved keys
+        const keysToKeep = ['theme', 'language', 'lastLogoutTimestamp', 'preservedGuestSlides'];
+        Object.keys(localStorage)
+          .filter(key => !keysToKeep.includes(key))
+          .forEach(key => {
+            localStorage.removeItem(key);
+          });
     
-    // From localStorage backup key
-    try {
-      const preserved = localStorage.getItem('preservedGuestSlides');
-      if (preserved) guestSlidesData.preserved = JSON.parse(preserved);
-    } catch (e) {}
+        // 3. Restore guest slides using best available data
+        if (bestGuestSlides && bestGuestSlides.length > 0) {
+          console.log('Restoring guest slides after cache clear, count:', bestGuestSlides.length);
+          
+          // Save to all relevant locations consistently as arrays
+          localStorage.setItem('guestSlides', JSON.stringify(bestGuestSlides));
+          sessionStorage.setItem('sessionGuestSlides', JSON.stringify(bestGuestSlides));
+          
+          // Also save to hybridCache format
+          localStorage.setItem(`${LS_PREFIX}apiCache_guest_slides`, JSON.stringify({
+            storeName: 'apiCache',
+            key: 'guest_slides',
+            data: bestGuestSlides,
+            priority: 'high',
+            timestamp: new Date().toISOString()
+          }));
+        }
+        
+        // 4. Restore other persistent settings
+        if (persistentData.theme) localStorage.setItem('theme', persistentData.theme);
+        if (persistentData.language) localStorage.setItem('language', persistentData.language);
+        if (persistentData.lastLogoutTimestamp) {
+          localStorage.setItem('lastLogoutTimestamp', persistentData.lastLogoutTimestamp);
+        }
     
-    // From sessionStorage
-    try {
-      const session = sessionStorage.getItem('sessionGuestSlides');
-      if (session) guestSlidesData.session = JSON.parse(session);
-    } catch (e) {}
+        // 5. Clear IndexedDB stores while preserving guest slides
+        if (db) {
+          const stores = ['products', 'categories', 'apiCache', 'userData'];
+          await Promise.all(stores.map(async store => {
+            if (store === 'apiCache') {
+              // For apiCache, only clear non-guest items
+              const allItems = await db.getAll(store);
+              const itemsToDelete = allItems.filter(item => 
+                !item.key.includes('guest_slides')
+              );
+              
+              // Use a slower but safer approach to avoid race conditions
+              for (const item of itemsToDelete) {
+                try {
+                  await db.delete(store, [item.storeName, item.key]);
+                } catch (e) {
+                  console.error(`Error deleting item ${item.key}:`, e);
+                }
+              }
+            } else {
+              await db.clear(store);
+            }
+          }));
+        }
     
-    // From hybrid cache
-    try {
-      const cache = localStorage.getItem(`${LS_PREFIX}apiCache_guest_slides`);
-      if (cache) guestSlidesData.cache = JSON.parse(cache);
-    } catch (e) {}
-    
-    // Additional persistent data
-    const persistentData = {
-      theme: localStorage.getItem('theme'),
-      language: localStorage.getItem('language')
-    };
-
-    // 2. Clear localStorage except for preserved guest slides key
-    Object.keys(localStorage)
-      .filter(key => key !== 'preservedGuestSlides' && key !== 'lastLogoutTimestamp')
-      .forEach(key => {
-        localStorage.removeItem(key);
-      });
-
-    // 3. Restore guest slides using best available data
-    const finalSlides = guestSlidesData.standard || guestSlidesData.session || 
-                       guestSlidesData.preserved || guestSlidesData.cache;
-                       
-    if (finalSlides) {
-      const slides = Array.isArray(finalSlides) ? finalSlides : 
-                    (finalSlides.data || null);
-                    
-      if (slides) {
-        console.log('Restoring guest slides after cache clear');
-        localStorage.setItem('guestSlides', JSON.stringify(slides));
-        localStorage.setItem(`${LS_PREFIX}apiCache_guest_slides`, JSON.stringify({
-          storeName: 'apiCache',
-          key: 'guest_slides',
-          data: slides,
-          priority: 'high',
-          timestamp: new Date().toISOString()
-        }));
+        return true;
+      } catch (error) {
+        console.error('Clear all cache error:', error);
+        return false;
       }
     }
-    
-    // 4. Restore other persistent settings
-    if (persistentData.theme) localStorage.setItem('theme', persistentData.theme);
-    if (persistentData.language) localStorage.setItem('language', persistentData.language);
-
-    // 5. Clear IndexedDB stores except guest slides
-    if (db) {
-      const stores = ['products', 'categories', 'apiCache', 'userData'];
-      await Promise.all(stores.map(async store => {
-        if (store === 'apiCache') {
-          // For apiCache, only clear non-guest items
-          const allItems = await db.getAll(store);
-          const itemsToDelete = allItems.filter(item => 
-            !item.key.includes('guest_slides')
-          );
-          await Promise.all(itemsToDelete.map(item => 
-            db.delete(store, [item.storeName, item.key])
-          ));
-        } else {
-          await db.clear(store);
-        }
-      }));
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Clear all cache error:', error);
-    return false;
-  }
-}
   };
 
   const value = {

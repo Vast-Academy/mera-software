@@ -66,6 +66,9 @@ const StorageService = {
   },
   clearUserData: () => {
     try {
+      // First backup guest slides
+      const guestSlides = StorageService.getGuestSlides();
+      
       // Clear only user-specific data
       localStorage.removeItem(STORAGE_KEYS.USER_DETAILS);
       localStorage.removeItem(STORAGE_KEYS.WALLET_BALANCE);
@@ -78,7 +81,11 @@ const StorageService = {
         }
       });
       
-      // IMPORTANT: Do NOT clear guest slides
+      // Restore guest slides if they existed
+      if (guestSlides && guestSlides.length > 0) {
+        console.log('Restoring guest slides after user data clear');
+        StorageService.setGuestSlides(guestSlides);
+      }
     } catch (error) {
       console.error('Error clearing user data:', error);
     }
@@ -116,15 +123,20 @@ const StorageService = {
   // Guest Slides ke liye
   setGuestSlides: (slides) => {
     try {
-      // Add timestamp to track when slides were last updated
-      const slidesWithTimestamp = {
-        data: slides,
-        timestamp: new Date().toISOString()
-      };
-      localStorage.setItem(STORAGE_KEYS.GUEST_SLIDES, JSON.stringify(slidesWithTimestamp));
+      // Ensure slides is a plain array
+      const slidesArray = Array.isArray(slides) ? slides : 
+                        (slides.data && Array.isArray(slides.data) ? slides.data : null);
+                        
+      if (!slidesArray) {
+        console.error('Invalid slides format for storage:', slides);
+        return;
+      }
       
-      // Also store in sessionStorage as backup
-      sessionStorage.setItem(STORAGE_KEYS.GUEST_SLIDES, JSON.stringify(slidesWithTimestamp));
+      // Store consistently as plain array
+      localStorage.setItem(STORAGE_KEYS.GUEST_SLIDES, JSON.stringify(slidesArray));
+      
+      // Also store in sessionStorage as backup with the same format
+      sessionStorage.setItem(STORAGE_KEYS.GUEST_SLIDES, JSON.stringify(slidesArray));
     } catch (error) {
       console.error('Error storing guest slides:', error);
     }
@@ -146,7 +158,19 @@ const StorageService = {
       
       if (slides) {
         const parsed = JSON.parse(slides);
-        return parsed.data || null;
+        // Handle different possible formats
+        if (Array.isArray(parsed)) {
+          return parsed;
+        } else if (parsed.data && Array.isArray(parsed.data)) {
+          return parsed.data;
+        } else if (typeof parsed === 'object') {
+          // Try to find an array in the object
+          for (const key in parsed) {
+            if (Array.isArray(parsed[key]) && parsed[key].length > 0) {
+              return parsed[key];
+            }
+          }
+        }
       }
       return null;
     } catch (error) {

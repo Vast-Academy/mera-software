@@ -23,9 +23,13 @@ export const userSlice = createSlice({
       state.user = null
       state.walletBalance = 0
       state.initialized = true  // Keep as true after logout since we know user state
+    },
+    // Add this new reducer
+    initializeState: (state) => {
+      state.initialized = true
     }
   }
 })
 
-export const { setUserDetails, updateWalletBalance, logout  } = userSlice.actions
+export const { setUserDetails, updateWalletBalance, logout, initializeState   } = userSlice.actions
 export default userSlice.reducer

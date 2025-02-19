@@ -126,8 +126,30 @@ const AppContent = () => {
   useEffect(() => {
     // Fetch initial data
     const initializeData = async () => {
-      await fetchUserDetails(); // This will also fetch wallet balance
-      await fetchUserAddToCart();
+      try {
+        const userResponse = await fetch(SummaryApi.current_user.url, {
+          method: SummaryApi.current_user.method,
+          credentials: 'include'
+        });
+        
+        // If response is unauthorized (401) or there's any error,
+        // still dispatch logout to ensure initialized=true
+        if (!userResponse.ok) {
+          dispatch(logout());  // This sets initialized=true with null user
+          // Still try to fetch cart count for non-logged in users if needed
+          await fetchUserAddToCart();
+          return;
+        }
+        
+        // Continue with normal flow for logged-in users
+        await fetchUserDetails();
+        await fetchUserAddToCart();
+        
+      } catch (error) {
+        console.error("Error during initialization:", error);
+        // Even on error, ensure the state is initialized
+        dispatch(logout());
+      }
     };
     
     initializeData();

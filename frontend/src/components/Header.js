@@ -16,10 +16,6 @@ import { IoWalletOutline } from "react-icons/io5";
 import CookieManager from '../utils/cookieManager';
 import StorageService from '../utils/storageService';
 
-const isPWA = () => {
-  return window.matchMedia('(display-mode: standalone)').matches || 
-         window.navigator.standalone === true;
-};
 
 const Header = () => {
   const user = useSelector(state => state?.user?.user)
@@ -45,13 +41,13 @@ const Header = () => {
     try {
       // 1. BEFORE ANYTHING ELSE - Save guest slides to multiple locations
       const guestSlides = StorageService.getGuestSlides();
-      if (guestSlides) {
+      if (guestSlides && guestSlides.length > 0) {
         console.log('Preserving guest slides before logout');
         try {
-          // Save to sessionStorage as primary backup during logout
+          // Make sure to save as plain arrays for consistency
           sessionStorage.setItem('sessionGuestSlides', JSON.stringify(guestSlides));
-          // Also save to a special localStorage key that won't be cleared
           localStorage.setItem('preservedGuestSlides', JSON.stringify(guestSlides));
+          localStorage.setItem('guestSlides', JSON.stringify(guestSlides)); 
           // Mark logout timestamp for post-refresh detection
           localStorage.setItem('lastLogoutTimestamp', Date.now().toString());
         } catch (backupError) {
@@ -72,7 +68,7 @@ const Header = () => {
           // 3. Clear cookies
           CookieManager.clearAll();
           
-          // 4. Clear only user data
+          // 4. Clear only user data with the improved method
           StorageService.clearUserData();
           
           // 5. Do a controlled clear of hybridCache to preserve guest slides
@@ -80,19 +76,19 @@ const Header = () => {
             await hybridCache.clearAll();
           }
           
-          // 6. Restore guest slides from our backups if the main key was cleared
+          // 6. Extra verification that guest slides are preserved
+          // Get from the preserved location and restore to main locations
+          const preserved = localStorage.getItem('preservedGuestSlides');
+          const sessionBackup = sessionStorage.getItem('sessionGuestSlides');
+          
           if (!localStorage.getItem('guestSlides')) {
             console.log('Restoring guest slides after cache clear');
-            const preserved = localStorage.getItem('preservedGuestSlides');
-            const sessionBackup = sessionStorage.getItem('sessionGuestSlides');
             
-            // Prioritize preserved data if available
+            // Try preserved first, then session backup
             if (preserved) {
               localStorage.setItem('guestSlides', preserved);
-              StorageService.setGuestSlides(JSON.parse(preserved));
             } else if (sessionBackup) {
               localStorage.setItem('guestSlides', sessionBackup);
-              StorageService.setGuestSlides(JSON.parse(sessionBackup));
             }
           }
           
