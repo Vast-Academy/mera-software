@@ -16,6 +16,7 @@ const UploadCategory = ({
         categoryName: "",
         categoryValue: "",
         serviceType: "",
+        description: "",
         imageUrl: [],
         order: 0,
         isActive: true
@@ -131,8 +132,9 @@ const UploadCategory = ({
                         required
                     />
 
-                    <label htmlFor='serviceType' className='mt-3'>Service Type :</label> 
+                    <label htmlFor='serviceType' className='mt-3'>Service Type:</label>
                     <select
+                        id='serviceType'
                         name="serviceType"
                         value={data.serviceType}
                         onChange={handleOnChange}
@@ -140,9 +142,21 @@ const UploadCategory = ({
                         required
                     >
                         <option value="">Select Service Type</option>
-                        <option value="development">Development Service</option>
-                        <option value="update">Update Service</option>
+                        <option value="Website Development">Website Development</option>
+                        <option value="Mobile App Development">Mobile App Development</option>
+                        <option value="Cloud Software Development">Cloud Software Development</option>
+                        <option value="Features Upgrades Plan">Features Upgrades Plan</option>
                     </select>
+                    
+                    <label htmlFor='description' className='mt-3'>Description:</label>
+                    <textarea
+                        id='description'
+                        placeholder='Enter category description'
+                        name='description'
+                        value={data.description}
+                        onChange={handleOnChange}
+                        className='p-2 bg-slate-100 border rounded min-h-[100px]'
+                    />
 
                     <label htmlFor='order' className='mt-3'>Display Order:</label>
                     <input

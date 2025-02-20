@@ -15,6 +15,15 @@ const categorySchema = new mongoose.Schema({
    required: true,
    unique: true
  },
+ serviceType: {
+  type: String,
+  enum: ['Website Development', 'Mobile App Development', 'Cloud Software Development', 'Features Upgrades Plan'],
+  required: true
+},
+description: {
+  type: String,
+  default: ''
+},
  imageUrl: [],
  order: {
    type: Number,

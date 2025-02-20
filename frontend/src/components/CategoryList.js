@@ -2,14 +2,46 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import SummaryApi from '../common';
 import { useDatabase } from '../context/DatabaseContext';
+import { Monitor, Smartphone, Cloud, Plus, ChevronRight } from 'lucide-react';
 
 const CategoryList = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState(null);
-  // const { db, isCacheValid, isInitialized  } = useDatabase();
   const { hybridCache, isInitialized, isOnline } = useDatabase();
-  const categoryLoading = new Array(6).fill(null);
+  const categoryLoading = new Array(4).fill(null);
+  const [serviceTypes, setServiceTypes] = useState([]);
+
+  // Icon mapping based on service type
+  const getServiceIcon = (serviceType) => {
+    switch (serviceType) {
+      case 'Website Development':
+        return <Monitor className="h-6 w-6 text-indigo-600" />;
+      case 'Mobile App Development':
+        return <Smartphone className="h-6 w-6 text-green-600" />;
+      case 'Cloud Software Development':
+        return <Cloud className="h-6 w-6 text-blue-600" />;
+      case 'Features Upgrades Plan':
+        return <Plus className="h-6 w-6 text-purple-600" />;
+      default:
+        return <Monitor className="h-6 w-6 text-gray-600" />;
+    }
+  };
+
+  // Background color mapping based on service type
+  const getServiceBgColor = (serviceType) => {
+    switch (serviceType) {
+      case 'Website Development':
+        return 'bg-indigo-100';
+      case 'Mobile App Development':
+        return 'bg-green-100';
+      case 'Cloud Software Development':
+        return 'bg-blue-100';
+      case 'Features Upgrades Plan':
+        return 'bg-purple-100';
+      default:
+        return 'bg-gray-100';
+    }
+  };
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -23,7 +55,7 @@ const CategoryList = () => {
         
         if (cachedData) {
           // Immediately show cached data
-          setCategories(cachedData.data);
+          processCategories(cachedData.data);
           setLoading(false);
           
           // If online, fetch fresh data in background
@@ -43,11 +75,39 @@ const CategoryList = () => {
         // On error, try to use cached data as fallback
         const cachedFallback = await hybridCache.get('categories', cacheKey);
         if (cachedFallback?.data) {
-          setCategories(cachedFallback.data);
+          processCategories(cachedFallback.data);
         }
       } finally {
         setLoading(false);
       }
+    };
+
+    const processCategories = (data) => {
+      setCategories(data);
+      
+      // Group by service type and extract unique service types
+      const uniqueServiceTypes = [...new Set(data.map(item => item.serviceType))];
+      
+      // Create a complete service type object with associated categories
+      const serviceTypeObjects = uniqueServiceTypes.map(type => {
+        // Get all categories for this service type
+        const typeCategories = data.filter(cat => cat.serviceType === type);
+        // Find the first category as representative or use default values
+        const representativeCategory = typeCategories[0] || {};
+        
+        return {
+          serviceType: type,
+          icon: getServiceIcon(type),
+          bgColor: getServiceBgColor(type),
+          // Use the first category's description or a generic one
+          description: representativeCategory.description || `Professional ${type.toLowerCase()} services`,
+          categories: typeCategories,
+          // Use first category's route as default (can be changed)
+          defaultCategoryValue: typeCategories.length > 0 ? typeCategories[0].categoryValue : '',
+        };
+      });
+      
+      setServiceTypes(serviceTypeObjects);
     };
 
     const fetchFreshCategories = async (cacheKey) => {
@@ -56,7 +116,7 @@ const CategoryList = () => {
         const data = await response.json();
         
         if (data.success) {
-          setCategories(data.data);
+          processCategories(data.data);
           // Store in hybrid cache with medium priority
           await hybridCache.store('categories', cacheKey, data.data, 'medium');
         }
@@ -71,13 +131,18 @@ const CategoryList = () => {
 
   if (loading) {
     return (
-      <div className="my-6 mx-4 rounded-lg w-auto bg-white">
-        <div className="flex flex-wrap md:flex-nowrap w-full rounded-lg overflow-hidden">
+      <div className="mb-8 mx-4">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Our Services</h2>
+        <div className="grid grid-cols-2 gap-3">
           {categoryLoading.map((_, index) => (
-            <div className="w-1/3 flex items-center justify-center border h-24" key={`loading-${index}`}>
-              <div className="flex flex-col items-center w-full">
-                <div className="w-8 h-8 bg-slate-200 rounded-lg animate-pulse" />
-                <div className="w-12 h-3 bg-slate-200 rounded mt-1 animate-pulse" />
+            <div key={`loading-${index}`} className="bg-gray-100 rounded-xl p-3 animate-pulse">
+              <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center mb-2">
+                <div className="h-4 w-4 bg-gray-200 rounded-full"></div>
+              </div>
+              <div className="h-4 w-24 bg-gray-200 rounded mb-2"></div>
+              <div className="h-3 w-full bg-gray-200 rounded mb-2"></div>
+              <div className="flex items-center">
+                <div className="h-3 w-16 bg-gray-200 rounded"></div>
               </div>
             </div>
           ))}
@@ -87,38 +152,29 @@ const CategoryList = () => {
   }
 
   return (
-    <div className="my-6 mx-4 rounded-lg w-auto bg-white">
-      <div className="flex flex-wrap md:flex-nowrap w-full rounded-lg overflow-hidden">
-        {categories.map((category) => (
+    <section className="mb-8 mx-4">
+      <h2 className="text-xl font-bold text-gray-800 mb-4">Our Services</h2>
+      <div className="grid grid-cols-2 gap-3">
+        {serviceTypes.map((service) => (
           <Link
-            to={`/product-category?category=${category.categoryValue}`}
-            key={category.categoryId}
-            className="w-1/3 flex items-center justify-center h-32 px-3 bg-white border border-gray-50 active:bg-gray-100 md:hover:bg-[#F5EBE4] transition-all duration-200 touch-manipulation"
+            to={`/product-category?category=${service.defaultCategoryValue}`}
+            key={service.serviceType}
+            className={`${service.bgColor} rounded-xl p-3 hover:shadow-sm transition-shadow cursor-pointer flex flex-col`}
           >
-            <div className="flex flex-col items-center w-full h-28">
-              <div className="relative mb-1 pt-2">
-                <div className="" style={{ width: '50px', height: '50px' }}>
-                  <img
-                    src={category?.imageUrl}
-                    alt={category.categoryName}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = 'placeholder-image-url';
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="mt-2 flex items-center justify-center">
-                <span className="text-gray-700 capitalize text-center" style={{ lineHeight: '18px', fontSize: '13px' }}>
-                  {category.categoryName}
-                </span>
-              </div>
+            <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center mb-2">
+              {service.icon}
+            </div>
+            <h3 className="text-sm font-semibold text-gray-800 mb-1">{service.serviceType}</h3>
+            <p className="text-xs text-gray-600 mb-2 flex-grow">
+              {service.description}
+            </p>
+            <div className="flex items-center text-xs font-medium">
+              Learn more <ChevronRight className="ml-1 h-3 w-3" />
             </div>
           </Link>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 
