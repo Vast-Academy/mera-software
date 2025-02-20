@@ -153,6 +153,10 @@ const SummaryApi = {
         url : `${backendDomain}/api/order-details`,
         method: "get"
     },
+    deleteOrder: {
+        url: `${backendDomain}/api/delete-order`,
+        method: "delete"
+    },
     adminProjects : {
         url : `${backendDomain}/api/get-projects`,
         method : "get"

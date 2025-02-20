@@ -53,6 +53,7 @@ const getGuestSlidesController = require('../controller/welcomeBanner/getGuestSl
 const uploadGuestSlidesController = require('../controller/welcomeBanner/uploadGuestSlidesController')
 const getUserWelcomeController = require('../controller/welcomeBanner/getUserWelcomeController')
 const uploadUserWelcomeController = require('../controller/welcomeBanner/uploadUserWelcomeController')
+const adminDeleteOrderController = require('../controller/admin/deleteOrderController')
 // const uploadWelcomeController = require('../controller/welcomeBanner/uploadWelcomeController')
 // const getWelcomeController = require('../controller/welcomeBanner/getWelcomeController')
 // const updateWelcomeController = require('../controller/welcomeBanner/updateWelcomeController')
@@ -110,6 +111,7 @@ router.get("/all-order",authToken, allOrderController)
 router.post("/create-order", authToken, createOrder)
 router.get("/get-order", authToken, getUserOrders)
 router.get("/order-details/:orderId", authToken, getOrderDetails)
+router.delete("/delete-order/:orderId", authToken, adminDeleteOrderController)
 
 // ads
 router.post("/upload-ad", authToken, UploadAdController)

@@ -1,24 +1,45 @@
-const Order = require("../../models/orderProductModel"); // orderProductModel use करें
+const Order = require("../../models/orderProductModel");
+const Transaction = require("../../models/transactionModel");
 
 const getWalletHistoryController = async (req, res) => {
     try {
+        // Get order-related transactions (payments)
         const orders = await Order.find({ userId: req.userId })
-            .populate('productId', 'serviceName category') // serviceName (not servicetName)
+            .populate('productId', 'serviceName category')
             .sort({ createdAt: -1 });
 
-        const walletHistory = orders.map(order => ({
-            _id: order._id,
-            amount: order.price * order.quantity,
+        const orderTransactions = orders.map(order => ({
+            id: order._id,
+            amount: -(order.price * order.quantity),
+            type: 'payment',
             productId: {
-                serviceName: order.productId?.serviceName, // serviceName से map करें
+                serviceName: order.productId?.serviceName,
             },
             date: order.createdAt,
             quantity: order.quantity
         }));
 
+        // Get refund and deposit transactions
+        const walletTransactions = await Transaction.find({
+            userId: req.userId
+        }).sort({ createdAt: -1 });
+
+        const otherTransactions = walletTransactions.map(transaction => ({
+            id: transaction._id,
+            amount: transaction.amount,
+            type: transaction.type,
+            description: transaction.description,
+            relatedOrderId: transaction.relatedOrderId,
+            date: transaction.createdAt
+        }));
+
+        // Combine and sort all transactions by date
+        const combinedHistory = [...orderTransactions, ...otherTransactions]
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
         res.status(200).json({
             message: "Wallet history fetched successfully",
-            data: walletHistory,
+            data: combinedHistory,
             success: true,
             error: false
         });
@@ -32,4 +53,4 @@ const getWalletHistoryController = async (req, res) => {
     }
 };
 
-module.exports = getWalletHistoryController
+module.exports = getWalletHistoryController;
