@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import SummaryApi from '../common';
 import { useDatabase } from '../context/DatabaseContext';
 import StorageService from '../utils/storageService';
+import { FileText, Clock, ExternalLink } from "lucide-react";
 
 const AppConvertingBanner = () => {
   const navigate = useNavigate();
@@ -711,68 +712,95 @@ return (
 
         {/* Orders View - Show when user has orders */}
         {user?._id && dataInitialized && orders?.length > 0 &&(
-          <div className="px-4">
-            <div
-              className="bg-white rounded-lg hover:shadow-lg transition-shadow cursor-pointer p-3"
-              onClick={() => handleOrderClick(orders[0]._id)}
-            >
-              {/* Order content */}
-              <div className="flex justify-between items-start">
-                <div className="flex-1 pr-4">
-                  <div className="mb-4">
-                    <h3 className="text-xl font-medium text-gray-900">
-                      {orders[0].productId?.serviceName}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      • {orders[0].productId?.category?.split('_').join(' ')}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      #{orders[0]._id.slice(-6)}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center text-sm text-gray-600">
-                    <BsCalendar3 className="h-4 w-4 text-blue-500 mr-2" />
-                    <div>
-                      <span>Started: </span>
-                      <span>{formatDate(orders[0].createdAt)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progress Circle */}
-                <div className="relative w-24 h-24 flex-shrink-0">
-                  <svg className="w-full h-full" viewBox="0 0 36 36">
-                    <path
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="#E5E7EB"
-                      strokeWidth="3"
-                    />
-                    <path
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="#3B82F6"
-                      strokeWidth="3"
-                      strokeDasharray={`${orders[0].projectProgress}, 100`}
-                      strokeLinecap="round"
-                    />
-                    <text
-                      x="18"
-                      y="20.35"
-                      className="font-base"
-                      textAnchor="middle"
-                      fill="#374151"
-                      style={{ fontSize: '9px' }}
-                    >
-                      {orders[0].projectProgress}%
-                    </text>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+         <div className="px-4">
+         <div className="w-full bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+           <div className="p-4">
+             <div className="flex justify-between items-start">
+               <div>
+                 <div className="flex items-center">
+                   <FileText className="h-5 w-5 text-teal-500 mr-2" />
+                   <h2 className="text-base font-bold text-gray-800">
+                     {orders[0].productId?.serviceName}
+                   </h2>
+                 </div>
+                 <p className="text-sm text-gray-500 mt-0.5 ml-7">
+                   {orders[0].productId?.category?.split('_').join(' ')}
+                 </p>
+               </div>
+               <div className="bg-gray-50 rounded-md px-2 py-0.5 border border-gray-200">
+                 <span className="text-xs text-gray-500">#{orders[0]._id.slice(-6)}</span>
+               </div>
+             </div>
+             
+             <div className="mt-5 grid grid-cols-3 gap-3">
+               <div className="bg-gray-50 rounded-md p-2 border border-gray-100">
+                 <div className="flex items-center justify-between mb-1">
+                   <span className="text-xs font-medium text-gray-600">Progress</span>
+                   <span className="text-xs font-bold text-teal-600">{orders[0].projectProgress}%</span>
+                 </div>
+                 <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                   <div 
+                     className="h-full bg-gradient-to-r from-teal-500 to-teal-400 rounded-full transition-all duration-1000"
+                     style={{ width: `${orders[0].projectProgress}%` }}
+                   />
+                 </div>
+               </div>
+               <div className="bg-gray-50 rounded-md p-2 border border-gray-100">
+                 <div className="flex items-center justify-between mb-1">
+                   <span className="text-xs font-medium text-gray-600">Tasks</span>
+                   <span className="text-xs font-bold text-teal-600">
+                     {orders[0].checkpoints ? 
+                       `${orders[0].checkpoints.filter(cp => cp.completed).length}/${orders[0].checkpoints.length}` : 
+                       "0/0"}
+                   </span>
+                 </div>
+                 <div className="flex items-end h-6 space-x-1">
+                   {[15, 25, 40, 30, 42, 35, 50, 45, 60].map((height, i) => (
+                     <div 
+                       key={i} 
+                       className="w-1 bg-teal-400 rounded-t"
+                       style={{height: `${height}%`}}
+                     ></div>
+                   ))}
+                 </div>
+               </div>
+               <div className="bg-gray-50 rounded-md p-2 border border-gray-100">
+                 <div className="flex items-center justify-between mb-1">
+                   <span className="text-xs font-medium text-gray-600">Time</span>
+                   <span className="text-xs font-bold text-teal-600">8d left</span>
+                 </div>
+                 <div className="relative h-6">
+                   <div className="absolute inset-0 flex items-center">
+                     <div className="h-1 w-full bg-gray-200 rounded"></div>
+                   </div>
+                   <div className="absolute inset-0 flex items-center">
+                     <div className="h-1 rounded bg-teal-400" style={{width: '65%'}}></div>
+                   </div>
+                   <div className="absolute h-3 w-3 rounded-full bg-teal-500 border-2 border-white shadow-md" 
+                        style={{left: '65%', top: '50%', transform: 'translate(-50%, -50%)'}}></div>
+                 </div>
+               </div>
+             </div>
+             
+             <div className="mt-4 pt-3 border-t border-gray-100">
+               <div className="flex justify-between items-center">
+                 <div className="flex items-center text-sm text-gray-500">
+                   <Clock className="h-4 w-4 mr-1.5 text-teal-500" />
+                   <span>Started: {formatDate(orders[0].createdAt)}</span>
+                 </div>
+                 <button 
+                   className="flex items-center text-sm text-teal-600 font-medium hover:text-teal-700 transition-colors"
+                   onClick={() => handleOrderClick(orders[0]._id)}
+                 >
+                   <span>View Details</span>
+                   <ExternalLink className="ml-1 h-4 w-4" />
+                 </button>
+               </div>
+             </div>
+           </div>
+         </div>
+       </div>
+     )}
 
         {/* User Welcome View - Show when user is logged in but has no orders */}
         {user?._id && dataInitialized && orders?.length === 0 && userWelcome &&(
