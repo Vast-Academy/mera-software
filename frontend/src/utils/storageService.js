@@ -4,7 +4,17 @@ const STORAGE_KEYS = {
   CART_COUNT: 'cartCount',
   GUEST_SLIDES: 'guestSlides',
   USER_ORDERS: 'userOrders',
-  USER_WELCOME: 'userWelcome'
+  USER_WELCOME: 'userWelcome',
+  PRODUCTS_DATA: 'productsData',
+  PRODUCT_BANNERS: 'productBanners',
+  PRODUCT_CATEGORIES: 'productCategories',
+  CACHE_TIMESTAMP: 'cacheTimestamp'
+};
+
+const CACHE_EXPIRY = {
+  PRODUCTS: 30 * 60 * 1000, // 30 minutes
+  BANNERS: 60 * 60 * 1000,  // 1 hour
+  CATEGORIES: 24 * 60 * 60 * 1000 // 24 hours
 };
 
 const StorageService = {
@@ -64,6 +74,7 @@ const StorageService = {
       return 0;
     }
   },
+
   clearUserData: () => {
     try {
       // First backup guest slides
@@ -215,7 +226,138 @@ getUserWelcome: () => {
     console.error('Error getting user welcome:', error);
     return null;
   }
-}
-};
+},
 
+// Products Data ke liye
+setProductsData: (category, products) => {
+  try {
+    const key = `${STORAGE_KEYS.PRODUCTS_DATA}_${category}`;
+    const storageItem = {
+      data: products,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(key, JSON.stringify(storageItem));
+  } catch (error) {
+    console.error(`Error storing products data for ${category}:`, error);
+  }
+},
+
+getProductsData: (category) => {
+  try {
+    const key = `${STORAGE_KEYS.PRODUCTS_DATA}_${category}`;
+    const item = localStorage.getItem(key);
+    
+    if (!item) return null;
+    
+    const parsedItem = JSON.parse(item);
+    
+    // Check if cache has expired
+    if (Date.now() - parsedItem.timestamp > CACHE_EXPIRY.PRODUCTS) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    
+    return parsedItem.data;
+  } catch (error) {
+    console.error(`Error getting products data for ${category}:`, error);
+    return null;
+  }
+},
+
+// Product Banners ke liye
+setProductBanners: (category, banners) => {
+  try {
+    const key = `${STORAGE_KEYS.PRODUCT_BANNERS}_${category}`;
+    const storageItem = {
+      data: banners,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(key, JSON.stringify(storageItem));
+    
+    // Also store in sessionStorage as backup
+    sessionStorage.setItem(key, JSON.stringify(storageItem));
+  } catch (error) {
+    console.error(`Error storing product banners for ${category}:`, error);
+  }
+},
+
+getProductBanners: (category) => {
+  try {
+    // Try localStorage first
+    const key = `${STORAGE_KEYS.PRODUCT_BANNERS}_${category}`;
+    let item = localStorage.getItem(key);
+    
+    // If not in localStorage, try sessionStorage
+    if (!item) {
+      item = sessionStorage.getItem(key);
+      // If found in sessionStorage, restore to localStorage
+      if (item) {
+        localStorage.setItem(key, item);
+      }
+    }
+    
+    if (!item) return null;
+    
+    const parsedItem = JSON.parse(item);
+    
+    // Check if cache has expired
+    if (Date.now() - parsedItem.timestamp > CACHE_EXPIRY.BANNERS) {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+      return null;
+    }
+    
+    return parsedItem.data;
+  } catch (error) {
+    console.error(`Error getting product banners for ${category}:`, error);
+    return null;
+  }
+},
+
+// Cache utilities
+isCacheValid: (key, maxAge = CACHE_EXPIRY.PRODUCTS) => {
+  try {
+    const timestampKey = `${key}_${STORAGE_KEYS.CACHE_TIMESTAMP}`;
+    const timestamp = localStorage.getItem(timestampKey);
+    if (!timestamp) return false;
+    
+    return (Date.now() - parseInt(timestamp)) < maxAge;
+  } catch (error) {
+    console.error(`Error checking cache validity for ${key}:`, error);
+    return false;
+  }
+},
+updateCacheTimestamp: (key) => {
+  try {
+    const timestampKey = `${key}_${STORAGE_KEYS.CACHE_TIMESTAMP}`;
+    localStorage.setItem(timestampKey, Date.now().toString());
+  } catch (error) {
+    console.error(`Error updating cache timestamp for ${key}:`, error);
+  }
+},
+
+clearProductCache: () => {
+  try {
+    // Clear all product-related items
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith(`${STORAGE_KEYS.PRODUCTS_DATA}_`) || 
+          key.startsWith(`${STORAGE_KEYS.PRODUCT_BANNERS}_`) ||
+          key.includes(STORAGE_KEYS.CACHE_TIMESTAMP)) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // Also clear from sessionStorage
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith(`${STORAGE_KEYS.PRODUCT_BANNERS}_`)) {
+        sessionStorage.removeItem(key);
+      }
+    });
+    
+    console.log('Product cache cleared successfully');
+  } catch (error) {
+    console.error('Error clearing product cache:', error);
+    }
+  }
+}
 export default StorageService;

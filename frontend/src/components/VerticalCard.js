@@ -1,12 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import SummaryApi from '../common'
-import TriangleMazeLoader from '../components/TriangleMazeLoader'
+import StorageService from '../utils/storageService'
+// import TriangleMazeLoader from '../components/TriangleMazeLoader'
 
-const VerticalCard = ({loading, data = [], currentCategory = ''}) => {
-    const loadingList = new Array(8).fill(null);
+const VerticalCard = ({loading: initialLoading, data: initialData = [], currentCategory = ''}) => {
+    const loadingList = new Array(6).fill(null);
     const [banners, setBanners] = useState([]);
-    const [initialLoading, setInitialLoading] = useState(true);
+    const [loading, setLoading] = useState(initialLoading);
+    const [data, setData] = useState(initialData);
+    const [isDataFromCache, setIsDataFromCache] = useState(false);
 
     // Function to shuffle array
     const shuffleArray = (array) => {
@@ -19,17 +22,40 @@ const VerticalCard = ({loading, data = [], currentCategory = ''}) => {
     };
 
     useEffect(() => {
-        const init = async () => {
-            // Show initial loader for 1.5 seconds
-            setInitialLoading(true);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            setInitialLoading(false);
+        const loadDataWithCache = async () => {
+            // Only try to use cache if no initial data was provided
+            if (initialData.length === 0) {
+                const cachedProducts = StorageService.getProductsData(currentCategory);
+                
+                if (cachedProducts && cachedProducts.length > 0) {
+                    console.log('Using cached products data');
+                    setData(cachedProducts);
+                    setIsDataFromCache(true);
+                    setLoading(false);
+                }
+            } else {
+                // If data is provided as prop, use it
+                setData(initialData);
+                setLoading(false);
+            }
         };
-        init();
-    }, []);
+        
+        loadDataWithCache();
+    }, [initialData, currentCategory]);
 
-    useEffect(() => {
+
+     useEffect(() => {
         const fetchBanners = async () => {
+            // Try to get banners from localStorage first
+            const cachedBanners = StorageService.getProductBanners(currentCategory);
+            
+            if (cachedBanners) {
+                console.log('Using cached banners data');
+                setBanners(cachedBanners);
+                return;
+            }
+            
+            // If not in cache or expired, fetch from API
             try {
                 const response = await fetch(SummaryApi.allBanner.url);
                 const responseData = await response.json();
@@ -54,6 +80,9 @@ const VerticalCard = ({loading, data = [], currentCategory = ''}) => {
                     });
 
                     setBanners(groupedBanners);
+                    
+                    // Store in localStorage for future use
+                    StorageService.setProductBanners(currentCategory, groupedBanners);
                 }
             } catch (error) {
                 console.error("Error fetching banners:", error);
@@ -98,12 +127,24 @@ const VerticalCard = ({loading, data = [], currentCategory = ''}) => {
         return null;
     }, [banners]);
 
-    if (initialLoading) {
+    if (loading && data.length === 0 && !isDataFromCache) {
         return (
-            <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
-                <div className="rounded-lg p-8">
-                    <TriangleMazeLoader />
-                </div>
+            <div className='grid grid-cols-1 gap-6 px-2 pb-4 mb-28'>
+                {loadingList.map((_, index) => (
+                    <div key={index} className='w-full min-w-[280px] md:min-w-[320px] max-w-[280px] md:max-w-[320px] bg-white rounded-sm'>
+                        <div className='bg-slate-200 h-40 p-4 min-w-[280px] md:min-w-[145px] flex justify-center items-center animate-pulse'>
+                        </div>
+                        <div className='p-4 grid gap-3 w-full'>
+                            <h2 className='font-medium text-base md:text-lg text-ellipis line-clamp-1 text-black p-1 animate-pulse rounded-full bg-slate-200 py-2'></h2>
+                            <p className='capitalize text-slate-500 py-2 animate-pulse rounded-full bg-slate-200 p-1'></p>
+                            <div className='flex gap-3'>
+                                <p className='text-red-600 font-medium p-1 animate-pulse rounded-full bg-slate-200 w-full py-2'></p>
+                                <p className='text-slate-500 line-through p-1 animate-pulse rounded-full bg-slate-200 w-full py-2'></p>
+                            </div>
+                            <button className='text-sm text-white px-3 p-1 animate-pulse rounded-full bg-slate-200 py-2'></button>
+                        </div>
+                    </div>
+                ))}
             </div>
         );
     }
@@ -142,32 +183,11 @@ const VerticalCard = ({loading, data = [], currentCategory = ''}) => {
     </div>
 )}
 
-            {loading ? (
-                loadingList.map((_, index) => (
-                    <div key={index} className='w-full min-w-[280px] md:min-w-[320px] max-w-[280px] md:max-w-[320px] bg-white rounded-sm'>
-                        <div className='bg-slate-200 h-40 p-4 min-w-[280px] md:min-w-[145px] flex justify-center items-center animate-pulse'>
-                        </div>
-                        <div className='p-4 grid gap-3 w-full'>
-                            <h2 className='font-medium text-base md:text-lg text-ellipis line-clamp-1 text-black p-1 animate-pulse rounded-full bg-slate-200 py-2'></h2>
-                            <p className='capitalize text-slate-500 py-2 animate-pulse rounded-full bg-slate-200 p-1'></p>
-                            <div className='flex gap-3'>
-                                <p className='text-red-600 font-medium p-1 animate-pulse rounded-full bg-slate-200 w-full py-2'></p>
-                                <p className='text-slate-500 line-through p-1 animate-pulse rounded-full bg-slate-200 w-full py-2'></p>
-                            </div>
-                            <button className='text-sm text-white px-3 p-1 animate-pulse rounded-full bg-slate-200 py-2'></button>
-                        </div>
-                    </div>
-                ))
-            ) : (
-                // Rest of your existing render code for data...
-                data.map((product, index) => (
-                    <React.Fragment key={product._id || index}>
+           {/* Map through data items */}
+           {data.map((product, index) => (
+                <React.Fragment key={product._id || index}>
                     <Link to={"/product/"+product?._id} className="bg-white p-3 rounded-lg block border border-gray-200">
                         <div className="space-y-2.5">
-                            {/* <div className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full w-fit">
-                                MOST POPULAR  
-                            </div> */}
-
                             <div className="flex justify-between items-start gap-2">
                                 <div>
                                     <h3 className="font-bold text-lg">{product?.serviceName}</h3>
@@ -199,50 +219,48 @@ const VerticalCard = ({loading, data = [], currentCategory = ''}) => {
                                         ₹{(product?.price || 34000).toLocaleString()}
                                     </span>
                                     <span className="text-green-600 text-sm">
-                                    {Math.round(((product.price - product.sellingPrice) / product.price) * 100)}% OFF
+                                        {Math.round(((product.price - product.sellingPrice) / product.price) * 100)}% OFF
                                     </span>
                                 </div>
                             </div>
                         </div>
                     </Link>
 
-                     {/* Show banner after card if exists */}
-
-                     {getBannerForPosition(index) && (
-    <div 
-        className={`h-auto md:h-auto w-full bg-slate-200 relative rounded-lg cursor-pointer ${getBannerForPosition(index).targetUrl ? 'cursor-pointer' : ''}`}
-        onClick={() => {
-            const banner = getBannerForPosition(index);
-            if (banner.targetUrl) {
-                window.open(banner.targetUrl, '_blank', 'noopener,noreferrer');
-            }
-        }}
-    >
-        {/* desktop version */}
-        <div className="hidden md:flex h-full w-full overflow-hidden">
-            <div className='w-full h-full min-h-full min-w-full'>
-                <img 
-                    src={getBannerForPosition(index).currentImage}
-                    alt={`Banner after card ${index + 1}`}
-                    className="w-full h-full object-cover rounded-lg"
-                />
-            </div>
-        </div>
-        {/* mobile version */}
-        <div className="flex h-full w-full overflow-hidden md:hidden rounded-lg">
-            <div className='w-full h-full min-h-full min-w-full transition-all'>
-                <img 
-                    src={getBannerForPosition(index).currentImage}
-                    alt={`Banner after card ${index + 1}`}
-                    className="w-full h-full object-cover rounded-lg"
-                />
-            </div>
-        </div>
-    </div>
-)}
+                    {/* Show banner after card if exists */}
+                    {getBannerForPosition(index) && (
+                        <div 
+                            className={`h-auto md:h-auto w-full bg-slate-200 relative rounded-lg ${getBannerForPosition(index).targetUrl ? 'cursor-pointer' : ''}`}
+                            onClick={() => {
+                                const banner = getBannerForPosition(index);
+                                if (banner.targetUrl) {
+                                    window.open(banner.targetUrl, '_blank', 'noopener,noreferrer');
+                                }
+                            }}
+                        >
+                            {/* desktop version */}
+                            <div className="hidden md:flex h-full w-full overflow-hidden">
+                                <div className='w-full h-full min-h-full min-w-full'>
+                                    <img 
+                                        src={getBannerForPosition(index).currentImage}
+                                        alt={`Banner after card ${index + 1}`}
+                                        className="w-full h-full object-cover rounded-lg"
+                                    />
+                                </div>
+                            </div>
+                            {/* mobile version */}
+                            <div className="flex h-full w-full overflow-hidden md:hidden rounded-lg">
+                                <div className='w-full h-full min-h-full min-w-full transition-all'>
+                                    <img 
+                                        src={getBannerForPosition(index).currentImage}
+                                        alt={`Banner after card ${index + 1}`}
+                                        className="w-full h-full object-cover rounded-lg"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </React.Fragment>
-                ))
-            )}
+            ))}
         </div>
     );
 }

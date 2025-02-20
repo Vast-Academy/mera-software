@@ -1,35 +1,109 @@
 import React, { useEffect, useState } from 'react'
-import { replace, useLocation, useNavigate } from 'react-router-dom'
-// import productCategory from '../helpers/productCategory'
+import { useLocation, useNavigate } from 'react-router-dom'
 import VerticalCard from '../components/VerticalCard'
 import SummaryApi from '../common'
 import SingleBanner from '../components/SingleBanner'
+import StorageService from '../utils/storageService'
 
 const CategoryProduct = () => {
-    const [data,setData] = useState([])
+    const [data, setData] = useState([])
     const navigate = useNavigate()
-    const [loading,setLoading] = useState(false)
+    const [loading, setLoading] = useState(false)
     const location = useLocation()
     const urlSearch = new URLSearchParams(location.search)
     const urlCategoryListinArray = urlSearch.getAll("category")
-
     const urlCategoryListObject = {}
     urlCategoryListinArray.forEach(el =>{
       urlCategoryListObject[el] = true
     })
-
-
-    const [selectCategory,setSelectCategory] = useState(urlCategoryListObject)
-    const [filterCategoryList,setFilterCategoryList] = useState([])
-
-    const [sortBy,setSortBy] = useState("")
+    const [selectCategory, setSelectCategory] = useState(urlCategoryListObject)
+    const [filterCategoryList, setFilterCategoryList] = useState([])
+    const [sortBy, setSortBy] = useState("")
+    const [isDataFromCache, setIsDataFromCache] = useState(false)
+    
+    // Helper function to get category key for storage
+    const getCategoryKey = (categories) => {
+      return categories.sort().join('_');
+    };
+    
+    // Background refresh of data
+    const fetchFreshDataInBackground = async (categoryKey) => {
+      if (filterCategoryList.length === 0) return;
+      
+      try {
+        const response = await fetch(SummaryApi.filterProduct.url, {
+          method: SummaryApi.filterProduct.method,
+          headers: {
+            "content-type": "application/json"
+          },
+          body: JSON.stringify({
+            category: filterCategoryList
+          })
+        });
+        const dataResponse = await response.json();
+        const freshData = dataResponse?.data || [];
+        
+        // Only update if data is different
+        if (JSON.stringify(freshData) !== JSON.stringify(data) && freshData.length > 0) {
+          console.log('Updating data from background fetch');
+          
+          // Apply current sort if any
+          if(sortBy === 'asc') {
+            freshData.sort((a, b) => a.sellingPrice - b.sellingPrice);
+          } else if(sortBy === 'dsc') {
+            freshData.sort((a, b) => b.sellingPrice - a.sellingPrice);
+          }
+          
+          setData(freshData);
+          
+          // Store the fresh data in localStorage
+          StorageService.setProductsData(categoryKey, freshData);
+        }
+      } catch (error) {
+        console.error('Error refreshing data in background:', error);
+      }
+    };
 
     useEffect(() => {
       let isSubscribed = true;
       
       const fetchData = async () => {
+        if (filterCategoryList.length === 0) return;
+        
+        const categoryKey = getCategoryKey(filterCategoryList);
+        
         try {
           setLoading(true);
+          
+          // First try to get data from localStorage
+          const cachedData = StorageService.getProductsData(categoryKey);
+          
+          if (cachedData && cachedData.length > 0) {
+            console.log('Using cached product data');
+            
+            // Apply current sort
+            let sortedData = [...cachedData];
+            if(sortBy === 'asc') {
+              sortedData.sort((a, b) => a.sellingPrice - b.sellingPrice);
+            } else if(sortBy === 'dsc') {
+              sortedData.sort((a, b) => b.sellingPrice - a.sellingPrice);
+            }
+            
+            if (isSubscribed) {
+              setData(sortedData);
+              setIsDataFromCache(true);
+              setLoading(false);
+            }
+            
+            // Refresh data in background after a short delay
+            setTimeout(() => {
+              fetchFreshDataInBackground(categoryKey);
+            }, 1000);
+            
+            return;
+          }
+          
+          // If no cached data or cache invalid, fetch from API
           const response = await fetch(SummaryApi.filterProduct.url, {
             method: SummaryApi.filterProduct.method,
             headers: {
@@ -42,12 +116,28 @@ const CategoryProduct = () => {
     
           const dataResponse = await response.json();
           if (isSubscribed) {
-            setData(dataResponse?.data || []);
-            console.log(dataResponse);
+            const responseData = dataResponse?.data || [];
+            
+            // Apply sort if needed
+            if(sortBy === 'asc') {
+              responseData.sort((a, b) => a.sellingPrice - b.sellingPrice);
+            } else if(sortBy === 'dsc') {
+              responseData.sort((a, b) => b.sellingPrice - a.sellingPrice);
+            }
+            
+            setData(responseData);
+            
+            // Store fetched data in localStorage
+            if (responseData.length > 0) {
+              StorageService.setProductsData(categoryKey, responseData);
+              // Update cache timestamp
+              StorageService.updateCacheTimestamp(categoryKey);
+            }
+            
             setLoading(false);
           }
         } catch (error) {
-          console.error(error);
+          console.error('Error fetching product data:', error);
           if (isSubscribed) {
             setLoading(false);
           }
@@ -59,24 +149,22 @@ const CategoryProduct = () => {
       return () => {
         isSubscribed = false;
       };
-    }, [filterCategoryList]);
+    }, [filterCategoryList, sortBy]);
 
+    const handleSelectCategory = (e) => {
+      const { value, checked } = e.target
 
-    const handleSelectCategory = (e) =>{
-      const { name, value, checked } = e.target
-
-      setSelectCategory((preve)=>{
-        return{
-          ...preve,
-          [value] : checked
+      setSelectCategory((prev) => {
+        return {
+          ...prev,
+          [value]: checked
         }
       })
     }
 
-
-    useEffect(()=>{
-      const arrayOfCategory = Object.keys(selectCategory).map(categoryKeyName=>{
-        if(selectCategory[categoryKeyName]){
+    useEffect(() => {
+      const arrayOfCategory = Object.keys(selectCategory).map(categoryKeyName => {
+        if(selectCategory[categoryKeyName]) {
           return categoryKeyName
         }
         return null
@@ -84,34 +172,34 @@ const CategoryProduct = () => {
 
       setFilterCategoryList(arrayOfCategory)
 
-      // format for url change when change on the checkbox
-      const urlFormat = arrayOfCategory.map((el,index) => {
-        if((arrayOfCategory.length - 1) === index ){
+      // Format for url change when change on the checkbox
+      const urlFormat = arrayOfCategory.map((el, index) => {
+        if((arrayOfCategory.length - 1) === index) {
           return `category=${el}`
         }
         return `category=${el}&&`
       })
-      navigate("/product-category?"+urlFormat.join(""), {replace: true})
-    },[selectCategory])
+      navigate("/product-category?" + urlFormat.join(""), {replace: true})
+    }, [selectCategory, navigate])
     
-
     const handleOnChangeSortBy = (e) => {
       const { value } = e.target
-
       setSortBy(value)
 
-      if(value === 'asc'){
-        setData(preve => preve.sort((a,b)=>a.sellingPrice - b.sellingPrice))
+      if(value === 'asc') {
+        setData(prev => [...prev].sort((a,b) => a.sellingPrice - b.sellingPrice))
       }
 
-      if(value === 'dsc'){
-        setData(preve => preve.sort((a,b)=>b.sellingPrice - a.sellingPrice))
+      if(value === 'dsc') {
+        setData(prev => [...prev].sort((a,b) => b.sellingPrice - a.sellingPrice))
+      }
+      
+      // If we got data from cache, also update the cache with sorted data
+      if (isDataFromCache && filterCategoryList.length > 0) {
+        const categoryKey = getCategoryKey(filterCategoryList);
+        StorageService.setProductsData(categoryKey, data);
       }
     }
-
-    useEffect(()=>{
-
-    },[sortBy])
 
     const generateServiceName = () => {
       // Check for each category and return the corresponding service name
@@ -144,70 +232,28 @@ const CategoryProduct = () => {
       return "";
     }
     
-  return (
-    <div className='container mx-auto px-4'>
-    <SingleBanner
-     serviceName={generateServiceName()}
-     bannerType="top"
-      />
-
-      
-      {/* Desktop Version */}
-       {/* <div className='hidden lg:grid grid-cols-[200px,1fr]'> */}
-        {/* left side */}
-        {/* <div className='bg-white p-2 min-h-[calc(100vh-120px)] overflow-y-scroll'> */}
-         {/* sort by */}
-          {/* <div>
-            <h3 className='text-base uppercase font-medium text-slate-500 border-b pb-1 border-slate-300'>Sort by</h3>
-            
-            <form className='text-sm flex flex-col gap-2 py-2'>
-              <div className='flex items-center gap-3'>
-                <input type='radio' name='sortBy' checked={sortBy === 'asc'} onChange={handleOnChangeSortBy} value={"asc"} />
-                <label>Price - Low to High</label>
-              </div>
-
-              <div className='flex items-center gap-3'>
-                <input type='radio' name='sortBy' checked={sortBy === 'dsc'} onChange={handleOnChangeSortBy} value={"dsc"}/>
-                <label>Price - High to Low</label>
-              </div>
-            </form>
-          </div> */}
-
-          {/* filter by */}
-          {/* <div>
-            <h3 className='text-base uppercase font-medium text-slate-500 border-b pb-1 border-slate-300'>Category</h3>
-            
-            <form className='text-sm flex flex-col gap-2 py-2'>
-              {
-                productCategory.map((categoryName,index)=>{
-                  return(
-                    <div className='flex items-center gap-3' key={categoryName.value}>
-                      <input type='checkbox' name={"category"} checked={selectCategory[categoryName?.value]} value={categoryName?.value} id={categoryName?.value} onChange={handleSelectCategory}/>
-                      <label htmlFor={categoryName?.value}>{categoryName?.label}</label>
-                    </div>
-                  )
-                })
-              }
-            </form>
-          </div> */}
-
-        {/* </div> */}
-
+    return (
+      <div className='container mx-auto px-4'>
+        <SingleBanner
+          serviceName={generateServiceName()}
+          bannerType="top"
+        />
+          
         <div>
-        {/* <p className='font-medium text-slate-800 text-lg my-2'>Search Results : {data.length}</p> */}
-        <div >
-        {
-          data.length !== 0 && (
-            <VerticalCard data={data} loading={loading} currentCategory={generateServiceName()}/>
-          )
-        }
+          <div>
+            {/* 
+              Render VerticalCard even when data is empty but loading
+              This allows VerticalCard to show loading state or cached data
+            */}
+            <VerticalCard 
+              data={data} 
+              loading={loading} 
+              currentCategory={generateServiceName()}
+            />
+          </div>
         </div>
-
-        </div>
-
-       {/* </div> */}
-    </div>
-  )
+      </div>
+    )
 }
 
-export default CategoryProduct
+export default CategoryProduct  
