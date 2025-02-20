@@ -160,9 +160,9 @@ const AdminEditCategory = ({
                     >
                         <option value="">Select Service Type</option>
                         <option value="Websites Development">Websites Development</option>
-                        <option value="Mobile App Development">Mobile App Development</option>
-                        <option value="Cloud Software Development">Cloud Software Development</option>
-                        <option value="Features Upgrades Plan">Features Upgrades Plan</option>
+                        <option value="Mobile Apps">Mobile Apps</option>
+                        <option value="Cloud Softwares">Cloud Softwares</option>
+                        <option value="Feature Upgrades">Feature Upgrades</option>
                     </select>
                     
                     <label htmlFor='description' className='mt-3'>Description:</label>
