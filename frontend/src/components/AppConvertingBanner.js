@@ -713,7 +713,7 @@ return (
         {/* Orders View - Show when user has orders */}
         {user?._id && dataInitialized && orders?.length > 0 &&(
          <div className="px-4">
-         <div className="w-full bg-white rounded-lg  border-gray-200 overflow-hidden">
+         <div className="w-full bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
            <div className="p-4">
              <div className="flex justify-between items-start">
                <div>
