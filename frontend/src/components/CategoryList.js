@@ -152,7 +152,7 @@ const CategoryList = () => {
   }
 
   return (
-    <section className="mb-8 mx-4">
+    <section className="mb-8 mx-4 mt-6">
       <h2 className="text-xl font-bold text-gray-800 mb-4">Our Services</h2>
       <div className="grid grid-cols-2 gap-3">
         {serviceTypes.map((service) => (
