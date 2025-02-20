@@ -15,7 +15,7 @@ const AdminCategoryCard = ({
     // Function to get the appropriate service type icon
     const getServiceIcon = (serviceType) => {
         switch (serviceType) {
-            case 'Website Development':
+            case 'Websites Development':
                 return <Monitor className="h-4 w-4" />;
             case 'Mobile App Development':
                 return <Smartphone className="h-4 w-4" />;
@@ -31,7 +31,7 @@ const AdminCategoryCard = ({
     // Function to get the service type badge color
     const getServiceTypeBgColor = (serviceType) => {
         switch (serviceType) {
-            case 'Website Development':
+            case 'Websites Development':
                 return 'bg-indigo-100 text-indigo-800';
             case 'Mobile App Development':
                 return 'bg-green-100 text-green-800';
