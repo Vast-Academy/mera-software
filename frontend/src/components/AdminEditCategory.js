@@ -159,7 +159,7 @@ const AdminEditCategory = ({
                         required
                     >
                         <option value="">Select Service Type</option>
-                        <option value="Website Development">Website Development</option>
+                        <option value="Websites Development">Websites Development</option>
                         <option value="Mobile App Development">Mobile App Development</option>
                         <option value="Cloud Software Development">Cloud Software Development</option>
                         <option value="Features Upgrades Plan">Features Upgrades Plan</option>

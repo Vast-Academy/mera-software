@@ -17,7 +17,7 @@ const categorySchema = new mongoose.Schema({
  },
  serviceType: {
   type: String,
-  enum: ['Website Development', 'Mobile App Development', 'Cloud Software Development', 'Features Upgrades Plan'],
+  enum: ['Websites Development', 'Mobile App Development', 'Cloud Software Development', 'Features Upgrades Plan'],
   required: true
 },
 description: {

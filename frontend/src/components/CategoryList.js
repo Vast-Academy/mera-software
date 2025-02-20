@@ -14,7 +14,7 @@ const CategoryList = () => {
   // Icon mapping based on service type
   const getServiceIcon = (serviceType) => {
     switch (serviceType) {
-      case 'Website Development':
+      case 'Websites Development':
         return <Monitor className="h-6 w-6 text-indigo-600" />;
       case 'Mobile App Development':
         return <Smartphone className="h-6 w-6 text-green-600" />;
@@ -30,14 +30,14 @@ const CategoryList = () => {
   // Background color mapping based on service type
   const getServiceBgColor = (serviceType) => {
     switch (serviceType) {
-      case 'Website Development':
-        return 'bg-indigo-100';
+      case 'Websites Development':
+        return 'bg-blue-600';
       case 'Mobile App Development':
-        return 'bg-green-100';
+        return 'bg-green-600';
       case 'Cloud Software Development':
-        return 'bg-blue-100';
+        return 'bg-purple-600';
       case 'Features Upgrades Plan':
-        return 'bg-purple-100';
+        return 'bg-amber-600';
       default:
         return 'bg-gray-100';
     }
@@ -137,7 +137,7 @@ const CategoryList = () => {
   if (loading) {
     return (
       <div className="mb-8 mx-4">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Our Services</h2>
+        {/* <h2 className="text-xl font-bold text-gray-800 mb-4">Our Services</h2> */}
         <div className="grid grid-cols-2 gap-3">
           {categoryLoading.map((_, index) => (
             <div key={`loading-${index}`} className="bg-gray-100 rounded-xl p-3 animate-pulse">
@@ -158,7 +158,7 @@ const CategoryList = () => {
 
   return (
     <section className="mb-8 mx-4 mt-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Our Services</h2>
+      {/* <h2 className="text-xl font-bold text-gray-800 mb-4">Our Services</h2> */}
       <div className="grid grid-cols-2 gap-3">
         {serviceTypes.map((service) => (
           <Link
@@ -169,13 +169,13 @@ const CategoryList = () => {
             <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center mb-2">
               {service.icon}
             </div>
-            <h3 className="text-sm font-semibold text-gray-800 mb-1">{service.serviceType}</h3>
-            <p className="text-xs text-gray-600 mb-2 flex-grow">
+            <h3 className="text-sm text-white font-semibold mb-1">{service.serviceType}</h3>
+            <p className="text-xs text-gray-100  mb-2 flex-grow">
               {service.description}
             </p>
-            <div className="flex items-center text-xs font-medium">
+            {/* <div className="flex items-center text-xs font-medium text-gray-100">
               View Products <ChevronRight className="ml-1 h-3 w-3" />
-            </div>
+            </div> */}
           </Link>
         ))}
       </div>
