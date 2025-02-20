@@ -16,9 +16,9 @@ const CategoryList = () => {
     switch (serviceType) {
       case 'Websites Development':
         return <Monitor className="h-6 w-6 text-indigo-600" />;
-      case 'Mobile Apps ':
+      case 'Mobile Apps':
         return <Smartphone className="h-6 w-6 text-green-600" />;
-      case 'Cloud Softwares ':
+      case 'Cloud Softwares':
         return <Cloud className="h-6 w-6 text-blue-600" />;
       case 'Feature Upgrades':
         return <Plus className="h-6 w-6 text-purple-600" />;

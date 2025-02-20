@@ -15,13 +15,13 @@ const AdminCategoryCard = ({
     // Function to get the appropriate service type icon
     const getServiceIcon = (serviceType) => {
         switch (serviceType) {
-            case 'Websites':
+            case 'Websites Development':
                 return <Monitor className="h-4 w-4" />;
             case 'Mobile Apps':
                 return <Smartphone className="h-4 w-4" />;
             case 'Cloud Softwares':
                 return <Cloud className="h-4 w-4" />;
-            case 'Features Upgrades':
+            case 'Feature Upgrades':
                 return <Plus className="h-4 w-4" />;
             default:
                 return <Monitor className="h-4 w-4" />;
@@ -31,13 +31,13 @@ const AdminCategoryCard = ({
     // Function to get the service type badge color
     const getServiceTypeBgColor = (serviceType) => {
         switch (serviceType) {
-            case 'Websites':
+            case 'Websites Development':
                 return 'bg-indigo-100 text-indigo-800';
             case 'Mobile Apps':
                 return 'bg-green-100 text-green-800';
             case 'Cloud Softwares':
                 return 'bg-blue-100 text-blue-800';
-            case 'Features Upgrades':
+            case 'Feature Upgrades':
                 return 'bg-purple-100 text-purple-800';
             default:
                 return 'bg-gray-100 text-gray-800';
