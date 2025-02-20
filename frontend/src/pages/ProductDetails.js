@@ -246,15 +246,15 @@ const calculateTotalPrice = () => {
     fetchProductDetails();
   }, [params]);
 
-  if (initialLoading) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
-        <div className="rounded-lg p-8">
-          <TriangleMazeLoader />
-        </div>
-      </div>
-    );
-  }
+  // if (initialLoading) {
+  //   return (
+  //     <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
+  //       <div className="rounded-lg p-8">
+  //         <TriangleMazeLoader />
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
