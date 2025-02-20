@@ -102,8 +102,8 @@ const CategoryList = () => {
           // Use the first category's description or a generic one
           description: representativeCategory.description || `Professional ${type.toLowerCase()} services`,
           categories: typeCategories,
-          // Use first category's route as default (can be changed)
-          defaultCategoryValue: typeCategories.length > 0 ? typeCategories[0].categoryValue : '',
+          // Generate query string for all subcategories of this service type
+          queryCategoryValues: typeCategories.map(cat => cat.categoryValue),
         };
       });
       
@@ -128,6 +128,11 @@ const CategoryList = () => {
     loadCategories();
   }, [hybridCache, isInitialized, isOnline]);
 
+  // Build query string for all subcategories of a service type
+  const buildCategoryQueryString = (categoryValues) => {
+    if (!categoryValues || categoryValues.length === 0) return '';
+    return categoryValues.map(val => `category=${val}`).join('&&');
+  };
 
   if (loading) {
     return (
@@ -157,7 +162,7 @@ const CategoryList = () => {
       <div className="grid grid-cols-2 gap-3">
         {serviceTypes.map((service) => (
           <Link
-            to={`/product-category?category=${service.defaultCategoryValue}`}
+            to={`/product-category?${buildCategoryQueryString(service.queryCategoryValues)}`}
             key={service.serviceType}
             className={`${service.bgColor} rounded-xl p-3 hover:shadow-sm transition-shadow cursor-pointer flex flex-col`}
           >
@@ -169,7 +174,7 @@ const CategoryList = () => {
               {service.description}
             </p>
             <div className="flex items-center text-xs font-medium">
-              Learn more <ChevronRight className="ml-1 h-3 w-3" />
+              View Products <ChevronRight className="ml-1 h-3 w-3" />
             </div>
           </Link>
         ))}
