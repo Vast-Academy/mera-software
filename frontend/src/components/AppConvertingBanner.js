@@ -544,15 +544,13 @@ const isUpdatePlan = (category = '') => {
 const calculateRemainingDays = (order) => {
   if (!order.createdAt || !order.productId?.validityPeriod) return 0;
   
-  // Convert validityPeriod from months to days (approximate)
-  const validityInDays = order.productId.validityPeriod * 30;
+  // No need to convert months to days anymore
+  const validityInDays = order.productId.validityPeriod;
   
-  // Get start date and calculate end date
   const startDate = new Date(order.createdAt);
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + validityInDays);
   
-  // Calculate remaining days
   const today = new Date();
   const remainingDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
   

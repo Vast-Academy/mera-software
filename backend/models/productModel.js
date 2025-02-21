@@ -94,20 +94,23 @@ const productSchema = new mongoose.Schema({
       default: false
   },
   validityPeriod: {
-      type: Number,  // Store in months
-      validate: {
-          validator: function(value) {
-              return !this.isWebsiteUpdate || (value > 0);
-          },
-          message: 'Website update services must have a valid period in months'
-      }
+    type: Number,  // Now storing in days instead of months
+    validate: {
+      validator: function(value) {
+        if (!this.isWebsiteUpdate) return true;
+        // Value must be positive and not exceed 365 days (1 year)
+        return value > 0 && value <= 365;
+      },
+      message: 'Website update services must have a valid period between 1 and 365 days'
+    }
   },
   updateCount: {
     type: Number,  // Store in months
     validate: {
         validator: function(value) {
             return !this.isWebsiteUpdate || (value > 0);
-        }
+        },
+        message: 'Update count must be greater than 0'
     }
 },
     additionalFeatures: [{
