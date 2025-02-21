@@ -41,6 +41,9 @@ const ProductDetails = () => {
   const [additionalFeaturesData, setAdditionalFeaturesData] = useState([]);
   const [quantities, setQuantities] = useState({});
 
+  const [showAlert, setShowAlert] = useState(false);
+const [alertMessage, setAlertMessage] = useState('');
+
 
   const { fetchUserAddToCart } = useContext(Context);
   const navigate = useNavigate();
@@ -121,6 +124,32 @@ const calculateTotalPrice = () => {
   };
 
   const handleGetStarted = async (e) => {
+    if (data.category === 'website_updates') {
+      // First check if user already has an active update plan
+      try {
+        const response = await fetch(SummaryApi.validateUpdatePlan.url, {
+          method: SummaryApi.validateUpdatePlan.method,
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            productId: data._id
+          })
+        });
+        
+        const result = await response.json();
+        if (!result.success) {
+          setAlertMessage(result.message);
+          setShowAlert(true);
+          return;
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        setAlertMessage('Something went wrong');
+        setShowAlert(true);
+        return;
+      }
+    }
+    
     await handleAddToCart(e);
     navigate("/cart");
   };
@@ -246,6 +275,34 @@ const calculateTotalPrice = () => {
     fetchProductDetails();
   }, [params]);
 
+  // const validateWebsiteUpdate  = async () => {
+  //   try {
+  //     const response = await fetch(SummaryApi.validateUpdatePlan.url, {
+  //       method: SummaryApi.validateUpdatePlan.method,
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //       },
+  //       credentials: 'include',
+  //       body: JSON.stringify({
+  //         productId: params.id
+  //       })
+  //     });
+  
+  //     const data = await response.json();
+  //     if (!data.success) {
+  //       setAlertMessage(data.message);
+  //       setShowAlert(true);
+  //       return false;
+  //     }
+  //     return true;
+  //   } catch (error) {
+  //     console.error('Error:', error);
+  //     setAlertMessage('Something went wrong');
+  //     setShowAlert(true);
+  //     return false;
+  //   }
+  // };
+
   // if (initialLoading) {
   //   return (
   //     <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
@@ -255,6 +312,26 @@ const calculateTotalPrice = () => {
   //     </div>
   //   );
   // }
+  const AlertModal = ({ isOpen, message, onClose }) => {
+    if (!isOpen) return null;
+  
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+          <h3 className="text-lg font-semibold mb-2">Notice</h3>
+          <p className="text-gray-600 mb-4">{message}</p>
+          <div className="flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -482,6 +559,12 @@ const calculateTotalPrice = () => {
           heading="Recommended Products"
         />
       )}
+
+      <AlertModal 
+        isOpen={showAlert}
+        message={alertMessage}
+        onClose={() => setShowAlert(false)}
+      />
     </div>
   );
 };

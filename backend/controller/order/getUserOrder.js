@@ -8,7 +8,8 @@ const getUserOrders = async (req, res) => {
         // Add userId filter to only get orders for the current user
         const orders = await orderProductModel.find({ userId })
             .populate('userId', 'name email')
-            .populate('productId', 'serviceName category totalPages')
+            .populate('productId',
+                 'serviceName category totalPages validityPeriod updateCount isWebsiteUpdate')
             .sort({ createdAt: -1 });
 
         console.log('Total projects found:', orders.length);

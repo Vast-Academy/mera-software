@@ -87,8 +87,29 @@ const productSchema = new mongoose.Schema({
       }
     },
     
-    compatibleWith : [String],
+    compatibleCategories : [String],
     keyBenefits : [String],
+    isWebsiteUpdate: {
+      type: Boolean,
+      default: false
+  },
+  validityPeriod: {
+      type: Number,  // Store in months
+      validate: {
+          validator: function(value) {
+              return !this.isWebsiteUpdate || (value > 0);
+          },
+          message: 'Website update services must have a valid period in months'
+      }
+  },
+  updateCount: {
+    type: Number,  // Store in months
+    validate: {
+        validator: function(value) {
+            return !this.isWebsiteUpdate || (value > 0);
+        }
+    }
+},
     additionalFeatures: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'product'  // References the same Product model
@@ -99,9 +120,10 @@ const productSchema = new mongoose.Schema({
 
 // Set isWebsiteService based on category
 productSchema.pre('save', function(next) {
-  const websiteCategories = ['standard_websites', 'dynamic_websites', 'web_applications', 'mobile_apps'];
+  const websiteCategories = ['standard_websites', 'dynamic_websites', 'cloud_software_development', 'app_development'];
   this.isWebsiteService = websiteCategories.includes(this.category);
   this.isFeatureUpgrade = this.category === 'feature_upgrades';
+  this.isWebsiteUpdate = this.category === 'website_updates'; 
 
   // If it's not a website service, ensure additionalFeatures is empty
   if (!this.isWebsiteService) {

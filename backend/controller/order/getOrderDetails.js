@@ -8,7 +8,7 @@ const getOrderDetails = async (req, res) => {
         const order = await orderProductModel.findOne({ _id: orderId, userId })
             .populate({
                 path: 'productId',
-                select: 'serviceName category sellingPrice serviceImage description'
+                select: 'serviceName category sellingPrice serviceImage description validityPeriod updateCount isWebsiteUpdate'
             });
 
         if (!order) {

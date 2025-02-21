@@ -32,11 +32,40 @@ const AppConvertingBanner = () => {
 
   // Helper functions
   const filterWebsiteOrders = (orders) => {
-    return orders?.filter(order => 
+    if (!orders) return [];
+  
+    // Get all relevant orders (both website projects and updates)
+    const relevantOrders = orders.filter(order => {
+      const category = order.productId?.category?.toLowerCase();
+      return (
+        category === 'website_updates' ||
+        ['standard_websites', 'dynamic_websites', 'web_applications', 'mobile_apps'].includes(category)
+      );
+    });
+  
+    // Sort orders by date (most recent first)
+    const sortedOrders = relevantOrders.sort((a, b) => 
+      new Date(b.createdAt) - new Date(a.createdAt)
+    );
+  
+    // If there's an active update plan, show it first
+    const activeUpdatePlan = sortedOrders.find(order => 
+      order.productId?.category === 'website_updates' && 
+      order.isActive
+    );
+  
+    if (activeUpdatePlan) {
+      return [activeUpdatePlan];
+    }
+  
+    // Otherwise, show the most recent website project
+    const websiteProject = sortedOrders.find(order => 
       ['standard_websites', 'dynamic_websites', 'web_applications', 'mobile_apps'].includes(
         order.productId?.category?.toLowerCase()
       )
-    ) || [];
+    );
+  
+    return websiteProject ? [websiteProject] : [];
   };
 
   // Clear all banner states
@@ -461,26 +490,13 @@ const saveGuestSlidesToAllStorages = (slides) => {
   
       try {
         setIsLoading(true);
-
-        // For non-logged in users, just load guest slides
+  
         if (!user?._id) {
           await loadGuestSlides();
           return;
         }
-     
+  
         // For logged in users, process in this order:
-        // 1. Check for cached orders
-        const cachedOrders = StorageService.getUserOrders(user._id);
-        const filteredOrders = cachedOrders ? filterWebsiteOrders(cachedOrders) : [];
-        setOrders(filteredOrders);
-        
-        // 2. Load welcome message with await to ensure it completes
-        const welcomeData = await loadUserWelcome();
-        
-        // 3. Now that both operations are complete, we can mark data as initialized
-        setDataInitialized(true);
-
-        // 4. Background refresh orders if online
         if (isOnline) {
           try {
             const ordersResponse = await fetch(SummaryApi.ordersList.url, {
@@ -490,9 +506,17 @@ const saveGuestSlidesToAllStorages = (slides) => {
             const ordersData = await ordersResponse.json();
              
             if (ordersData.success) {
+              // Log the data to check what we're receiving
+              console.log('Fetched orders:', ordersData.data);
+              
               StorageService.setUserOrders(user._id, ordersData.data);
               const userOrders = filterWebsiteOrders(ordersData.data);
+              
+              // Log filtered orders to verify what we're working with
+              console.log('Filtered orders:', userOrders);
+              
               setOrders(userOrders);
+              setDataInitialized(true);
             }
           } catch (error) {
             console.error('Error fetching fresh orders:', error);
@@ -507,6 +531,34 @@ const saveGuestSlidesToAllStorages = (slides) => {
       
     loadData();
   }, [user?._id, initialized, isInitialized, isOnline]);
+
+  // Helper functions remain the same
+const isWebsiteService = (category = '') => {
+  return ['static_websites', 'standard_websites', 'dynamic_websites'].includes(category?.toLowerCase());
+};
+
+const isUpdatePlan = (category = '') => {
+  return category?.toLowerCase() === 'website_updates';
+};
+
+const calculateRemainingDays = (order) => {
+  if (!order.createdAt || !order.productId?.validityPeriod) return 0;
+  
+  // Convert validityPeriod from months to days (approximate)
+  const validityInDays = order.productId.validityPeriod * 30;
+  
+  // Get start date and calculate end date
+  const startDate = new Date(order.createdAt);
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + validityInDays);
+  
+  // Calculate remaining days
+  const today = new Date();
+  const remainingDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+  
+  return Math.max(0, remainingDays);
+};
+
 
   const handleOrderClick = (orderId) => {
     navigate(`/project-details/${orderId}`);
@@ -732,55 +784,138 @@ return (
                </div>
              </div>
              
-             <div className="mt-5 grid grid-cols-3 gap-3">
-               <div className="bg-gray-50 rounded-md p-2 border border-gray-100">
-                 <div className="flex items-center justify-between mb-1">
-                   <span className="text-xs font-medium text-gray-600">Progress</span>
-                   <span className="text-xs font-bold text-teal-600">{orders[0].projectProgress}%</span>
-                 </div>
-                 <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                   <div 
-                     className="h-full bg-gradient-to-r from-teal-500 to-teal-400 rounded-full transition-all duration-1000"
-                     style={{ width: `${orders[0].projectProgress}%` }}
-                   />
-                 </div>
-               </div>
-               <div className="bg-gray-50 rounded-md p-2 border border-gray-100">
-                 <div className="flex items-center justify-between mb-1">
-                   <span className="text-xs font-medium text-gray-600">Tasks</span>
-                   <span className="text-xs font-bold text-teal-600">
-                     {orders[0].checkpoints ? 
-                       `${orders[0].checkpoints.filter(cp => cp.completed).length}/${orders[0].checkpoints.length}` : 
-                       "0/0"}
-                   </span>
-                 </div>
-                 <div className="flex items-end h-6 space-x-1">
-                   {[15, 25, 40, 30, 42, 35, 50, 45, 60].map((height, i) => (
-                     <div 
-                       key={i} 
-                       className="w-1 bg-teal-400 rounded-t"
-                       style={{height: `${height}%`}}
-                     ></div>
-                   ))}
-                 </div>
-               </div>
-               <div className="bg-gray-50 rounded-md p-2 border border-gray-100">
-                 <div className="flex items-center justify-between mb-1">
-                   <span className="text-xs font-medium text-gray-600">Time</span>
-                   <span className="text-xs font-bold text-teal-600">8d left</span>
-                 </div>
-                 <div className="relative h-6">
-                   <div className="absolute inset-0 flex items-center">
-                     <div className="h-1 w-full bg-gray-200 rounded"></div>
-                   </div>
-                   <div className="absolute inset-0 flex items-center">
-                     <div className="h-1 rounded bg-teal-400" style={{width: '65%'}}></div>
-                   </div>
-                   <div className="absolute h-3 w-3 rounded-full bg-teal-500 border-2 border-white shadow-md" 
-                        style={{left: '65%', top: '50%', transform: 'translate(-50%, -50%)'}}></div>
-                 </div>
-               </div>
-             </div>
+             {(() => {
+  const order = orders[0];
+  
+  if (isUpdatePlan(order.productId?.category)) {
+    // Calculate remaining days using our new function
+    const remainingDays = calculateRemainingDays(order);
+    
+    // Calculate validity percentage
+    const validityInDays = order.productId.validityPeriod * 30;
+    const startDate = new Date(order.createdAt);
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + validityInDays);
+    const today = new Date();
+    const totalDuration = endDate - startDate;
+    const elapsed = today - startDate;
+    const validityPercentage = Math.max(0, Math.min(100, 
+      ((totalDuration - elapsed) / totalDuration) * 100
+    ));
+    
+    // Calculate update metrics
+    const totalUpdates = order.productId?.updateCount || 0;
+    const usedUpdates = order.updatesUsed || 0;
+    
+    return (
+      <div className="mt-5 grid grid-cols-3 gap-3">
+        <div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">Validity</span>
+            <span className="text-sm font-bold text-teal-600">
+              {remainingDays}d left
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+            <div 
+              className="h-full bg-teal-500 rounded-full transition-all duration-1000"
+              style={{ 
+                width: `${validityPercentage}%` 
+              }}
+            />
+          </div>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">Updates</span>
+            <span className="text-sm font-bold text-teal-600">
+              {`${usedUpdates}/${totalUpdates}`}
+            </span>
+          </div>
+          <div className="flex items-end h-6 space-x-1">
+            {Array.from({ length: totalUpdates }).map((_, i) => (
+              <div 
+                key={i} 
+                className={`w-1 rounded-t ${i < usedUpdates ? 'bg-teal-500' : 'bg-gray-200'}`}
+                style={{ height: `${((i + 1) / totalUpdates) * 100}%` }}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">Status</span>
+            <span className="text-sm font-bold text-teal-600">
+              {order.isActive ? 'Active' : 'Inactive'}
+            </span>
+          </div>
+          <div className="relative h-6 flex items-center">
+            <div 
+              className={`w-full py-1 px-2 text-xs text-center rounded ${
+                order.isActive 
+                  ? 'bg-green-100 text-green-700' 
+                  : 'bg-gray-100 text-gray-700'
+              }`}
+            >
+              {order.isActive ? 'Plan Active' : 'Plan Inactive'}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Original website project metrics
+  return (
+    <div className="mt-5 grid grid-cols-3 gap-3">
+      <div>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-600">Progress</span>
+          <span className="text-sm font-bold text-teal-600">{order.projectProgress}%</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+          <div 
+            className="h-full bg-teal-500 rounded-full transition-all duration-1000"
+            style={{ width: `${order.projectProgress}%` }}
+          />
+        </div>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-600">Tasks</span>
+          <span className="text-sm font-bold text-teal-600">
+            {order.checkpoints ? 
+              `${order.checkpoints.filter(cp => cp.completed).length}/${order.checkpoints.length}` : 
+              "0/0"}
+          </span>
+        </div>
+        <div className="flex items-end h-6 space-x-1">
+          {[15, 25, 40, 30, 42, 35, 50, 45, 60].map((height, i) => (
+            <div 
+              key={i} 
+              className="w-1 bg-teal-500 rounded-t"
+              style={{height: `${height}%`}}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-600">Time</span>
+          <span className="text-sm font-bold text-teal-600">8d left</span>
+        </div>
+        <div className="relative h-6 flex items-center">
+          <div className="h-1 w-full bg-gray-200 rounded"></div>
+          <div className="absolute h-1 w-2/3 bg-teal-500 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+})()}
              
              <div className="mt-4 pt-3 border-t border-gray-100">
                <div className="flex justify-between items-center">

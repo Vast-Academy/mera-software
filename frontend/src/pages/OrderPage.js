@@ -61,6 +61,156 @@ const OrderPage = () => {
     });
   };
 
+  const UpdatePlanToggle = ({ order, onToggle }) => {
+    const [isActive, setIsActive] = useState(order.isActive);
+    const [loading, setLoading] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+  
+    // Only show toggle for website update plans and completed standard website projects
+    if (!order.productId || order.productId.category !== 'website_updates') {
+      return null;
+    }
+  
+    const handleToggle = async () => {
+      // Reset error message when opening modal
+      setErrorMessage('');
+      setShowConfirmModal(true);
+    };
+  
+    const confirmToggle = async () => {
+      try {
+        setLoading(true);
+        
+        // First validate if we can activate the plan
+        if (!isActive) {
+          const validateResponse = await fetch(SummaryApi.validateUpdatePlan.url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              productId: order.productId._id
+            })
+          });
+  
+          const validateResult = await validateResponse.json();
+          if (!validateResult.success) {
+            setErrorMessage(validateResult.message);
+            setLoading(false);
+            return;
+          }
+        }
+  
+        // If validation passes or we're deactivating, proceed with toggle
+        const response = await fetch(SummaryApi.toggleUpdatePlan.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            orderId: order._id
+          })
+        });
+  
+        const result = await response.json();
+        if (result.success) {
+          setIsActive(!isActive);
+          onToggle && onToggle();
+          toast.success('Update plan status changed successfully');
+          setShowConfirmModal(false);
+        } else {
+          setErrorMessage(result.message || 'Failed to update plan status');
+        }
+      } catch (error) {
+        console.error('Error toggling update plan:', error);
+        setErrorMessage('Something went wrong');
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    return (
+      <>
+        <div className="mt-4 bg-gray-50 p-4 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-medium text-gray-900">Update Plan Status</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {isActive ? 'Currently Active' : 'Currently Inactive'}
+              </p>
+              {order.validityPeriod && (
+                <p className="text-sm text-gray-500">
+                  Validity: {order.validityPeriod} months
+                </p>
+              )}
+            </div>
+            <button
+              onClick={handleToggle}
+              disabled={loading}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                isActive 
+                  ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+              }`}
+            >
+              {loading ? 'Updating...' : (isActive ? 'Deactivate' : 'Activate')}
+            </button>
+          </div>
+        </div>
+  
+        {/* Confirmation Modal */}
+        {showConfirmModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+              <h3 className="text-lg font-semibold mb-2">
+                Confirm Update Plan Change
+              </h3>
+              {errorMessage ? (
+                <>
+                  <p className="text-red-600 mb-4">{errorMessage}</p>
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => {
+                        setShowConfirmModal(false);
+                        setErrorMessage('');
+                      }}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-gray-600 mb-4">
+                    Are you sure you want to {isActive ? 'deactivate' : 'activate'} this update plan?
+                    {isActive 
+                      ? ' This will pause your update service.'
+                      : ' This will resume your update service.'}
+                  </p>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => setShowConfirmModal(false)}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={confirmToggle}
+                      disabled={loading}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      {loading ? 'Confirming...' : 'Confirm'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+
   const isWebsiteService = (category = '') => {
     return ['static_websites', 'standard_websites', 'dynamic_websites'].includes(category?.toLowerCase());
   };
@@ -224,6 +374,13 @@ const OrderPage = () => {
 
                       {/* Show Checkpoints Progress */}
                       <CheckpointsProgress checkpoints={order.checkpoints} />
+
+                      {order.productId?.category === 'website_updates' && (
+                        <UpdatePlanToggle 
+                          order={order} 
+                          onToggle={() => fetchOrders()} 
+                        />
+                      )}
 
                       {/* Show Messages */}
                       <MessagesSection messages={order.messages} />

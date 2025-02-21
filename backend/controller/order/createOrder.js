@@ -16,15 +16,17 @@ const createOrder = async (req, res) => {
         }
 
         // Check if it's a website service
-        const isWebsiteService = ['static_websites', 'standard_websites']
+        const isWebsiteService = ['standard_websites', 'dynamic_websites']
             .includes(product.category);
+            const isWebsiteUpdate = product.category === 'website_updates';
 
         let orderData = {
             userId,
             productId,
             quantity,
             price,
-            isWebsiteProject: isWebsiteService
+            isWebsiteProject: isWebsiteService,
+            isActive: isWebsiteUpdate 
         };
 
         // If it's a website service, add checkpoints
@@ -72,13 +74,19 @@ const createOrder = async (req, res) => {
             orderData.messages = [];
         }
 
+        if (isWebsiteUpdate) {
+            orderData.updatesUsed = 0;
+            orderData.isActive = true;
+        }
+
         const order = new orderProductModel(orderData);
         await order.save();
 
         // Fetch the saved order with populated fields
         const populatedOrder = await orderProductModel.findById(order._id)
             .populate('userId', 'name email')
-            .populate('productId', 'serviceName category totalPages');
+            .populate('productId',
+                 'serviceName category totalPages validityPeriod updateCount isWebsiteUpdate');
 
         res.status(201).json({
             message: "Order created successfully",

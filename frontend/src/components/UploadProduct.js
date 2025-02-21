@@ -14,7 +14,7 @@ import perfectForOptions, { CustomPerfectForOption, CustomPerfectForValue } from
 import RichTextEditor from '../helpers/richTextEditor';
 import PackageSelect from './PackageSelect';
 import keyBenefitsOptions, { CustomKeyBenefitOption, CustomKeyBenefitValue } from '../helpers/keyBenefitOptions';
-import compatibleWithOptions, { CustomCompatibleOption, CustomCompatibleValue} from '../helpers/compatibleWithOptions';
+// import compatibleWithOptions, { CustomCompatibleOption, CustomCompatibleValue} from '../helpers/compatibleWithOptions';
 
 const UploadProduct = ({
     onClose,
@@ -45,9 +45,11 @@ const UploadProduct = ({
         // feature upgrade fields
         isFeatureUpgrade: false,
         upgradeType: "", // 'feature' or 'component'
-        compatibleWith: [], 
+        compatibleCategories: [], 
         keyBenefits: [], 
         additionalFeatures: [],
+        validityPeriod: "",
+        updateCount: "",
     })
 
 
@@ -159,6 +161,11 @@ const fetchCompatibleFeatures = async (category) => {
       })
     }
 
+    const categoryOptions = categories.map(cat => ({
+      value: cat.categoryValue,
+      label: cat.categoryName
+    }));
+
      // Add new description field
      const handleAddDescription = () => {
       setData(prev => ({
@@ -184,10 +191,10 @@ const fetchCompatibleFeatures = async (category) => {
           )
       }));
   };
-    const handleCompatibleWithChange = (selectedOptions) => {
+    const handleCompatibleCategoriesChange  = (selectedOptions) => {
       setData((prev) => ({
         ...prev,
-        compatibleWith: selectedOptions.map((option) => option.value),
+        compatibleCategories: selectedOptions.map((option) => option.value),
       }));
     };
 
@@ -287,7 +294,7 @@ const fetchCompatibleFeatures = async (category) => {
 
     // Add this helper function
 const shouldShowWebsiteFields = (category) => {
-  const websiteCategories = ['standard_websites', 'dynamic_websites', 'web_applications', 'mobile_apps'];
+  const websiteCategories = ['standard_websites', 'dynamic_websites', 'cloud_software_development', 'app_development'];
   return category && websiteCategories.includes(category);
 };
 // Add this helper function alongside shouldShowWebsiteFields
@@ -295,6 +302,9 @@ const shouldShowFeatureFields = (category) => {
   return category === 'feature_upgrades';
 };
 
+const shouldShowWebsiteUpdateFields = (category) => {
+  return category === 'website_updates';
+};
 // Custom Option Component for feature display
 const CustomFeatureOption = ({ data, ...props }) => {
   return (
@@ -479,21 +489,16 @@ const CustomFeatureOption = ({ data, ...props }) => {
               </select>
 
               {/* Compatible With Field */}
-              <label htmlFor='compatibleWith' className='mt-3'>Compatible With:</label>
+              <label htmlFor='compatibleCategories' className='mt-3'>Compatible With:</label>
               <Select
                 isMulti
-                options={compatibleWithOptions}
-                value={data.compatibleWith.map(value => {
-                  const option = compatibleWithOptions.find(opt => opt.value === value);
-                  return option;
-                })}
-                name='compatibleWith'
-                id='compatibleWith'
-                onChange={handleCompatibleWithChange}
-                components={{
-                  Option: CustomCompatibleOption,
-                  MultiValue: CustomCompatibleValue
-                }}
+                options={categoryOptions}
+                value={categoryOptions.filter(option => 
+                  data.compatibleCategories.includes(option.value)
+                )}
+                name='compatibleCategories'
+                id='compatibleCategories'
+                onChange={handleCompatibleCategoriesChange}
                 className='basic-multi-select bg-slate-100 border rounded'
                 classNamePrefix='select'
                 placeholder="Select compatible platforms"
@@ -522,6 +527,49 @@ const CustomFeatureOption = ({ data, ...props }) => {
             </>
           )
         }
+
+{shouldShowWebsiteUpdateFields(data.category) && (
+    <>
+        {/* Validity Period Field */}
+        <label htmlFor='validityPeriod' className='mt-3'>Validity Period (months):</label>
+        <input 
+            type='number' 
+            id='validityPeriod'
+            name='validityPeriod'
+            placeholder='Enter validity period in months'
+            value={data.validityPeriod}
+            onChange={handleOnChange}
+            className='p-2 bg-slate-100 border rounded'
+            required
+        />
+
+        <label htmlFor='updateCount' className='mt-3'>Updates Count:</label>
+        <input 
+            type='number' 
+            id='updateCount'
+            name='updateCount'
+            placeholder='Enter How many updates in this plan'
+            value={data.updateCount}
+            onChange={handleOnChange}
+            className='p-2 bg-slate-100 border rounded'
+            required
+        />
+
+        {/* Compatible Categories Field */}
+        <label htmlFor='compatibleCategories' className='mt-3'>Compatible With:</label>
+        <Select
+            isMulti
+            options={categoryOptions}
+            value={categoryOptions.filter(option => 
+                data.compatibleCategories.includes(option.value)
+            )}
+            onChange={handleCompatibleCategoriesChange}
+            className='basic-multi-select bg-slate-100 border rounded'
+            classNamePrefix='select'
+            placeholder="Select compatible categories"
+        />
+    </>
+)}
 
         <label htmlFor='serviceImage' className='mt-3'>Service Image :</label> 
         <label htmlFor='uploadImageInput'>

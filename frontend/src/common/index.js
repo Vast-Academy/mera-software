@@ -157,6 +157,14 @@ const SummaryApi = {
         url: `${backendDomain}/api/delete-order`,
         method: "delete"
     },
+    validateUpdatePlan: {
+        url : `${backendDomain}/api/validate-update-plan`,
+        method: "post"
+    },
+    toggleUpdatePlan: {
+        url : `${backendDomain}/api/toggle-update-plan`,
+        method: "post"
+    },
     adminProjects : {
         url : `${backendDomain}/api/get-projects`,
         method : "get"

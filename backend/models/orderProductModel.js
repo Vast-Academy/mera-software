@@ -82,7 +82,23 @@ const orderSchema = new mongoose.Schema({
     lastUpdated: {
         type: Date,
         default: Date.now
-    }
+    },
+    isActive: {
+        type: Boolean,
+        default: true,
+        validate: {
+            validator: function(value) {
+                // Only validate isActive for website update products
+                if (!this.productId) return true;
+                return true; // The actual validation will happen in the controller
+            },
+            message: 'Invalid update plan status'
+        }
+    },
+    updatesUsed: {
+        type: Number,
+        default: 0
+    },
 }, {
     timestamps: true
 });
