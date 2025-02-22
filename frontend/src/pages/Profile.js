@@ -14,12 +14,12 @@ import TriangleMazeLoader from '../components/TriangleMazeLoader';
 import Context from '../context';
 import CookieManager from '../utils/cookieManager';
 import StorageService from '../utils/storageService';
-import { useDatabase } from '../context/DatabaseContext';
+import { useOnlineStatus } from '../App';
 
 const Profile = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { hybridCache } = useDatabase();
+    const { isOnline } = useOnlineStatus();
     const user = useSelector(state => state?.user?.user);
     const context = useContext(Context);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -33,13 +33,25 @@ const Profile = () => {
     const fetchUserDetails = async () => {
         setLoading(true);
         try {
-            const response = await fetch(SummaryApi.current_user.url, {
-                method: SummaryApi.current_user.method,
-                credentials: 'include'
-            });
-            const data = await response.json();
-            if(data.success) {
-                dispatch(setUserDetails(data.data));
+            // First check localStorage
+            const cachedUser = StorageService.getUserDetails();
+            if (cachedUser) {
+                dispatch(setUserDetails(cachedUser));
+                setLoading(false);
+            }
+
+            // If online, fetch fresh data
+            if (isOnline) {
+                const response = await fetch(SummaryApi.current_user.url, {
+                    method: SummaryApi.current_user.method,
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    // Update both Redux and localStorage
+                    dispatch(setUserDetails(data.data));
+                    StorageService.setUserDetails(data.data);
+                }
             }
         } catch (error) {
             console.error("Error fetching user details:", error);
@@ -50,86 +62,56 @@ const Profile = () => {
 
     const handleLogout = async () => {
         try {
-          // 1. BEFORE ANYTHING ELSE - Save guest slides to multiple locations
-          const guestSlides = StorageService.getGuestSlides();
-          if (guestSlides && guestSlides.length > 0) {
-            console.log('Preserving guest slides before logout');
-            try {
-              // Make sure to save as plain arrays for consistency
-              sessionStorage.setItem('sessionGuestSlides', JSON.stringify(guestSlides));
-              localStorage.setItem('preservedGuestSlides', JSON.stringify(guestSlides));
-              localStorage.setItem('guestSlides', JSON.stringify(guestSlides)); 
-              // Mark logout timestamp for post-refresh detection
-              localStorage.setItem('lastLogoutTimestamp', Date.now().toString());
-            } catch (backupError) {
-              console.error('Failed to backup slides before logout:', backupError);
+            // 1. Preserve guest slides
+            const guestSlides = StorageService.getGuestSlides();
+            if (guestSlides?.length > 0) {
+                sessionStorage.setItem('sessionGuestSlides', JSON.stringify(guestSlides));
+                localStorage.setItem('preservedGuestSlides', JSON.stringify(guestSlides));
+                localStorage.setItem('lastLogoutTimestamp', Date.now().toString());
             }
-          }
-      
-          // 2. Call logout API
-          const fetchData = await fetch(SummaryApi.logout_user.url, {
-            method: SummaryApi.logout_user.method,
-            credentials: 'include'
-          });
-      
-          const data = await fetchData.json();
-      
-          if (data.success) {
-            try {
-              // 3. Clear cookies
-              CookieManager.clearAll();
-              
-              // 4. Clear only user data with the improved method
-              StorageService.clearUserData();
-              
-              // 5. Do a controlled clear of hybridCache to preserve guest slides
-              if (hybridCache && typeof hybridCache.clearAll === 'function') {
-                await hybridCache.clearAll();
-              }
-              
-              // 6. Extra verification that guest slides are preserved
-              // Get from the preserved location and restore to main locations
-              const preserved = localStorage.getItem('preservedGuestSlides');
-              const sessionBackup = sessionStorage.getItem('sessionGuestSlides');
-              
-              if (!localStorage.getItem('guestSlides')) {
-                console.log('Restoring guest slides after cache clear');
-                
-                // Try preserved first, then session backup
-                if (preserved) {
-                  localStorage.setItem('guestSlides', preserved);
-                } else if (sessionBackup) {
-                  localStorage.setItem('guestSlides', sessionBackup);
+
+            // 2. Call logout API if online
+            if (isOnline) {
+                const response = await fetch(SummaryApi.logout_user.url, {
+                    method: SummaryApi.logout_user.method,
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    toast.success(data.message);
                 }
-              }
-              
-              // 7. Dispatch Redux logout
-              dispatch(logout());
-              
-              // 8. Reset component states
-            //   setMenuDisplay(false);
-            //   setSearch('');
-              
-              toast.success(data.message);
-              navigate("/");
-            } catch (cacheError) {
-              console.error("Cache clearing error:", cacheError);
-              // Still proceed with logout even if cache clearing fails
-              dispatch(logout());
-              navigate("/");
             }
-          } else {
-            toast.error(data.message);
-          }
+
+            // 3. Clear user data
+            CookieManager.clearAll();
+            StorageService.clearUserData();
+
+            // 4. Restore guest slides if needed
+            const preserved = localStorage.getItem('preservedGuestSlides');
+            const sessionBackup = sessionStorage.getItem('sessionGuestSlides');
+            
+            if (!localStorage.getItem('guestSlides') && (preserved || sessionBackup)) {
+                localStorage.setItem('guestSlides', preserved || sessionBackup);
+            }
+
+            // 5. Dispatch logout and navigate
+            dispatch(logout());
+            navigate("/");
+
         } catch (error) {
-          console.error("Error during logout:", error);
-          toast.error("Logout failed. Please try again.");
+            console.error("Error during logout:", error);
+            toast.error("Logout failed. Please try again.");
         }
-      };
+    };
 
     const handleProfileUpdate = async (updatedData) => {
         setUpdateLoading(true);
         try {
+            if (!isOnline) {
+                toast.error("You are offline. Please check your internet connection.");
+                return;
+            }
+
             const response = await fetch(SummaryApi.updateProfile.url, {
                 method: SummaryApi.updateProfile.method,
                 credentials: 'include',
@@ -142,12 +124,15 @@ const Profile = () => {
             const data = await response.json();
             
             if (data.success) {
+                // Update both cookies and localStorage
                 CookieManager.setUserDetails({
                     _id: data.data._id,
                     name: data.data.name,
                     email: data.data.email,
                     role: data.data.role
-                  });
+                });
+                StorageService.setUserDetails(data.data);
+                
                 dispatch(setUserDetails(data.data));
                 setShowEditModal(false);
                 toast.success("Profile updated successfully");

@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { FiArrowRight } from "react-icons/fi";
-import { BsCalendar3 } from "react-icons/bs";
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-// import { setUserDetails } from '../store/userSlice';
 import SummaryApi from '../common';
-import { useDatabase } from '../context/DatabaseContext';
+import { useOnlineStatus } from '../App';
 import StorageService from '../utils/storageService';
 import { FileText, Clock, ExternalLink } from "lucide-react";
 
 const AppConvertingBanner = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { isOnline, isInitialized } = useOnlineStatus();
   
   // States
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -22,11 +21,7 @@ const AppConvertingBanner = () => {
   const [userWelcome, setUserWelcome] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [dataInitialized, setDataInitialized] = useState(false);
-  // const [isCacheChecked, setIsCacheChecked] = useState(false);
-  // const [shouldShowGuest, setShouldShowGuest] = useState(false);
   
-  // const { db, isCacheValid, isInitialized } = useDatabase();
-  const { hybridCache, isInitialized, isOnline } = useDatabase();
   const user = useSelector(state => state?.user?.user);
   const initialized = useSelector(state => state?.user?.initialized);
 
@@ -78,107 +73,175 @@ const AppConvertingBanner = () => {
     setIsLoading(true);
   };
   
-   // Effect to handle user state changes
-  // Update your useEffect for user state changes
-useEffect(() => {
-  const handleUserStateChange = async () => {
+  // Effect to handle user state changes
+  useEffect(() => {
+    const handleUserStateChange = async () => {
+      if (!isInitialized) return;
+
+      // Clear states when user changes
+      clearBannerStates();
+
+      if (!user?._id) {
+        // Load guest slides
+        await loadGuestSlides();
+      } else {
+        // Start fresh load for logged-in users
+        setIsLoading(true);
+        setDataInitialized(false);
+      }
+    };
+    
+    handleUserStateChange();
+  }, [isInitialized, user?._id, initialized]);
+
+  const loadGuestSlides = async () => {
     if (!isInitialized) return;
-
-    // Clear states when user changes
-    clearBannerStates();
-
-    if (!user?._id) {
-      // Load guest slides for non-logged in users
-      await loadGuestSlides();
-    } else {
-      // Start fresh load for logged-in users
-      setIsLoading(true);
-      setDataInitialized(false);
+    
+    try {
+      // Try to get from localStorage first
+      const cachedSlides = StorageService.getGuestSlides();
+      
+      if (cachedSlides) {
+        setGuestSlides(cachedSlides);
+        setDataInitialized(true);
+        setIsLoading(false);
+        
+        // If online, fetch fresh data
+        if (isOnline) {
+          fetchFreshGuestSlides();
+        }
+        return;
+      }
+      
+      // If online and no cache, fetch fresh
+      if (isOnline) {
+        await fetchFreshGuestSlides();
+      } else {
+        setIsLoading(false);
+        setDataInitialized(true);
+      }
+    } catch (error) {
+      console.error('Error in loadGuestSlides:', error);
+      setIsLoading(false);
+      setDataInitialized(true);
     }
   };
-  
-  handleUserStateChange();
-}, [isInitialized, user?._id, initialized]); // Add initialized as dependency
 
-
- // Constants
-// const GUEST_SLIDES_STORAGE_KEY = 'guestSlides';
-// const GUEST_SLIDES_SESSION_KEY = 'sessionGuestSlides';
-// const GUEST_SLIDES_INDEXED_DB_KEY = 'indexedDBGuestSlides';
-// const LAST_LOGOUT_TIMESTAMP = 'lastLogoutTimestamp';
-
-const CACHE_KEYS = {
-  GUEST_SLIDES: 'guest_slides',
-  USER_ORDERS: 'user_orders',
-  USER_WELCOME: 'user_welcome'
-};
-
-const CACHE_DURATION = {
-  GUEST_SLIDES: 24 * 60 * 60 * 1000, // 24 hours
-  USER_ORDERS: 30 * 60 * 1000,       // 30 minutes
-  USER_WELCOME: 12 * 60 * 60 * 1000  // 12 hours
-};
-
-
-// ----- Enhanced loadGuestSlides function -----
-const loadGuestSlides = async () => {
-  if (!isInitialized) return;
-  
-  try {
-    // Try to get from hybrid cache first
-    const cachedData = await hybridCache.get('apiCache', CACHE_KEYS.GUEST_SLIDES);
+  const fetchFreshGuestSlides = async () => {
+    if (!isOnline) return null;
     
-    if (cachedData?.data) {
-      console.log('Found slides in cache:', cachedData.data.length);
-      setGuestSlides(cachedData.data);
-      setDataInitialized(true);
-      setIsLoading(false);
+    try {
+      const response = await fetch(SummaryApi.guestSlides.url);
+      const data = await response.json();
       
-      // Only fetch fresh data if online and cache is old
-      if (isOnline && !hybridCache.isValid(cachedData.timestamp, CACHE_DURATION.GUEST_SLIDES)) {
-        fetchFreshGuestSlides().catch(console.error);
+      if (data.success && Array.isArray(data.data)) {
+        setGuestSlides(data.data);
+        setDataInitialized(true);
+        
+        // Store in localStorage
+        StorageService.setGuestSlides(data.data);
+        return data.data;
       }
-      return;
-    }
-    
-    // If online and no valid cache, fetch fresh
-    if (isOnline) {
-      await fetchFreshGuestSlides();
-    } else {
+      return null;
+    } catch (error) {
+      console.error('Error fetching fresh slides:', error);
+      return null;
+    } finally {
       setIsLoading(false);
-      setDataInitialized(true);
     }
-  } catch (error) {
-    console.error('Error in loadGuestSlides:', error);
-    setIsLoading(false);
-    setDataInitialized(true);
-  }
-};
+  };
 
-// Enhanced fetchFreshGuestSlides to handle errors better
-const fetchFreshGuestSlides = async () => {
-  if (!isOnline) return null;
-  
-  try {
-    const response = await fetch(SummaryApi.guestSlides.url);
-    const data = await response.json();
-    
-    if (data.success && Array.isArray(data.data)) {
-      setGuestSlides(data.data);
-      setDataInitialized(true);
+  // Combined data fetching effect
+  useEffect(() => {
+    const loadData = async () => {
+      if (!isInitialized || !initialized) return;
       
-      // Store in hybrid cache
-      await hybridCache.store('apiCache', CACHE_KEYS.GUEST_SLIDES, data.data, 'high');
-      return data.data;
+      if (!user?._id) {
+        await loadGuestSlides();
+        return;
+      }
+      
+      // Handle logged-in user data
+      try {
+        // Check localStorage first
+        const cachedOrders = StorageService.getUserOrders(user._id);
+        const cachedWelcome = StorageService.getUserWelcome();
+        
+        // Process orders if they exist
+        if (cachedOrders) {
+          const filteredOrders = filterWebsiteOrders(cachedOrders);
+          setOrders(filteredOrders);
+        }
+        
+        // Process welcome data if it exists
+        if (cachedWelcome) {
+          setUserWelcome(cachedWelcome);
+        }
+        
+        setDataInitialized(true);
+        setIsLoading(false);
+        
+        // If online, fetch fresh data
+        if (isOnline) {
+          // Fetch fresh data in parallel
+          await Promise.all([
+            fetchUserOrders(),
+            fetchUserWelcome()
+          ]);
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      } finally {
+        setIsLoading(false);
+        setDataInitialized(true);
+      }
+    };
+    
+    loadData();
+  }, [user?._id, initialized, isInitialized, isOnline]);
+
+  const fetchUserOrders = async () => {
+    try {
+      const response = await fetch(SummaryApi.ordersList.url, {
+        method: SummaryApi.ordersList.method,
+        credentials: 'include'
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        const filteredOrders = filterWebsiteOrders(data.data);
+        setOrders(filteredOrders);
+        setDataInitialized(true);
+        
+        // Store in localStorage
+        StorageService.setUserOrders(user._id, data.data);
+        return data.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      return null;
     }
-    return null;
-  } catch (error) {
-    console.error('Error fetching fresh slides:', error);
-    return null;
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
+
+  const fetchUserWelcome = async () => {
+    try {
+      const response = await fetch(SummaryApi.userWelcome.url);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setUserWelcome(data.data);
+        
+        // Store in localStorage
+        StorageService.setUserWelcome(data.data);
+        return data.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching user welcome:', error);
+      return null;
+    }
+  };
 
   const loadUserWelcome = async () => {
     try {
@@ -222,123 +285,7 @@ const fetchFreshGuestSlides = async () => {
     }
   };
 
-  // Combined data fetching effect
-  useEffect(() => {
-    const loadData = async () => {
-      if (!isInitialized || !initialized) return;
-  
-      if (!user?._id) {
-        await loadGuestSlides();
-        return;
-      }
-  
-      // Handle logged-in user data
-      try {
-        // Load both orders and welcome data in parallel
-        const [cachedOrders, cachedWelcome] = await Promise.all([
-          hybridCache.get('apiCache', `${CACHE_KEYS.USER_ORDERS}_${user._id}`),
-          hybridCache.get('apiCache', CACHE_KEYS.USER_WELCOME)
-        ]);
-        
-        // Process orders if they exist
-        if (cachedOrders?.data) {
-          const filteredOrders = filterWebsiteOrders(cachedOrders.data);
-          setOrders(filteredOrders);
-        }
-        
-        // Process welcome data if it exists
-        if (cachedWelcome?.data) {
-          setUserWelcome(cachedWelcome.data);
-        }
-        
-        setDataInitialized(true);
-        setIsLoading(false);
-        
-        // If online, refresh stale data
-        if (isOnline) {
-          const refreshPromises = [];
-          
-          // Check if orders cache is stale
-          if (!cachedOrders?.data || !hybridCache.isValid(cachedOrders.timestamp, CACHE_DURATION.USER_ORDERS)) {
-            refreshPromises.push(fetchUserOrders());
-          }
-          
-          // Check if welcome cache is stale
-          if (!cachedWelcome?.data || !hybridCache.isValid(cachedWelcome.timestamp, CACHE_DURATION.USER_WELCOME)) {
-            refreshPromises.push(fetchUserWelcome());
-          }
-          
-          // Refresh stale data in background
-          Promise.all(refreshPromises).catch(console.error);
-        }
-      } catch (error) {
-        console.error('Error loading user data:', error);
-      } finally {
-        setIsLoading(false);
-        setDataInitialized(true);
-      }
-    };
-  
-    loadData();
-  }, [user?._id, initialized, isInitialized, isOnline]);
-  
-  // 6. Add these new functions for fetching user data
-  const fetchUserOrders = async () => {
-    try {
-      const response = await fetch(SummaryApi.ordersList.url, {
-        method: SummaryApi.ordersList.method,
-        credentials: 'include'
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        const filteredOrders = filterWebsiteOrders(data.data);
-        setOrders(filteredOrders);
-        setDataInitialized(true);
-        
-        // Store in cache
-        await hybridCache.store(
-          'apiCache', 
-          `${CACHE_KEYS.USER_ORDERS}_${user._id}`, 
-          data.data, 
-          'high'
-        );
-        
-        return data.data;
-      }
-      return null;
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      return null;
-    }
-  };
-  
-  // Add new function for fetching user welcome data
-  const fetchUserWelcome = async () => {
-    try {
-      const response = await fetch(SummaryApi.userWelcome.url);
-      const data = await response.json();
-      
-      if (data.success && data.data) {
-        setUserWelcome(data.data);
-        
-        // Store in cache
-        await hybridCache.store(
-          'apiCache',
-          CACHE_KEYS.USER_WELCOME,
-          data.data,
-          'medium'
-        );
-        
-        return data.data;
-      }
-      return null;
-    } catch (error) {
-      console.error('Error fetching user welcome:', error);
-      return null;
-    }
-  };
-
+ 
   // Helper functions remain the same
 const isWebsiteService = (category = '') => {
   return ['static_websites', 'standard_websites', 'dynamic_websites'].includes(category?.toLowerCase());

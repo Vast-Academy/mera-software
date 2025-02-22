@@ -3,7 +3,8 @@ import fetchCategoryWiseProduct from '../helpers/fetchCategoryWiseProduct'
 import displayINRCurrency from '../helpers/displayCurrency'
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6'
 import { Link } from 'react-router-dom'
-import { useDatabase } from '../context/DatabaseContext';
+import { useOnlineStatus } from '../App';
+import StorageService from '../utils/storageService';
 import { FaLongArrowAltRight } from "react-icons/fa";
 // import addToCart from '../helpers/addToCart'
 // import Context from '../context'
@@ -13,8 +14,7 @@ const VerticalCardProduct = ({category, heading}) => {
     const [loading, setLoading] = useState(true)
     const loadingList = new Array(8).fill(null)
     const scrollElement = useRef()
-    const { hybridCache, isInitialized, isOnline } = useDatabase();
-    // const { db, fetchAndCache, isCacheValid, isInitialized  } = useDatabase();
+    const { isOnline, isInitialized } = useOnlineStatus();
 
     const colorStyles = {
         'static_websites': {
@@ -54,65 +54,39 @@ const VerticalCardProduct = ({category, heading}) => {
 
     useEffect(() => {
         const loadProducts = async () => {
-            if (!isInitialized) return;
-            
-            const cacheKey = `products_${category}`;
-            try {
-                setLoading(true);
-                
-                // Try to get data from hybrid cache first
-                const cachedData = await hybridCache.get('products', cacheKey);
-                
-                if (cachedData?.data) {
-                    const sortedData = cachedData.data.sort((a, b) => 
-                        a.serviceName.localeCompare(b.serviceName)
-                    );
-                    setData(sortedData);
-                    setLoading(false);
-                    
-                    // If online, fetch fresh data in background
-                    if (isOnline) {
-                        await fetchFreshProducts(cacheKey);
-                    }
-                    return;
-                }
+          if (!isInitialized) return;
           
-                // If no cached data and online, fetch fresh data
-                if (isOnline) {
-                    await fetchFreshProducts(cacheKey);
-                }
-            } catch (error) {
-                console.error('Error loading products:', error);
-                // Try to use cached data as fallback
-                const cachedFallback = await hybridCache.get('products', cacheKey);
-                if (cachedFallback?.data) {
-                    setData(cachedFallback.data.sort((a, b) => 
-                        a.serviceName.localeCompare(b.serviceName)
-                    ));
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        const fetchFreshProducts = async (cacheKey) => {
+          // First check localStorage
+          const cachedProducts = StorageService.getProductsData(category);
+          if (cachedProducts) {
+            const sortedData = cachedProducts.sort((a, b) => 
+              a.serviceName.localeCompare(b.serviceName)
+            );
+            setData(sortedData);
+            setLoading(false);
+          }
+      
+          // If online, fetch fresh data
+          if (isOnline) {
             try {
-                const response = await fetchCategoryWiseProduct(category);
-                if (response?.data) {
-                    const sortedData = response.data.sort((a, b) => 
-                        a.serviceName.localeCompare(b.serviceName)
-                    );
-                    setData(sortedData);
-                    // Store in hybrid cache with high priority since these are product details
-                    await hybridCache.store('products', cacheKey, sortedData, 'high');
-                }
+              const response = await fetchCategoryWiseProduct(category);
+              if (response?.data) {
+                const sortedData = response.data.sort((a, b) => 
+                  a.serviceName.localeCompare(b.serviceName)
+                );
+                StorageService.setProductsData(category, sortedData);
+                setData(sortedData);
+              }
             } catch (error) {
-                console.error('Error fetching fresh products:', error);
+              console.error('Error fetching products:', error);
+            } finally {
+              setLoading(false);
             }
+          }
         };
       
         loadProducts();
-    }, [category, hybridCache, isInitialized, isOnline]);
+      }, [category, isInitialized, isOnline]);
 
     const getColorStyle = (productCategory) => {
         return colorStyles[productCategory] || colorStyles.standard_websites

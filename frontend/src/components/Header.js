@@ -11,7 +11,7 @@ import { setUserDetails, logout  } from '../store/userSlice';
 import ROLE from '../common/role';
 import Context from '../context';
 import { FaArrowLeftLong } from "react-icons/fa6";
-import { useDatabase } from '../context/DatabaseContext';
+import { useOnlineStatus } from '../App'; 
 import { IoWalletOutline } from "react-icons/io5";
 import CookieManager from '../utils/cookieManager';
 import StorageService from '../utils/storageService';
@@ -20,8 +20,7 @@ import StorageService from '../utils/storageService';
 const Header = () => {
   const user = useSelector(state => state?.user?.user)
   const dispatch = useDispatch()
-  // const { clearCache } = useDatabase();
-  const { hybridCache } = useDatabase();
+  const { isOnline } = useOnlineStatus();
   const context = useContext(Context)
   const navigate = useNavigate()
   const [menuDisplay,setMenuDisplay] = useState(false)
@@ -39,77 +38,57 @@ const Header = () => {
 
   const handleLogout = async () => {
     try {
-      // 1. BEFORE ANYTHING ELSE - Save guest slides to multiple locations
+      // 1. Save guest slides before logout
       const guestSlides = StorageService.getGuestSlides();
       if (guestSlides && guestSlides.length > 0) {
-        console.log('Preserving guest slides before logout');
         try {
-          // Make sure to save as plain arrays for consistency
+          // Store in multiple locations for backup
           sessionStorage.setItem('sessionGuestSlides', JSON.stringify(guestSlides));
           localStorage.setItem('preservedGuestSlides', JSON.stringify(guestSlides));
           localStorage.setItem('guestSlides', JSON.stringify(guestSlides)); 
-          // Mark logout timestamp for post-refresh detection
           localStorage.setItem('lastLogoutTimestamp', Date.now().toString());
         } catch (backupError) {
-          console.error('Failed to backup slides before logout:', backupError);
+          console.error('Failed to backup slides:', backupError);
         }
       }
   
-      // 2. Call logout API
-      const fetchData = await fetch(SummaryApi.logout_user.url, {
-        method: SummaryApi.logout_user.method,
-        credentials: 'include'
-      });
-  
-      const data = await fetchData.json();
-  
-      if (data.success) {
-        try {
-          // 3. Clear cookies
-          CookieManager.clearAll();
-          
-          // 4. Clear only user data with the improved method
-          StorageService.clearUserData();
-          
-          // 5. Do a controlled clear of hybridCache to preserve guest slides
-          if (hybridCache && typeof hybridCache.clearAll === 'function') {
-            await hybridCache.clearAll();
-          }
-          
-          // 6. Extra verification that guest slides are preserved
-          // Get from the preserved location and restore to main locations
-          const preserved = localStorage.getItem('preservedGuestSlides');
-          const sessionBackup = sessionStorage.getItem('sessionGuestSlides');
-          
-          if (!localStorage.getItem('guestSlides')) {
-            console.log('Restoring guest slides after cache clear');
-            
-            // Try preserved first, then session backup
-            if (preserved) {
-              localStorage.setItem('guestSlides', preserved);
-            } else if (sessionBackup) {
-              localStorage.setItem('guestSlides', sessionBackup);
-            }
-          }
-          
-          // 7. Dispatch Redux logout
-          dispatch(logout());
-          
-          // 8. Reset component states
-          setMenuDisplay(false);
-          setSearch('');
-          
+      // 2. Call logout API if online
+      if (isOnline) {
+        const response = await fetch(SummaryApi.logout_user.url, {
+          method: SummaryApi.logout_user.method,
+          credentials: 'include'
+        });
+    
+        const data = await response.json();
+        if (data.success) {
           toast.success(data.message);
-          navigate("/");
-        } catch (cacheError) {
-          console.error("Cache clearing error:", cacheError);
-          // Still proceed with logout even if cache clearing fails
-          dispatch(logout());
-          navigate("/");
         }
-      } else {
-        toast.error(data.message);
       }
+
+      // 3. Clear cookies
+      CookieManager.clearAll();
+      
+      // 4. Clear user data from localStorage
+      StorageService.clearUserData();
+      
+      // 5. Verify guest slides are preserved
+      const preserved = localStorage.getItem('preservedGuestSlides');
+      const sessionBackup = sessionStorage.getItem('sessionGuestSlides');
+      
+      if (!localStorage.getItem('guestSlides')) {
+        if (preserved) {
+          localStorage.setItem('guestSlides', preserved);
+        } else if (sessionBackup) {
+          localStorage.setItem('guestSlides', sessionBackup);
+        }
+      }
+      
+      // 6. Reset states and navigate
+      dispatch(logout());
+      setMenuDisplay(false);
+      setSearch('');
+      navigate("/");
+      
     } catch (error) {
       console.error("Error during logout:", error);
       toast.error("Logout failed. Please try again.");

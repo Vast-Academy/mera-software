@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import SummaryApi from '../common';
-import { useDatabase } from '../context/DatabaseContext';
+import { useOnlineStatus } from '../App';
+import StorageService from '../utils/storageService';
 import { Monitor, Smartphone, Cloud, Plus, ChevronRight } from 'lucide-react';
 
 const CategoryList = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { hybridCache, isInitialized, isOnline } = useDatabase();
+  const { isOnline, isInitialized } = useOnlineStatus();
   const categoryLoading = new Array(4).fill(null);
   const [serviceTypes, setServiceTypes] = useState([]);
 
@@ -43,90 +44,62 @@ const CategoryList = () => {
     }
   };
 
+   // Process categories function
+   const processCategories = (data) => {
+    setCategories(data);
+    
+    // Group by service type and extract unique service types
+    const uniqueServiceTypes = [...new Set(data.map(item => item.serviceType))];
+    
+    // Create service type objects with associated categories
+    const serviceTypeObjects = uniqueServiceTypes.map(type => {
+      const typeCategories = data.filter(cat => cat.serviceType === type);
+      const representativeCategory = typeCategories[0] || {};
+      
+      return {
+        serviceType: type,
+        icon: getServiceIcon(type),
+        bgColor: getServiceBgColor(type),
+        description: representativeCategory.description || `Professional ${type.toLowerCase()} services`,
+        categories: typeCategories,
+        queryCategoryValues: typeCategories.map(cat => cat.categoryValue),
+      };
+    });
+    
+    setServiceTypes(serviceTypeObjects);
+  };
+
   useEffect(() => {
     const loadCategories = async () => {
       if (!isInitialized) return;
 
-      const cacheKey = 'categories_all';
-      
-      try {
-        // First try to get from hybrid cache
-        const cachedData = await hybridCache.get('categories', cacheKey);
-        
-        if (cachedData) {
-          // Immediately show cached data
-          processCategories(cachedData.data);
-          setLoading(false);
-          
-          // If online, fetch fresh data in background
-          if (isOnline) {
-            fetchFreshCategories(cacheKey);
-          }
-          return;
-        }
-    
-        // If no cache and online, fetch fresh data
-        if (isOnline) {
-          await fetchFreshCategories(cacheKey);
-        }
-      } catch (error) {
-        console.error('Error loading categories:', error);
-        
-        // On error, try to use cached data as fallback
-        const cachedFallback = await hybridCache.get('categories', cacheKey);
-        if (cachedFallback?.data) {
-          processCategories(cachedFallback.data);
-        }
-      } finally {
+      // Check localStorage first
+      const cachedCategories = StorageService.getProductsData('categories');
+      if (cachedCategories) {
+        processCategories(cachedCategories);
         setLoading(false);
       }
-    };
 
-    const processCategories = (data) => {
-      setCategories(data);
-      
-      // Group by service type and extract unique service types
-      const uniqueServiceTypes = [...new Set(data.map(item => item.serviceType))];
-      
-      // Create a complete service type object with associated categories
-      const serviceTypeObjects = uniqueServiceTypes.map(type => {
-        // Get all categories for this service type
-        const typeCategories = data.filter(cat => cat.serviceType === type);
-        // Find the first category as representative or use default values
-        const representativeCategory = typeCategories[0] || {};
-        
-        return {
-          serviceType: type,
-          icon: getServiceIcon(type),
-          bgColor: getServiceBgColor(type),
-          // Use the first category's description or a generic one
-          description: representativeCategory.description || `Professional ${type.toLowerCase()} services`,
-          categories: typeCategories,
-          // Generate query string for all subcategories of this service type
-          queryCategoryValues: typeCategories.map(cat => cat.categoryValue),
-        };
-      });
-      
-      setServiceTypes(serviceTypeObjects);
-    };
-
-    const fetchFreshCategories = async (cacheKey) => {
-      try {
-        const response = await fetch(SummaryApi.allCategory.url);
-        const data = await response.json();
-        
-        if (data.success) {
-          processCategories(data.data);
-          // Store in hybrid cache with medium priority
-          await hybridCache.store('categories', cacheKey, data.data, 'medium');
+      // If online, fetch fresh data
+      if (isOnline) {
+        try {
+          const response = await fetch(SummaryApi.allCategory.url);
+          const data = await response.json();
+          
+          if (data.success) {
+            StorageService.setProductsData('categories', data.data);
+            processCategories(data.data);
+          }
+        } catch (error) {
+          console.error('Error fetching categories:', error);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.error('Error fetching fresh categories:', error);
       }
     };
-  
+
     loadCategories();
-  }, [hybridCache, isInitialized, isOnline]);
+  }, [isInitialized, isOnline]);
 
   // Build query string for all subcategories of a service type
   const buildCategoryQueryString = (categoryValues) => {

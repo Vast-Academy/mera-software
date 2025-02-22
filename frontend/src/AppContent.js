@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { useDatabase } from './context/DatabaseContext';
+import { useOnlineStatus } from './App';
 import { setUserDetails, updateWalletBalance, logout } from './store/userSlice';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -12,8 +12,8 @@ import CookieManager from './utils/cookieManager';
 import StorageService from './utils/storageService';
 
 const AppContent = () => {
-    const dispatch = useDispatch();
-  const { clearCache } = useDatabase();
+  const dispatch = useDispatch();
+  const { isOnline, isInitialized } = useOnlineStatus(); 
   const [cartProductCount, setCartProductCount] = useState(0);
   const [walletBalance, setWalletBalance] = useState(0);
 
@@ -25,16 +25,18 @@ const AppContent = () => {
       });
       
       if (response.ok) {
+        // Clear cookies
         CookieManager.clearAll();
+        
+        // Clear localStorage but preserve essential data
         StorageService.clearAll();
-        // Clear database cache
-        await clearCache();
 
-        // यह नई line add करें
-      document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        // Clear session cookie
+        document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
         // Dispatch logout action
         dispatch(logout());
+        
         // Reset local states
         setCartProductCount(0);
         setWalletBalance(0);
@@ -46,21 +48,24 @@ const AppContent = () => {
 
   const fetchWalletBalance = async () => {
     try {
-      // Pehle localStorage se balance get karo
+      // First check localStorage
       const cachedBalance = StorageService.getWalletBalance();
       setWalletBalance(cachedBalance);
       dispatch(updateWalletBalance(cachedBalance));
 
-      const response = await fetch(SummaryApi.wallet.balance.url, {
-        method: SummaryApi.wallet.balance.method,
-        credentials: 'include'
-      });
-      const data = await response.json();
-      if (data.success) {
-        const balance = data.data.balance;
-        setWalletBalance(balance); // Update local state
-        dispatch(updateWalletBalance(balance)); // Update Redux state
-        StorageService.setWalletBalance(balance); 
+      // If online, fetch fresh data
+      if (isOnline) {
+        const response = await fetch(SummaryApi.wallet.balance.url, {
+          method: SummaryApi.wallet.balance.method,
+          credentials: 'include'
+        });
+        const data = await response.json();
+        if (data.success) {
+          const balance = data.data.balance;
+          setWalletBalance(balance);
+          dispatch(updateWalletBalance(balance));
+          StorageService.setWalletBalance(balance);
+        }
       }
     } catch (error) {
       console.error("Error fetching wallet balance:", error);
@@ -69,7 +74,7 @@ const AppContent = () => {
 
   const fetchUserDetails = async () => {
     try {
-      // Pehle localStorage se details get karo
+      // First check localStorage
       const cachedDetails = StorageService.getUserDetails();
       if (cachedDetails) {
         dispatch(setUserDetails(cachedDetails));
@@ -77,31 +82,37 @@ const AppContent = () => {
         dispatch(updateWalletBalance(cachedDetails.walletBalance || 0));
       }
 
-      const dataResponse = await fetch(SummaryApi.current_user.url, {
-        method: SummaryApi.current_user.method,
-        credentials: 'include'
-      });
-      const dataApi = await dataResponse.json();
-      
-      if (dataApi.success && dataApi.data) {
-        CookieManager.setUserDetails({
-          _id: dataApi.data._id,
-          name: dataApi.data.name,
-          email: dataApi.data.email,
-          role: dataApi.data.role
+      // If online, fetch fresh data
+      if (isOnline) {
+        const dataResponse = await fetch(SummaryApi.current_user.url, {
+          method: SummaryApi.current_user.method,
+          credentials: 'include'
         });
-        StorageService.setUserDetails(dataApi.data);
-        dispatch(setUserDetails(dataApi.data));
+        const dataApi = await dataResponse.json();
         
-        // Update wallet balance if it exists in user data
-        if (dataApi.data.walletBalance !== undefined) {
-          setWalletBalance(dataApi.data.walletBalance); // Update local state
-          dispatch(updateWalletBalance(dataApi.data.walletBalance)); // Update Redux state
-          StorageService.setWalletBalance(dataApi.data.walletBalance);
+        if (dataApi.success && dataApi.data) {
+          // Save to cookies
+          CookieManager.setUserDetails({
+            _id: dataApi.data._id,
+            name: dataApi.data.name,
+            email: dataApi.data.email,
+            role: dataApi.data.role
+          });
+
+          // Save to localStorage
+          StorageService.setUserDetails(dataApi.data);
+          dispatch(setUserDetails(dataApi.data));
+          
+          // Update wallet balance if it exists
+          if (dataApi.data.walletBalance !== undefined) {
+            setWalletBalance(dataApi.data.walletBalance);
+            dispatch(updateWalletBalance(dataApi.data.walletBalance));
+            StorageService.setWalletBalance(dataApi.data.walletBalance);
+          }
+          
+          // Fetch latest wallet balance
+          await fetchWalletBalance();
         }
-        
-        // Fetch latest wallet balance
-        await fetchWalletBalance();
       }
     } catch (error) {
       console.error("Error fetching user details:", error);
@@ -110,53 +121,63 @@ const AppContent = () => {
 
   const fetchUserAddToCart = async () => {
     try {
-       // Pehle localStorage se cart count get karo
-       const cachedCount = StorageService.getCartCount();
-       setCartProductCount(cachedCount);
+      // First check localStorage
+      const cachedCount = StorageService.getCartCount();
+      setCartProductCount(cachedCount);
 
-      const dataResponse = await fetch(SummaryApi.addToCartProductCount.url, {
-        method: SummaryApi.addToCartProductCount.method,
-        credentials: 'include'
-      });
-     const dataApi = await dataResponse.json();
-      const newCount = dataApi?.data?.count || 0;
-      setCartProductCount(newCount);
-      StorageService.setCartCount(newCount); // Update localStorage
+      // If online, fetch fresh data
+      if (isOnline) {
+        const dataResponse = await fetch(SummaryApi.addToCartProductCount.url, {
+          method: SummaryApi.addToCartProductCount.method,
+          credentials: 'include'
+        });
+        const dataApi = await dataResponse.json();
+        const newCount = dataApi?.data?.count || 0;
+        setCartProductCount(newCount);
+        StorageService.setCartCount(newCount);
+      }
     } catch (error) {
       console.error("Error fetching cart count:", error);
     }
   };
 
   useEffect(() => {
-    // Fetch initial data
     const initializeData = async () => {
       try {
-        const userResponse = await fetch(SummaryApi.current_user.url, {
-          method: SummaryApi.current_user.method,
-          credentials: 'include'
-        });
-        
-        // If response is unauthorized (401) or there's any error,
-        // still dispatch logout to ensure initialized=true
-        if (!userResponse.ok) {
-          dispatch(logout());  
+        if (!isInitialized) return;
+
+        // Try to get user data from localStorage first
+        const cachedUser = StorageService.getUserDetails();
+        if (cachedUser) {
+          dispatch(setUserDetails(cachedUser));
           await fetchUserAddToCart();
           return;
         }
-        
-        // Continue with normal flow for logged-in users
-        await fetchUserDetails();
-        await fetchUserAddToCart();
-        
+
+        // If online, verify user session
+        if (isOnline) {
+          const userResponse = await fetch(SummaryApi.current_user.url, {
+            method: SummaryApi.current_user.method,
+            credentials: 'include'
+          });
+          
+          if (!userResponse.ok) {
+            dispatch(logout());
+            await fetchUserAddToCart();
+            return;
+          }
+          
+          await fetchUserDetails();
+          await fetchUserAddToCart();
+        }
       } catch (error) {
         console.error("Error during initialization:", error);
-        // Even on error, ensure the state is initialized
         dispatch(logout());
       }
     };
     
     initializeData();
-  }, []);
+  }, [isInitialized]);
 
 
   return (
