@@ -11,6 +11,12 @@ import Context from './context';
 import CookieManager from './utils/cookieManager';
 import StorageService from './utils/storageService';
 
+const STORAGE_KEYS = {
+  WALLET_BALANCE: 'walletBalance',
+  USER_DETAILS: 'userDetails',
+  GUEST_SLIDES: 'guestSlides'
+};
+
 const AppContent = () => {
   const dispatch = useDispatch();
   const { isOnline, isInitialized } = useOnlineStatus(); 
@@ -24,6 +30,11 @@ const AppContent = () => {
         credentials: 'include'
       });
       
+      // Clear wallet data
+    localStorage.removeItem(STORAGE_KEYS.WALLET_BALANCE);
+    setWalletBalance(0);
+    dispatch(updateWalletBalance(0));
+    
       if (response.ok) {
         // Clear cookies
         CookieManager.clearAll();
@@ -50,8 +61,10 @@ const AppContent = () => {
     try {
       // First check localStorage
       const cachedBalance = StorageService.getWalletBalance();
-      setWalletBalance(cachedBalance);
-      dispatch(updateWalletBalance(cachedBalance));
+      if (cachedBalance) {
+        setWalletBalance(cachedBalance);
+        dispatch(updateWalletBalance(cachedBalance));
+      }
 
       // If online, fetch fresh data
       if (isOnline) {
@@ -145,6 +158,15 @@ const AppContent = () => {
     const initializeData = async () => {
       try {
         if (!isInitialized) return;
+
+        // यहाँ localStorage की checking से पहले COOKIE check करें
+        const sessionCookie = document.cookie.includes('user-details');
+        if (!sessionCookie) {
+          // If no session cookie, clear everything and logout
+          StorageService.clearUserData();
+          dispatch(logout());
+          return;
+        }
 
         // Try to get user data from localStorage first
         const cachedUser = StorageService.getUserDetails();

@@ -38,18 +38,29 @@ const StorageService = {
   },
 
   // Wallet balance ke liye
-  setWalletBalance: (balance) => {
+   setWalletBalance(balance) {
     try {
-      localStorage.setItem(STORAGE_KEYS.WALLET_BALANCE, balance.toString());
+      localStorage.setItem(STORAGE_KEYS.WALLET_BALANCE, JSON.stringify({
+        balance,
+        timestamp: new Date().toISOString()
+      }));
     } catch (error) {
       console.error('Error storing wallet balance:', error);
     }
   },
-
-  getWalletBalance: () => {
+  
+   getWalletBalance() {
     try {
-      const balance = localStorage.getItem(STORAGE_KEYS.WALLET_BALANCE);
-      return balance ? parseFloat(balance) : 0;
+      const data = localStorage.getItem(STORAGE_KEYS.WALLET_BALANCE);
+      if (!data) return 0;
+      
+      const parsed = JSON.parse(data);
+      // Check if data is fresh (less than 30 minutes old)
+      if (new Date() - new Date(parsed.timestamp) > 30 * 60 * 1000) {
+        localStorage.removeItem(STORAGE_KEYS.WALLET_BALANCE);
+        return 0;
+      }
+      return parsed.balance;
     } catch (error) {
       console.error('Error getting wallet balance:', error);
       return 0;
