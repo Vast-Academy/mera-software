@@ -112,129 +112,35 @@ const loadGuestSlides = async () => {
   if (!isInitialized) return;
  
   setIsLoading(true);
-  let hasLoadedData = false;
- 
+  
   try {
-    // Check if this is first load after logout (within last 10 seconds)
-    const lastLogout = localStorage.getItem(LAST_LOGOUT_TIMESTAMP);
-    const isRecentLogout = lastLogout && (Date.now() - parseInt(lastLogout)) < 10000;
-   
-    // 1. First priority: Try to set slides from storage IMMEDIATELY
-    try {
-      // Use a more direct way to check storage first before the async function
-      let quickSlides = null;
-      
-      // Try sessionStorage first (fastest)
-      const sessionData = sessionStorage.getItem(GUEST_SLIDES_SESSION_KEY);
-      if (sessionData) {
-        try {
-          const parsed = JSON.parse(sessionData);
-          quickSlides = Array.isArray(parsed) ? parsed : (parsed.data || null);
-        } catch (e) {}
-      }
-      
-      // Then try localStorage
-      if (!quickSlides) {
-        const localData = localStorage.getItem(GUEST_SLIDES_STORAGE_KEY);
-        if (localData) {
-          try {
-            const parsed = JSON.parse(localData);
-            quickSlides = Array.isArray(parsed) ? parsed : (parsed.data || null);
-          } catch (e) {}
-        }
-      }
-      
-      // If found slides through quick check, set them immediately
-      if (quickSlides && quickSlides.length > 0) {
-        console.log('Quick-found slides in storage, setting immediately');
-        setGuestSlides(quickSlides);
-        setDataInitialized(true);
-        hasLoadedData = true;
-        
-        // Continue with normal loading in background
-      }
-    } catch (quickError) {
-      console.error('Quick load error:', quickError);
-    }
-    
-    // Continue with regular flow - this will check all sources thoroughly
-    const slidesData = await getGuestSlidesFromAllSources(isRecentLogout);
-   
-    if (slidesData && slidesData.length > 0) {
-      console.log('Found guest slides in storage, count:', slidesData.length);
-      // Set slides and mark as initialized IMMEDIATELY
-      setGuestSlides(slidesData);
+    // First immediately check localStorage/sessionStorage
+    const cachedSlides = StorageService.getGuestSlides();
+    if (cachedSlides?.length > 0) {
+      setGuestSlides(cachedSlides);
       setDataInitialized(true);
-      hasLoadedData = true;
-     
-      // Save to all storage mechanisms to ensure consistency
-      saveGuestSlidesToAllStorages(slidesData);
-     
-      // Finish loading before API refresh
       setIsLoading(false);
       
-      // Only after displaying slides, try background refresh if online
+      // Only fetch fresh data if online
       if (isOnline) {
-        console.log('Background refreshing guest slides');
-        fetchFreshGuestSlides(slidesData).catch(error => {
-          // Silently handle API errors - we already have slides to display
-          console.error('Background refresh failed:', error);
-        });
+        fetchFreshGuestSlides(cachedSlides).catch(console.error);
       }
-     
-      return; // Exit early - we already have slides to show
+      return;
     }
-   
-    // 2. Only if no slides in storage and we're online, fetch from API
+
+    // If no cached data and online, fetch fresh
     if (isOnline) {
-      console.log('No slides in storage, fetching from API');
-      try {
-        const freshSlides = await fetchFreshGuestSlides();
-        if (freshSlides && freshSlides.length > 0) {
-          hasLoadedData = true;
-          // Double-check to make sure slides are set in state
-          setGuestSlides(freshSlides);
-          setDataInitialized(true);
-        } else {
-          // API returned empty slides
-          setDataInitialized(true);
-        }
-      } catch (apiError) {
-        console.error('API fetch error:', apiError);
-        // Show empty state rather than infinite loading
-        setDataInitialized(true);
+      const freshSlides = await fetchFreshGuestSlides();
+      if (freshSlides?.length > 0) {
+        setGuestSlides(freshSlides);
+        StorageService.setGuestSlides(freshSlides);
       }
-    } else {
-      // Offline with no stored slides - show empty state
-      console.log('Offline with no stored slides');
-      setDataInitialized(true);
     }
   } catch (error) {
     console.error('Error in loadGuestSlides:', error);
-    // Show empty state on error rather than infinite loading
-    setDataInitialized(true);
   } finally {
-    // Ensure loading state is always resolved
+    setDataInitialized(true);
     setIsLoading(false);
-    
-    // Double-check if we still don't have slides but should
-    if (!hasLoadedData && !guestSlides?.length) {
-      // Last resort - try direct localStorage access one more time
-      try {
-        const lastTry = localStorage.getItem(GUEST_SLIDES_STORAGE_KEY);
-        if (lastTry) {
-          const parsed = JSON.parse(lastTry);
-          const finalSlides = Array.isArray(parsed) ? parsed : (parsed.data || null);
-          if (finalSlides?.length) {
-            console.log('Last resort: found slides, count:', finalSlides.length);
-            setGuestSlides(finalSlides);
-            setDataInitialized(true);
-          }
-        }
-      } catch (e) {
-        console.error('Last resort error:', e);
-      }
-    }
   }
 };
 
@@ -496,41 +402,80 @@ const saveGuestSlidesToAllStorages = (slides) => {
           return;
         }
   
-        // For logged in users, process in this order:
+        // For logged in users with no orders, load welcome message
+        const cachedOrders = StorageService.getUserOrders(user._id);
+        if (cachedOrders) {
+          const filteredOrders = filterWebsiteOrders(cachedOrders);
+          setOrders(filteredOrders);
+          
+          // If no orders, load welcome message
+          if (!filteredOrders?.length) {
+            await loadUserWelcome();
+          }
+          
+          setDataInitialized(true);
+          setIsLoading(false);
+          
+          // Background refresh if online
+          if (isOnline) {
+            refreshOrdersData(user._id).catch(console.error);
+          }
+          return;
+        }
+  
+        // If no cached data and online, fetch fresh
         if (isOnline) {
-          try {
-            const ordersResponse = await fetch(SummaryApi.ordersList.url, {
-              method: SummaryApi.ordersList.method,
-              credentials: 'include'
-            });
-            const ordersData = await ordersResponse.json();
-             
-            if (ordersData.success) {
-              // Log the data to check what we're receiving
-              console.log('Fetched orders:', ordersData.data);
-              
-              StorageService.setUserOrders(user._id, ordersData.data);
-              const userOrders = filterWebsiteOrders(ordersData.data);
-              
-              // Log filtered orders to verify what we're working with
-              console.log('Filtered orders:', userOrders);
-              
-              setOrders(userOrders);
-              setDataInitialized(true);
+          const ordersResponse = await fetch(SummaryApi.ordersList.url, {
+            method: SummaryApi.ordersList.method,
+            credentials: 'include'
+          });
+          const ordersData = await ordersResponse.json();
+          
+          if (ordersData.success) {
+            StorageService.setUserOrders(user._id, ordersData.data);
+            const filteredOrders = filterWebsiteOrders(ordersData.data);
+            setOrders(filteredOrders);
+            
+            // If no orders, load welcome message
+            if (!filteredOrders?.length) {
+              await loadUserWelcome();
             }
-          } catch (error) {
-            console.error('Error fetching fresh orders:', error);
           }
         }
       } catch (error) {
         console.error('Error in data fetching:', error);
       } finally {
+        setDataInitialized(true);
         setIsLoading(false);
       }
     };
       
     loadData();
   }, [user?._id, initialized, isInitialized, isOnline]);
+
+  const refreshOrdersData = async (userId) => {
+    try {
+      const response = await fetch(SummaryApi.ordersList.url, {
+        method: SummaryApi.ordersList.method,
+        credentials: 'include'
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        StorageService.setUserOrders(userId, data.data);
+        const filteredOrders = filterWebsiteOrders(data.data);
+        setOrders(filteredOrders);
+        
+        // If orders status changed (e.g., went from some to none)
+        // we might need to load welcome message
+        if (!filteredOrders?.length) {
+          await loadUserWelcome();
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing orders:', error);
+    }
+  };
 
   // Helper functions remain the same
 const isWebsiteService = (category = '') => {
