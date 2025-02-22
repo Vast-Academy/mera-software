@@ -32,7 +32,7 @@ const AppContent = () => {
 
         // यह नई line add करें
       document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      
+
         // Dispatch logout action
         dispatch(logout());
         // Reset local states
@@ -139,8 +139,7 @@ const AppContent = () => {
         // If response is unauthorized (401) or there's any error,
         // still dispatch logout to ensure initialized=true
         if (!userResponse.ok) {
-          dispatch(logout());  // This sets initialized=true with null user
-          // Still try to fetch cart count for non-logged in users if needed
+          dispatch(logout());  
           await fetchUserAddToCart();
           return;
         }

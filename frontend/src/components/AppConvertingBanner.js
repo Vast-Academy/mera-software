@@ -102,342 +102,81 @@ useEffect(() => {
 
 
  // Constants
-const GUEST_SLIDES_STORAGE_KEY = 'guestSlides';
-const GUEST_SLIDES_SESSION_KEY = 'sessionGuestSlides';
-const GUEST_SLIDES_INDEXED_DB_KEY = 'indexedDBGuestSlides';
-const LAST_LOGOUT_TIMESTAMP = 'lastLogoutTimestamp';
+// const GUEST_SLIDES_STORAGE_KEY = 'guestSlides';
+// const GUEST_SLIDES_SESSION_KEY = 'sessionGuestSlides';
+// const GUEST_SLIDES_INDEXED_DB_KEY = 'indexedDBGuestSlides';
+// const LAST_LOGOUT_TIMESTAMP = 'lastLogoutTimestamp';
+
+const CACHE_KEYS = {
+  GUEST_SLIDES: 'guest_slides',
+  USER_ORDERS: 'user_orders',
+  USER_WELCOME: 'user_welcome'
+};
+
+const CACHE_DURATION = {
+  GUEST_SLIDES: 24 * 60 * 60 * 1000, // 24 hours
+  USER_ORDERS: 30 * 60 * 1000,       // 30 minutes
+  USER_WELCOME: 12 * 60 * 60 * 1000  // 12 hours
+};
+
 
 // ----- Enhanced loadGuestSlides function -----
 const loadGuestSlides = async () => {
   if (!isInitialized) return;
- 
-  setIsLoading(true);
-  let hasLoadedData = false;
- 
+  
   try {
-    // Check if this is first load after logout (within last 10 seconds)
-    const lastLogout = localStorage.getItem(LAST_LOGOUT_TIMESTAMP);
-    const isRecentLogout = lastLogout && (Date.now() - parseInt(lastLogout)) < 10000;
-   
-    // 1. First priority: Try to set slides from storage IMMEDIATELY
-    try {
-      // Use a more direct way to check storage first before the async function
-      let quickSlides = null;
-      
-      // Try sessionStorage first (fastest)
-      const sessionData = sessionStorage.getItem(GUEST_SLIDES_SESSION_KEY);
-      if (sessionData) {
-        try {
-          const parsed = JSON.parse(sessionData);
-          quickSlides = Array.isArray(parsed) ? parsed : (parsed.data || null);
-        } catch (e) {}
-      }
-      
-      // Then try localStorage
-      if (!quickSlides) {
-        const localData = localStorage.getItem(GUEST_SLIDES_STORAGE_KEY);
-        if (localData) {
-          try {
-            const parsed = JSON.parse(localData);
-            quickSlides = Array.isArray(parsed) ? parsed : (parsed.data || null);
-          } catch (e) {}
-        }
-      }
-      
-      // If found slides through quick check, set them immediately
-      if (quickSlides && quickSlides.length > 0) {
-        console.log('Quick-found slides in storage, setting immediately');
-        setGuestSlides(quickSlides);
-        setDataInitialized(true);
-        hasLoadedData = true;
-        
-        // Continue with normal loading in background
-      }
-    } catch (quickError) {
-      console.error('Quick load error:', quickError);
-    }
+    // Try to get from hybrid cache first
+    const cachedData = await hybridCache.get('apiCache', CACHE_KEYS.GUEST_SLIDES);
     
-    // Continue with regular flow - this will check all sources thoroughly
-    const slidesData = await getGuestSlidesFromAllSources(isRecentLogout);
-   
-    if (slidesData && slidesData.length > 0) {
-      console.log('Found guest slides in storage, count:', slidesData.length);
-      // Set slides and mark as initialized IMMEDIATELY
-      setGuestSlides(slidesData);
+    if (cachedData?.data) {
+      console.log('Found slides in cache:', cachedData.data.length);
+      setGuestSlides(cachedData.data);
       setDataInitialized(true);
-      hasLoadedData = true;
-     
-      // Save to all storage mechanisms to ensure consistency
-      saveGuestSlidesToAllStorages(slidesData);
-     
-      // Finish loading before API refresh
       setIsLoading(false);
       
-      // Only after displaying slides, try background refresh if online
-      if (isOnline) {
-        console.log('Background refreshing guest slides');
-        fetchFreshGuestSlides(slidesData).catch(error => {
-          // Silently handle API errors - we already have slides to display
-          console.error('Background refresh failed:', error);
-        });
+      // Only fetch fresh data if online and cache is old
+      if (isOnline && !hybridCache.isValid(cachedData.timestamp, CACHE_DURATION.GUEST_SLIDES)) {
+        fetchFreshGuestSlides().catch(console.error);
       }
-     
-      return; // Exit early - we already have slides to show
+      return;
     }
-   
-    // 2. Only if no slides in storage and we're online, fetch from API
+    
+    // If online and no valid cache, fetch fresh
     if (isOnline) {
-      console.log('No slides in storage, fetching from API');
-      try {
-        const freshSlides = await fetchFreshGuestSlides();
-        if (freshSlides && freshSlides.length > 0) {
-          hasLoadedData = true;
-          // Double-check to make sure slides are set in state
-          setGuestSlides(freshSlides);
-          setDataInitialized(true);
-        } else {
-          // API returned empty slides
-          setDataInitialized(true);
-        }
-      } catch (apiError) {
-        console.error('API fetch error:', apiError);
-        // Show empty state rather than infinite loading
-        setDataInitialized(true);
-      }
+      await fetchFreshGuestSlides();
     } else {
-      // Offline with no stored slides - show empty state
-      console.log('Offline with no stored slides');
+      setIsLoading(false);
       setDataInitialized(true);
     }
   } catch (error) {
     console.error('Error in loadGuestSlides:', error);
-    // Show empty state on error rather than infinite loading
-    setDataInitialized(true);
-  } finally {
-    // Ensure loading state is always resolved
     setIsLoading(false);
-    
-    // Double-check if we still don't have slides but should
-    if (!hasLoadedData && !guestSlides?.length) {
-      // Last resort - try direct localStorage access one more time
-      try {
-        const lastTry = localStorage.getItem(GUEST_SLIDES_STORAGE_KEY);
-        if (lastTry) {
-          const parsed = JSON.parse(lastTry);
-          const finalSlides = Array.isArray(parsed) ? parsed : (parsed.data || null);
-          if (finalSlides?.length) {
-            console.log('Last resort: found slides, count:', finalSlides.length);
-            setGuestSlides(finalSlides);
-            setDataInitialized(true);
-          }
-        }
-      } catch (e) {
-        console.error('Last resort error:', e);
-      }
-    }
+    setDataInitialized(true);
   }
 };
 
 // Enhanced fetchFreshGuestSlides to handle errors better
-const fetchFreshGuestSlides = async (existingSlides = null) => {
-  if (!isOnline) {
-    console.log('Cannot fetch slides: offline');
-    return existingSlides; // Return existing slides if offline
-  }
+const fetchFreshGuestSlides = async () => {
+  if (!isOnline) return null;
   
   try {
-    console.log('Fetching fresh guest slides from API');
     const response = await fetch(SummaryApi.guestSlides.url);
-    
-    // Handle unauthorized errors gracefully
-    if (response.status === 401) {
-      console.log('Auth error fetching slides, using existing slides');
-      return existingSlides; // Return existing slides on auth error
-    }
-    
     const data = await response.json();
     
-    if (data.success && data.data && data.data.length > 0) {
-      // Only update if we got valid data that's different
-      const isNewData = !existingSlides || 
-        JSON.stringify(data.data) !== JSON.stringify(existingSlides);
+    if (data.success && Array.isArray(data.data)) {
+      setGuestSlides(data.data);
+      setDataInitialized(true);
       
-      if (isNewData) {
-        setGuestSlides(data.data);
-        setDataInitialized(true);
-        
-        // Save to all storage mechanisms
-        saveGuestSlidesToAllStorages(data.data);
-        return data.data;
-      }
-      return existingSlides || data.data;
+      // Store in hybrid cache
+      await hybridCache.store('apiCache', CACHE_KEYS.GUEST_SLIDES, data.data, 'high');
+      return data.data;
     }
-    return existingSlides; // Return existing slides if API returned invalid data
+    return null;
   } catch (error) {
-    console.error('API fetch error:', error);
-    return existingSlides; // Return existing slides on error
-  }
-};
-
-// Helper to try all storage mechanisms
-const getGuestSlidesFromAllSources = async (isRecentLogout) => {
-  // During recent logout, prioritize sessionStorage as it's less likely to be cleared
-  if (isRecentLogout) {
-    // Try sessionStorage first
-    try {
-      const sessionData = sessionStorage.getItem(GUEST_SLIDES_SESSION_KEY);
-      if (sessionData) {
-        const parsedData = JSON.parse(sessionData);
-        // Handle both array and object formats
-        const slides = Array.isArray(parsedData) ? parsedData : 
-                       (parsedData.data || parsedData);
-        if (slides && Array.isArray(slides) && slides.length > 0) {
-          console.log('Found slides in sessionStorage after logout, count:', slides.length);
-          return slides;
-        }
-      }
-    } catch (e) {
-      console.error('Session storage read error:', e);
-    }
-  }
-  
-  // Try localStorage (standard approach) - multiple possible formats
-  try {
-    // First through StorageService
-    const serviceSlides = StorageService.getGuestSlides();
-    if (serviceSlides && Array.isArray(serviceSlides) && serviceSlides.length > 0) {
-      console.log('Found slides via StorageService, count:', serviceSlides.length);
-      return serviceSlides;
-    }
-    
-    // Direct localStorage access with format handling
-    const localData = localStorage.getItem(GUEST_SLIDES_STORAGE_KEY);
-    if (localData) {
-      try {
-        const parsedData = JSON.parse(localData);
-        // Handle different possible formats
-        const slidesData = Array.isArray(parsedData) ? parsedData : 
-                          (parsedData.data && Array.isArray(parsedData.data) ? parsedData.data : null);
-        if (slidesData && slidesData.length > 0) {
-          console.log('Found slides in direct localStorage, count:', slidesData.length);
-          return slidesData;
-        }
-      } catch (parseError) {
-        console.error('Error parsing localStorage data:', parseError);
-      }
-    }
-  } catch (e) {
-    console.error('Local storage read error:', e);
-  }
-  
-  // Try sessionStorage (if not already tried)
-  if (!isRecentLogout) {
-    try {
-      const sessionData = sessionStorage.getItem(GUEST_SLIDES_SESSION_KEY);
-      if (sessionData) {
-        const parsedData = JSON.parse(sessionData);
-        // Handle both array and object formats
-        const slides = Array.isArray(parsedData) ? parsedData : 
-                      (parsedData.data && Array.isArray(parsedData.data) ? parsedData.data : null);
-        if (slides && slides.length > 0) {
-          console.log('Found slides in sessionStorage, count:', slides.length);
-          return slides;
-        }
-      }
-    } catch (e) {
-      console.error('Session storage read error:', e);
-    }
-  }
-  
-  // Try preserved guest slides from logout
-  try {
-    const preservedData = localStorage.getItem('preservedGuestSlides');
-    if (preservedData) {
-      const parsedData = JSON.parse(preservedData);
-      // Handle both array and object formats
-      const slides = Array.isArray(parsedData) ? parsedData : 
-                    (parsedData.data && Array.isArray(parsedData.data) ? parsedData.data : null);
-      if (slides && slides.length > 0) {
-        console.log('Found slides in preservedGuestSlides, count:', slides.length);
-        return slides;
-      }
-    }
-  } catch (e) {
-    console.error('Preserved slides read error:', e);
-  }
-  
-  // Try IndexedDB/hybridCache last (if available)
-  if (hybridCache) {
-    try {
-      const cacheData = await hybridCache.get('apiCache', 'guest_slides');
-      if (cacheData) {
-        // Handle both formats
-        const slides = cacheData.data || cacheData;
-        if (slides && Array.isArray(slides) && slides.length > 0) {
-          console.log('Found slides in hybridCache, count:', slides.length);
-          return slides;
-        }
-      }
-    } catch (e) {
-      console.error('IndexedDB read error:', e);
-    }
-  }
-  
-  console.log('No guest slides found in any storage');
-  return null;
-};
-
-// Updated saveGuestSlidesToAllStorages to ensure consistent format
-const saveGuestSlidesToAllStorages = (slides) => {
-  if (!slides || !Array.isArray(slides) || slides.length === 0) return;
-  
-  // Ensure slides is a plain array
-  const slidesArray = Array.isArray(slides) ? slides : 
-                     (slides.data && Array.isArray(slides.data) ? slides.data : null);
-                      
-  if (!slidesArray) {
-    console.error('Invalid slides format for storage:', slides);
-    return;
-  }
-  
-  console.log('Saving guest slides to all storage mechanisms, count:', slidesArray.length);
-  
-  // 1. Save via StorageService
-  try {
-    StorageService.setGuestSlides(slidesArray);
-  } catch (e) {
-    console.error('Error saving to StorageService:', e);
-  }
-  
-  // 2. Direct localStorage save - save as plain array for consistency
-  try {
-    localStorage.setItem(GUEST_SLIDES_STORAGE_KEY, JSON.stringify(slidesArray));
-  } catch (e) {
-    console.error('Error saving to direct localStorage:', e);
-  }
-  
-  // 3. SessionStorage - save as plain array for consistency
-  try {
-    sessionStorage.setItem(GUEST_SLIDES_SESSION_KEY, JSON.stringify(slidesArray));
-  } catch (e) {
-    console.error('Error saving to sessionStorage:', e);
-  }
-  
-  // 4. Save to preserved location for logout resilience
-  try {
-    localStorage.setItem('preservedGuestSlides', JSON.stringify(slidesArray));
-  } catch (e) {
-    console.error('Error saving to preservedGuestSlides:', e);
-  }
-  
-  // 5. IndexedDB via hybridCache - this needs the complete object format
-  if (hybridCache) {
-    try {
-      hybridCache.store('apiCache', 'guest_slides', slidesArray, 'high')
-        .catch(e => console.error('Error saving to hybridCache:', e));
-    } catch (e) {
-      console.error('Error calling hybridCache.store:', e);
-    }
+    console.error('Error fetching fresh slides:', error);
+    return null;
+  } finally {
+    setIsLoading(false);
   }
 };
 
@@ -488,49 +227,117 @@ const saveGuestSlidesToAllStorages = (slides) => {
     const loadData = async () => {
       if (!isInitialized || !initialized) return;
   
+      if (!user?._id) {
+        await loadGuestSlides();
+        return;
+      }
+  
+      // Handle logged-in user data
       try {
-        setIsLoading(true);
-  
-        if (!user?._id) {
-          await loadGuestSlides();
-          return;
+        // Load both orders and welcome data in parallel
+        const [cachedOrders, cachedWelcome] = await Promise.all([
+          hybridCache.get('apiCache', `${CACHE_KEYS.USER_ORDERS}_${user._id}`),
+          hybridCache.get('apiCache', CACHE_KEYS.USER_WELCOME)
+        ]);
+        
+        // Process orders if they exist
+        if (cachedOrders?.data) {
+          const filteredOrders = filterWebsiteOrders(cachedOrders.data);
+          setOrders(filteredOrders);
         }
-  
-        // For logged in users, process in this order:
+        
+        // Process welcome data if it exists
+        if (cachedWelcome?.data) {
+          setUserWelcome(cachedWelcome.data);
+        }
+        
+        setDataInitialized(true);
+        setIsLoading(false);
+        
+        // If online, refresh stale data
         if (isOnline) {
-          try {
-            const ordersResponse = await fetch(SummaryApi.ordersList.url, {
-              method: SummaryApi.ordersList.method,
-              credentials: 'include'
-            });
-            const ordersData = await ordersResponse.json();
-             
-            if (ordersData.success) {
-              // Log the data to check what we're receiving
-              console.log('Fetched orders:', ordersData.data);
-              
-              StorageService.setUserOrders(user._id, ordersData.data);
-              const userOrders = filterWebsiteOrders(ordersData.data);
-              
-              // Log filtered orders to verify what we're working with
-              console.log('Filtered orders:', userOrders);
-              
-              setOrders(userOrders);
-              setDataInitialized(true);
-            }
-          } catch (error) {
-            console.error('Error fetching fresh orders:', error);
+          const refreshPromises = [];
+          
+          // Check if orders cache is stale
+          if (!cachedOrders?.data || !hybridCache.isValid(cachedOrders.timestamp, CACHE_DURATION.USER_ORDERS)) {
+            refreshPromises.push(fetchUserOrders());
           }
+          
+          // Check if welcome cache is stale
+          if (!cachedWelcome?.data || !hybridCache.isValid(cachedWelcome.timestamp, CACHE_DURATION.USER_WELCOME)) {
+            refreshPromises.push(fetchUserWelcome());
+          }
+          
+          // Refresh stale data in background
+          Promise.all(refreshPromises).catch(console.error);
         }
       } catch (error) {
-        console.error('Error in data fetching:', error);
+        console.error('Error loading user data:', error);
       } finally {
         setIsLoading(false);
+        setDataInitialized(true);
       }
     };
-      
+  
     loadData();
   }, [user?._id, initialized, isInitialized, isOnline]);
+  
+  // 6. Add these new functions for fetching user data
+  const fetchUserOrders = async () => {
+    try {
+      const response = await fetch(SummaryApi.ordersList.url, {
+        method: SummaryApi.ordersList.method,
+        credentials: 'include'
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        const filteredOrders = filterWebsiteOrders(data.data);
+        setOrders(filteredOrders);
+        setDataInitialized(true);
+        
+        // Store in cache
+        await hybridCache.store(
+          'apiCache', 
+          `${CACHE_KEYS.USER_ORDERS}_${user._id}`, 
+          data.data, 
+          'high'
+        );
+        
+        return data.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      return null;
+    }
+  };
+  
+  // Add new function for fetching user welcome data
+  const fetchUserWelcome = async () => {
+    try {
+      const response = await fetch(SummaryApi.userWelcome.url);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setUserWelcome(data.data);
+        
+        // Store in cache
+        await hybridCache.store(
+          'apiCache',
+          CACHE_KEYS.USER_WELCOME,
+          data.data,
+          'medium'
+        );
+        
+        return data.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching user welcome:', error);
+      return null;
+    }
+  };
 
   // Helper functions remain the same
 const isWebsiteService = (category = '') => {

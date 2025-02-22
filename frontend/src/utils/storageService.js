@@ -77,26 +77,16 @@ const StorageService = {
 
   clearUserData: () => {
     try {
-      // First backup guest slides
-      const guestSlides = StorageService.getGuestSlides();
-      
-      // Clear only user-specific data
       localStorage.removeItem(STORAGE_KEYS.USER_DETAILS);
       localStorage.removeItem(STORAGE_KEYS.WALLET_BALANCE);
       localStorage.removeItem(STORAGE_KEYS.CART_COUNT);
       
-      // Clear all user orders by pattern matching
+      // Clear user orders by pattern matching
       Object.keys(localStorage).forEach(key => {
         if (key.startsWith(`${STORAGE_KEYS.USER_ORDERS}_`)) {
           localStorage.removeItem(key);
         }
       });
-      
-      // Restore guest slides if they existed
-      if (guestSlides && guestSlides.length > 0) {
-        console.log('Restoring guest slides after user data clear');
-        StorageService.setGuestSlides(guestSlides);
-      }
     } catch (error) {
       console.error('Error clearing user data:', error);
     }
@@ -105,27 +95,12 @@ const StorageService = {
   // Logout ke time clear karne ke liye
   clearAll: () => {
     try {
-      // First save guest slides
-      const guestSlides = StorageService.getGuestSlides();
-      const savedSlides = guestSlides ? {
-        data: guestSlides,
-        timestamp: new Date().toISOString()
-      } : null;
-  
-      // Clear all localStorage items except theme/language
       const keysToKeep = ['theme', 'language'];
       Object.values(STORAGE_KEYS).forEach(key => {
-        if (!keysToKeep.includes(key) && key !== STORAGE_KEYS.GUEST_SLIDES) {
+        if (!keysToKeep.includes(key)) {
           localStorage.removeItem(key);
         }
       });
-  
-      // Restore guest slides if they existed
-      if (savedSlides) {
-        localStorage.setItem(STORAGE_KEYS.GUEST_SLIDES, JSON.stringify(savedSlides));
-        // Also keep in sessionStorage as backup
-        sessionStorage.setItem(STORAGE_KEYS.GUEST_SLIDES, JSON.stringify(savedSlides));
-      }
     } catch (error) {
       console.error('Error in clearAll:', error);
     }
@@ -145,6 +120,7 @@ const StorageService = {
       
       // Store consistently as plain array
       localStorage.setItem(STORAGE_KEYS.GUEST_SLIDES, JSON.stringify(slidesArray));
+      console.warn('setGuestSlides is deprecated. Use hybridCache instead.');
       
       // Also store in sessionStorage as backup with the same format
       sessionStorage.setItem(STORAGE_KEYS.GUEST_SLIDES, JSON.stringify(slidesArray));
@@ -183,6 +159,7 @@ const StorageService = {
           }
         }
       }
+      console.warn('getGuestSlides is deprecated. Use hybridCache instead.');
       return null;
     } catch (error) {
       console.error('Error getting guest slides:', error);
