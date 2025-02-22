@@ -16,6 +16,7 @@ const AppContent = () => {
   const { clearCache } = useDatabase();
   const [cartProductCount, setCartProductCount] = useState(0);
   const [walletBalance, setWalletBalance] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -25,15 +26,20 @@ const AppContent = () => {
       });
       
       if (response.ok) {
+        // Clear all local storage and cookies
         CookieManager.clearAll();
         StorageService.clearAll();
-        // Clear database cache
         await clearCache();
-        // Dispatch logout action
+        
+        // Clear Redux state
         dispatch(logout());
+        
         // Reset local states
         setCartProductCount(0);
         setWalletBalance(0);
+        
+        // Set a flag in session storage to prevent auto-login on refresh
+        sessionStorage.setItem('userLoggedOut', 'true');
       }
     } catch (error) {
       console.error("Error during logout:", error);
@@ -124,14 +130,52 @@ const AppContent = () => {
   };
 
   useEffect(() => {
-    // Fetch initial data
-    const initializeData = async () => {
-      await fetchUserDetails(); // This will also fetch wallet balance
-      await fetchUserAddToCart();
+    const initializeApp = async () => {
+      try {
+        // Check if user manually logged out
+        const wasLoggedOut = sessionStorage.getItem('userLoggedOut') === 'true';
+        
+        if (wasLoggedOut) {
+          dispatch(logout());
+          setIsInitialized(true);
+          return;
+        }
+
+        const userResponse = await fetch(SummaryApi.current_user.url, {
+          method: SummaryApi.current_user.method,
+          credentials: 'include'
+        });
+
+        if (!userResponse.ok) {
+          dispatch(logout());
+          await fetchUserAddToCart(); // Still fetch cart for guest users
+          setIsInitialized(true);
+          return;
+        }
+
+        // User is authenticated, fetch all details
+        await fetchUserDetails();
+        await fetchUserAddToCart();
+        
+        // Clear the logged out flag if login is successful
+        sessionStorage.removeItem('userLoggedOut');
+        
+      } catch (error) {
+        console.error("Error during initialization:", error);
+        dispatch(logout());
+      } finally {
+        setIsInitialized(true);
+      }
     };
-    
-    initializeData();
+
+    initializeApp();
   }, []);
+
+  if (!isInitialized) {
+    return <div className="h-screen flex items-center justify-center">
+      <p>Loading...</p>
+    </div>;
+  }
 
 
   return (
