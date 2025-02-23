@@ -30,10 +30,6 @@ const AppContent = () => {
         credentials: 'include'
       });
       
-      // Clear wallet data
-    localStorage.removeItem(STORAGE_KEYS.WALLET_BALANCE);
-    setWalletBalance(0);
-    dispatch(updateWalletBalance(0));
     
       if (response.ok) {
         // Clear cookies
@@ -45,43 +41,63 @@ const AppContent = () => {
         // Clear session cookie
         document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-        // Dispatch logout action
-        dispatch(logout());
-        
-        // Reset local states
-        setCartProductCount(0);
         setWalletBalance(0);
+      dispatch(updateWalletBalance(0));
+      dispatch(logout());
+      setCartProductCount(0);
       }
     } catch (error) {
       console.error("Error during logout:", error);
     }
   };
 
-  const fetchWalletBalance = async () => {
-    try {
-      // First check localStorage
+  useEffect(() => {
+    const initializeWalletBalance = async () => {
+      if (!isInitialized) return;
+      
+      // Check if user is logged in
+      const sessionCookie = document.cookie.includes('user-details');
+      if (!sessionCookie) return;
+  
+      // Get cached balance first
       const cachedBalance = StorageService.getWalletBalance();
-      if (cachedBalance) {
+      if (cachedBalance !== null) {
         setWalletBalance(cachedBalance);
         dispatch(updateWalletBalance(cachedBalance));
       }
-
-      // If online, fetch fresh data
+  
+      // Then fetch fresh balance if online
       if (isOnline) {
-        const response = await fetch(SummaryApi.wallet.balance.url, {
-          method: SummaryApi.wallet.balance.method,
-          credentials: 'include'
-        });
-        const data = await response.json();
-        if (data.success) {
-          const balance = data.data.balance;
-          setWalletBalance(balance);
-          dispatch(updateWalletBalance(balance));
-          StorageService.setWalletBalance(balance);
-        }
+        await fetchWalletBalance();
+      }
+    };
+  
+    initializeWalletBalance();
+  }, [isInitialized, isOnline]);
+  
+  // 2. Modify the fetchWalletBalance function
+  const fetchWalletBalance = async () => {
+    try {
+      const response = await fetch(SummaryApi.wallet.balance.url, {
+        method: SummaryApi.wallet.balance.method,
+        credentials: 'include'
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        const balance = data.data.balance;
+        setWalletBalance(balance);
+        dispatch(updateWalletBalance(balance));
+        StorageService.setWalletBalance(balance); // Always update storage on successful fetch
       }
     } catch (error) {
       console.error("Error fetching wallet balance:", error);
+      // On error, try to use cached balance
+      const cachedBalance = StorageService.getWalletBalance();
+      if (cachedBalance !== null) {
+        setWalletBalance(cachedBalance);
+        dispatch(updateWalletBalance(cachedBalance));
+      }
     }
   };
 
