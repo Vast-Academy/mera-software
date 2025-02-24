@@ -7,7 +7,7 @@ import { useOnlineStatus } from '../App';
 import StorageService from '../utils/storageService';
 import { FileText, Clock, ExternalLink } from "lucide-react";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
-import dynamic from '../assest/website-types/business-dynamic-website-va-computers-amritsar.jpg'
+import guestSlide from '../assest/guestslide.jpg'
 
 const AppConvertingBanner = () => {
   const navigate = useNavigate();
@@ -402,9 +402,9 @@ const GuestSlidesDesktop = ({ slide }) => (
                 <button 
                   className={`${
                     button.type === 'primary' 
-                      ? 'bg-red-600 hover:bg-red-700 text-white' 
-                      : 'border border-red-600 text-red-600 hover:bg-red-50'
-                  } px-8 py-3 rounded-lg text-lg transition-colors flex items-center`}
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                      : 'border border-blue-600 hover:bg-red-50'
+                  } px-14 py-3 rounded-lg text-lg transition-colors flex items-center`}
                 >
                   {button.text}
                   {button.type === 'primary' && <ArrowRight className="ml-2 w-5 h-5" />}
@@ -414,7 +414,13 @@ const GuestSlidesDesktop = ({ slide }) => (
           </div>
         </div>
         <div className="w-1/2 flex justify-end">
-          <img src={dynamic} alt="Hero" className="rounded-lg shadow-xl" />
+        <div className="w-[550px] h-[300px]"> {/* Fixed size container */}
+          <img 
+            src={guestSlide} 
+            alt="Hero" 
+            className="w-full h-full object-cover rounded-3xl shadow-xl"
+          />
+        </div>
         </div>
       </div>
     </div>
