@@ -141,6 +141,14 @@ const SummaryApi = {
         url: `${backendDomain}/api/upload-developer`,
         method: "post"
     },
+    allDevelopers:{
+        url: `${backendDomain}/api/get-developer`,
+        method: "get"
+    },
+    editDeveloper: {
+        url : `${backendDomain}/api/edit-developer`,
+        method: "post"
+    },
     createOrder : {
         url : `${backendDomain}/api/create-order`,
         method: "post"
@@ -187,6 +195,10 @@ const SummaryApi = {
       },
       uploadGuestSlides: {
         url: `${backendDomain}/api/upload-guest-slides`,
+        method: "post"
+      },
+      updateGuestSlides:{
+        url : `${backendDomain}/api/update-guest-slides`,
         method: "post"
       },
       uploadUserWelcome: {

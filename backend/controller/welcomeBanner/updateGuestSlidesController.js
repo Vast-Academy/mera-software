@@ -1,38 +1,38 @@
 const uploadPermission = require("../../helpers/permission")
-// const WelcomeContent = require("../../models/welcomeContent")
+const GuestSlides = require("../../models/guestSlidesModal")
 
-async function updateWelcomeController(req, res) {
+async function updateGuestSlidesController(req, res) {
     try {
         const sessionUserId = req.userId
+        const slideId = req.params.id
+
         if(!uploadPermission(sessionUserId)){
             throw new Error("Permission denied")
         }
 
-        const contentId = req.params.id
-        
-        // If setting this content as active, deactivate others
+        // If setting this slide as active, deactivate all others
         if (req.body.isActive) {
-            await WelcomeContent.updateMany(
-                { _id: { $ne: contentId } },
+            await GuestSlides.updateMany(
+                { _id: { $ne: slideId } },
                 { isActive: false }
             )
         }
 
-        const updatedContent = await WelcomeContent.findByIdAndUpdate(
-            contentId,
+        const updatedSlide = await GuestSlides.findByIdAndUpdate(
+            slideId,
             req.body,
             { new: true }
         )
 
-        if (!updatedContent) {
-            throw new Error("Welcome content not found")
+        if (!updatedSlide) {
+            throw new Error("Guest slide not found")
         }
-
+       
         res.status(200).json({
-            message: "Welcome Content Updated Successfully",
+            message: "Guest Slide Updated Successfully",
             error: false,
             success: true,
-            data: updatedContent
+            data: updatedSlide
         })
     } catch (err) {
         res.status(400).json({
@@ -43,4 +43,4 @@ async function updateWelcomeController(req, res) {
     }
 }
 
-module.exports = updateWelcomeController
+module.exports = updateGuestSlidesController

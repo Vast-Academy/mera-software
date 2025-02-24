@@ -6,6 +6,8 @@ import SummaryApi from '../common';
 import { useOnlineStatus } from '../App';
 import StorageService from '../utils/storageService';
 import { FileText, Clock, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import dynamic from '../assest/website-types/business-dynamic-website-va-computers-amritsar.jpg'
 
 const AppConvertingBanner = () => {
   const navigate = useNavigate();
@@ -21,9 +23,19 @@ const AppConvertingBanner = () => {
   const [userWelcome, setUserWelcome] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [dataInitialized, setDataInitialized] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
   const user = useSelector(state => state?.user?.user);
   const initialized = useSelector(state => state?.user?.initialized);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Helper functions
   const filterWebsiteOrders = (orders) => {
@@ -372,12 +384,81 @@ const calculateRemainingDays = (order) => {
   );
 }
 
+// Guest Slides Desktop View
+const GuestSlidesDesktop = ({ slide }) => (
+  <div className="bg-gradient-to-r from-blue-50 to-red-50 py-16 ">
+    <div className="container mx-auto px-6">
+      <div className="flex items-center justify-between">
+        <div className="w-1/2">
+          <h1 className="text-5xl font-bold text-gray-900 leading-tight mb-6">
+            {slide.title}
+          </h1>
+          <p className="text-xl text-gray-600 mb-8">
+            {slide.description}
+          </p>
+          <div className="flex gap-4">
+            {slide.ctaButtons?.map((button, btnIndex) => (
+              <a key={btnIndex} href={button.link}>
+                <button 
+                  className={`${
+                    button.type === 'primary' 
+                      ? 'bg-red-600 hover:bg-red-700 text-white' 
+                      : 'border border-red-600 text-red-600 hover:bg-red-50'
+                  } px-8 py-3 rounded-lg text-lg transition-colors flex items-center`}
+                >
+                  {button.text}
+                  {button.type === 'primary' && <ArrowRight className="ml-2 w-5 h-5" />}
+                </button>
+              </a>
+            ))}
+          </div>
+        </div>
+        <div className="w-1/2 flex justify-end">
+          <img src={dynamic} alt="Hero" className="rounded-lg shadow-xl" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Guest Slides Mobile View
+const GuestSlidesMobile = ({ slide }) => (
+  <div className="bg-gradient-to-r from-blue-50 to-red-50 px-4 py-8">
+    <div className="text-center">
+      <h1 className="text-3xl font-bold text-gray-900 leading-tight mb-4">
+        {slide.title}
+      </h1>
+      <p className="text-lg text-gray-600 mb-6">
+        {slide.description}
+      </p>
+      <div className="flex flex-col items-center gap-3">
+        {slide.ctaButtons?.map((button, btnIndex) => (
+          <a key={btnIndex} href={button.link} className="w-full flex justify-center">
+            <button 
+              className={`w-34 ${
+                button.type === 'primary' 
+                  ? 'bg-red-600 hover:bg-red-700 text-white' 
+                  : 'border border-red-600 text-red-600 hover:bg-red-50'
+              } px-6 py-2 rounded-lg text-lg transition-colors flex items-center justify-center`}
+            >
+              {button.text}
+              {button.type === 'primary' && <ArrowRight className="ml-2 w-5 h-5" />}
+            </button>
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
 // If we have guest slides, show them immediately (even if other data is still loading)
 if (!user?._id && guestSlides?.length > 0) {
   return (
-    <div className='container mx-auto px-4'>
-      <div className="bg-white rounded-xl py-5 max-w-xl mx-auto overflow-hidden">
-        <div className="relative">
+    <>
+     {/* <div className='container mx-auto px-4'>
+       <div className="bg-white rounded-xl py-5 max-w-xl mx-auto overflow-hidden">
+         <div className="relative"> */}
+          <div className="relative container mx-auto">
           <div
             className="transition-all duration-500 ease-in-out flex"
             style={{ transform: `translateX(-${currentSlide * 100}%)` }}
@@ -385,35 +466,31 @@ if (!user?._id && guestSlides?.length > 0) {
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
           >
-            {guestSlides.map((slide, index) => (
-              <div key={index} className="w-full flex-shrink-0 flex flex-col items-center px-2">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-800 mb-2 text-left">
-                    {slide.title}
-                  </h2>
-                  <p className="text-gray-600 mb-6 text-xs text-left">
-                    {slide.description}
-                  </p>
-                </div>
-                <div className="flex gap-4">
-                  {slide.ctaButtons?.map((button, btnIndex) => (
-                    <Link key={btnIndex} to={button.link}>
-                      <button 
-                        className={`px-6 py-2 ${
-                          button.type === 'primary' 
-                            ? 'bg-blue-500 text-white hover:bg-blue-600' 
-                            : 'border border-blue-500 text-blue-500 hover:bg-blue-50'
-                        } rounded-lg transition-colors flex items-center`}
-                      >
-                        {button.text}
-                        {button.type === 'primary' && <FiArrowRight className="w-4 h-4 ml-2" />}
-                      </button>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+           {isMobile ? (
+            <GuestSlidesMobile slide={guestSlides[currentSlide]} />
+          ) : (
+            <GuestSlidesDesktop slide={guestSlides[currentSlide]} />
+          )}
+        </div>
+
+        {/* Navigation Arrows - Only show on desktop */}
+        {!isMobile && guestSlides.length > 1 && (
+          <>
+            <button 
+              onClick={() => currentSlide > 0 && setCurrentSlide(prev => prev - 1)}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white p-3 rounded-full shadow-lg hover:bg-gray-50 transition-colors"
+            >
+              <ChevronLeft className="w-6 h-6 text-gray-600" />
+            </button>
+            <button 
+              onClick={() => currentSlide < guestSlides.length - 1 && setCurrentSlide(prev => prev + 1)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white p-3 rounded-full shadow-lg hover:bg-gray-50 transition-colors"
+            >
+              <ChevronRight className="w-6 h-6 text-gray-600" />
+            </button>
+          </>
+        )}
+
 
           {/* Slide Indicators */}
           {guestSlides.length > 1 && (
@@ -429,9 +506,11 @@ if (!user?._id && guestSlides?.length > 0) {
               ))}
             </div>
           )}
-        </div>
-      </div>
-    </div>
+          </div>
+          </>
+    //     </div>
+    //   </div>
+    // </div>
   );
 }
 

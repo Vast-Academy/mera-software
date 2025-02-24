@@ -56,6 +56,8 @@ const uploadUserWelcomeController = require('../controller/welcomeBanner/uploadU
 const adminDeleteOrderController = require('../controller/admin/deleteOrderController')
 const validateUpdatePlan = require('../controller/order/validateUpdatePlan')
 const toggleUpdatePlan = require('../controller/order/toggleUpdatePlan')
+const editDeveloperController = require('../controller/admin/editDeveloperController')
+const updateGuestSlidesController = require('../controller/welcomeBanner/updateGuestSlidesController')
 // const uploadWelcomeController = require('../controller/welcomeBanner/uploadWelcomeController')
 // const getWelcomeController = require('../controller/welcomeBanner/getWelcomeController')
 // const updateWelcomeController = require('../controller/welcomeBanner/updateWelcomeController')
@@ -78,6 +80,7 @@ router.post("/wallet/deduct", authToken, deductWalletController);
 router.get("/wallet/history", authToken, getWalletHistoryController)
 router.post("/upload-developer", authToken, uploadDeveloperController)
 router.get("/get-developer", getAllDevelopersController)
+router.post("/edit-developer/:id", authToken, editDeveloperController)
 router.get("/get-projects", authToken, getProjectsController)
 router.post("/update-project-progress", authToken, updateProgressController)
 router.post("/project-message", authToken, sendMessageController)
@@ -127,6 +130,7 @@ router.delete("/delete-banner", authToken, DeleteBannerController)
 // welcome banner
 router.get("/get-guest-slides", getGuestSlidesController)
 router.post("/upload-guest-slides", authToken, uploadGuestSlidesController)
+router.post("/update-guest-slides/:id", authToken, updateGuestSlidesController)
 
 // User Welcome Routes
 router.get("/get-user-welcome", getUserWelcomeController)

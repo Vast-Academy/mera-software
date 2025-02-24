@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { FaCloudUploadAlt } from "react-icons/fa";
+import React, { useState, useEffect } from 'react';
 import { CgClose } from "react-icons/cg";
-import { toast } from 'react-toastify';
+import { FaCloudUploadAlt } from "react-icons/fa";
 import Select from 'react-select';
+import { toast } from 'react-toastify';
 import uploadImage from '../helpers/uploadImage';
 import SummaryApi from '../common';
 
@@ -26,8 +26,8 @@ const expertiseLevelOptions = [
   { value: 'Expert', label: 'Expert' }
 ];
 
-const UploadDeveloper = ({ onClose, fetchData }) => {
-  const [data, setData] = useState({
+const EditDeveloper = ({ onClose, fetchData, developerData }) => {
+  const [data, setData] = useState(developerData || {
     name: '',
     email: '',
     phone: '',
@@ -53,13 +53,8 @@ const UploadDeveloper = ({ onClose, fetchData }) => {
     avatar: ''
   });
 
-  const [avatarPreview, setAvatarPreview] = useState('');
-  const [expertise, setExpertise] = useState([]);
-  const [newCompany, setNewCompany] = useState({
-    companyName: '',
-    position: '',
-    duration: ''
-  });
+  const [avatarPreview, setAvatarPreview] = useState(developerData?.avatar || '');
+  const [expertise, setExpertise] = useState(developerData?.expertise || []);
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
@@ -86,27 +81,16 @@ const UploadDeveloper = ({ onClose, fetchData }) => {
     }));
   };
 
-  const addPreviousCompany = () => {
-    setData(prev => ({
-      ...prev,
-      experience: {
-        ...prev.experience,
-        previousCompanies: [...prev.experience.previousCompanies, newCompany]
-      }
-    }));
-    setNewCompany({ companyName: '', position: '', duration: '' });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
-      const response = await fetch(SummaryApi.uploadDeveloper.url, {
-        method: SummaryApi.uploadDeveloper.method,
-        credentials : 'include',
+      const response = await fetch(`${SummaryApi.editDeveloper.url}/${developerData._id}`, {
+        method: SummaryApi.editDeveloper.method,
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(data)
       });
 
@@ -120,7 +104,7 @@ const UploadDeveloper = ({ onClose, fetchData }) => {
         toast.error(result.message);
       }
     } catch (error) {
-      toast.error('Error creating developer');
+      toast.error('Error updating developer');
       console.error('Error:', error);
     }
   };
@@ -129,7 +113,7 @@ const UploadDeveloper = ({ onClose, fetchData }) => {
     <div className="fixed w-full h-full bg-slate-200 bg-opacity-40 top-0 left-0 right-0 bottom-0 flex justify-center items-center">
       <div className="bg-white p-4 rounded w-full max-w-2xl h-full max-h-[75%] overflow-hidden">
         <div className="flex justify-between items-center pb-3">
-          <h2 className="font-bold text-lg">Add New Developer</h2>
+          <h2 className="font-bold text-lg">Edit Developer Details</h2>
           <div className="text-2xl hover:text-red-600 cursor-pointer" onClick={onClose}>
             <CgClose/>
           </div>
@@ -266,7 +250,7 @@ const UploadDeveloper = ({ onClose, fetchData }) => {
               type="submit"
               className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
-              Create Developer
+              Update Developer
             </button>
           </div>
         </form>
@@ -275,4 +259,4 @@ const UploadDeveloper = ({ onClose, fetchData }) => {
   );
 };
 
-export default UploadDeveloper;
+export default EditDeveloper;

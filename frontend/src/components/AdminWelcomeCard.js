@@ -72,13 +72,13 @@ const AdminWelcomeCard = ({
 
             {/* Edit Modal */}
             {editContent && (
-                type === 'guestSlide' ? (
-                    <GuestSlidesForm
-                        data={data}
-                        onClose={() => setEditContent(false)}
-                        fetchData={fetchData}
-                        isEditing={true}
-                    />
+            type === 'guestSlide' ? (
+                <GuestSlidesForm
+                    data={data}
+                    onClose={() => setEditContent(false)}
+                    fetchData={fetchData}
+                    isEditing={true}
+                />
                 ) : (
                     <UserWelcomeForm
                         data={data}

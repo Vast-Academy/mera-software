@@ -1,5 +1,5 @@
 const uploadDeveloperPermission = require("../../helpers/permission")
-const developerModel = require("../../models/productModel")
+const developerModel = require("../../models/developerModel")
 
 async function uploadDeveloperController(req, res) {
     try {

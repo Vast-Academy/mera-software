@@ -7,6 +7,11 @@ const developerSchema = new mongoose.Schema({
       required: true,
       trim: true
     },
+    email: {
+      type: String,
+      unique: true,
+      required : true
+  },
     phone: {
       type: String,
       required: true,
@@ -386,7 +391,6 @@ developerSchema.methods = {
   });
   
   // Create indexes for better query performance
-  developerSchema.index({ email: 1 }, { unique: true });
   developerSchema.index({ employeeId: 1 }, { unique: true });
   developerSchema.index({ status: 1, 'performance.averageRating': -1 });
   developerSchema.index({ department: 1, designation: 1 });
