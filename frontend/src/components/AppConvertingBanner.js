@@ -429,21 +429,21 @@ const GuestSlidesMobile = ({ slide }) => (
       <h1 className="text-2xl font-bold text-gray-900 leading-tight mb-2 text-left">
         {slide.title}
       </h1>
-      <p className="text-xs text-gray-600 mb-3 text-left">
+      <p className="text-sm text-gray-600 mb-3 text-left">
         {slide.description}
       </p>
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col gap-3">
         {slide.ctaButtons?.map((button, btnIndex) => (
           <a key={btnIndex} href={button.link} className="w-full flex justify-center">
             <button 
-              className={`w-28 ${
+              className={`${
                 button.type === 'primary' 
-                  ? 'bg-red-600 hover:bg-red-700 text-white' 
-                  : 'border border-red-600 text-red-600 hover:bg-red-50'
-              } px-3 py-2 rounded-lg text-xs transition-colors flex items-center justify-center`}
+                  ? 'bg-blue-500 hover:bg-blue-700 text-white' 
+                  : 'border bg-blue-500 hover:bg-red-50'
+              } px-6 py-2.5 rounded-lg text-sm transition-colors flex items-center text-center justify-center`}
             >
               {button.text}
-              {button.type === 'primary' && <ArrowRight className="ml-2 w-3 h-3" />}
+              {button.type === 'primary' && <ArrowRight className="ml-2 mt-1 w-3 h-3" />}
             </button>
           </a>
         ))}
