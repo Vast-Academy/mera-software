@@ -11,7 +11,7 @@ const AdminWelcomeCard = ({
 }) => {
     const [editContent, setEditContent] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
-
+    
     const renderGuestSlideContent = () => (
         <div className='mb-4'>
             <p className='font-medium text-ellipsis line-clamp-1'>{data.title}</p>
@@ -26,7 +26,7 @@ const AdminWelcomeCard = ({
             )}
         </div>
     )
-
+    
     const renderUserWelcomeContent = () => (
         <div className='mb-4'>
             <p className='font-medium text-ellipsis line-clamp-1'>{data.title}</p>
@@ -38,13 +38,17 @@ const AdminWelcomeCard = ({
             )}
         </div>
     )
-
+    
+    // Map internal type to contentType for delete modal
+    const getContentType = () => {
+        return type === 'guestSlide' ? 'guestSlide' : 'userWelcome';
+    };
+    
     return (
         <div className='bg-white p-4 rounded'>
             <div className='w-full'>
                 {/* Content based on type */}
                 {type === 'guestSlide' ? renderGuestSlideContent() : renderUserWelcomeContent()}
-
                 {/* Status */}
                 <div className='text-sm mb-3'>
                     <p>Status: <span className={data.isActive ? 'text-green-600' : 'text-red-600'}>
@@ -52,33 +56,31 @@ const AdminWelcomeCard = ({
                     </span></p>
                     {type === 'guestSlide' && <p>Display Order: {data.displayOrder}</p>}
                 </div>
-
                 {/* Action Buttons */}
                 <div className='flex justify-end gap-2'>
                     <div
                         className='w-fit p-2 bg-red-100 hover:bg-red-600 rounded-full hover:text-white cursor-pointer'
-                        onClick={()=>setShowDeleteModal(true)}
+                        onClick={() => setShowDeleteModal(true)}
                     >
                         <MdDelete />
                     </div>
                     <div
                         className='w-fit p-2 bg-green-100 hover:bg-green-600 rounded-full hover:text-white cursor-pointer'
-                        onClick={()=>setEditContent(true)}
+                        onClick={() => setEditContent(true)}
                     >
                         <MdModeEditOutline />
                     </div>
                 </div>
             </div>
-
             {/* Edit Modal */}
             {editContent && (
-            type === 'guestSlide' ? (
-                <GuestSlidesForm
-                    data={data}
-                    onClose={() => setEditContent(false)}
-                    fetchData={fetchData}
-                    isEditing={true}
-                />
+                type === 'guestSlide' ? (
+                    <GuestSlidesForm
+                        data={data}
+                        onClose={() => setEditContent(false)}
+                        fetchData={fetchData}
+                        isEditing={true}
+                    />
                 ) : (
                     <UserWelcomeForm
                         data={data}
@@ -88,12 +90,11 @@ const AdminWelcomeCard = ({
                     />
                 )
             )}
-
             {/* Delete Modal */}
             {showDeleteModal && (
                 <AdminDeleteWelcomeContent
                     contentId={data._id}
-                    contentType={type}
+                    contentType={getContentType()}
                     onClose={() => setShowDeleteModal(false)}
                     fetchData={fetchData}
                 />

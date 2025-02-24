@@ -201,9 +201,21 @@ const SummaryApi = {
         url : `${backendDomain}/api/update-guest-slides`,
         method: "post"
       },
+      deleteGuestSlides: {
+        url: `${backendDomain}/api/delete-guest-slides`,
+        method: "delete"
+      },
       uploadUserWelcome: {
         url: `${backendDomain}/api/upload-user-welcome`,
         method: "post"
+      },
+      updateUserWelcome: {
+        url: `${backendDomain}/api/update-user-welcome`,
+        method: "post"
+      },
+      deleteUserWelcome: {
+        url: `${backendDomain}/api/delete-user-welcome`,
+        method: "delete"
       },
     wallet : {
         balance :{
