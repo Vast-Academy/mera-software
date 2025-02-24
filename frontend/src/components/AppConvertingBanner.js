@@ -423,31 +423,33 @@ const GuestSlidesDesktop = ({ slide }) => (
 
 // Guest Slides Mobile View
 const GuestSlidesMobile = ({ slide }) => (
-  <div className="bg-gradient-to-r from-blue-50 to-red-50 px-4 py-8">
+  <div className='px-4 rounded-xl shadow-sm '>
+  <div className="bg-gradient-to-r rounded-xl  from-blue-50 to-red-50 px-4 py-5">
     <div className="text-center">
-      <h1 className="text-3xl font-bold text-gray-900 leading-tight mb-4">
+      <h1 className="text-2xl font-bold text-gray-900 leading-tight mb-2 text-left">
         {slide.title}
       </h1>
-      <p className="text-lg text-gray-600 mb-6">
+      <p className="text-xs text-gray-600 mb-3 text-left">
         {slide.description}
       </p>
       <div className="flex flex-col items-center gap-3">
         {slide.ctaButtons?.map((button, btnIndex) => (
           <a key={btnIndex} href={button.link} className="w-full flex justify-center">
             <button 
-              className={`w-34 ${
+              className={`w-28 ${
                 button.type === 'primary' 
                   ? 'bg-red-600 hover:bg-red-700 text-white' 
                   : 'border border-red-600 text-red-600 hover:bg-red-50'
-              } px-6 py-2 rounded-lg text-lg transition-colors flex items-center justify-center`}
+              } px-3 py-2 rounded-lg text-xs transition-colors flex items-center justify-center`}
             >
               {button.text}
-              {button.type === 'primary' && <ArrowRight className="ml-2 w-5 h-5" />}
+              {button.type === 'primary' && <ArrowRight className="ml-2 w-3 h-3" />}
             </button>
           </a>
         ))}
       </div>
     </div>
+  </div>
   </div>
 );
 
