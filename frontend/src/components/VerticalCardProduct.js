@@ -222,41 +222,68 @@ const VerticalCardProduct = ({category, heading}) => {
 
                                 {/* Desktop Layout (Vertical) */}
                                 <div className="hidden lg:block">
-                                    <Link to={`product/${product?._id}`} className="block">
+                                    <Link to={`product/${product?._id}`} className="">
                                         <div className={`h-40 rounded-t-xl overflow-hidden bg-gradient-to-r ${style.gradient} p-4`}>
                                             <img 
                                                 src={product?.serviceImage[0]} 
                                                 alt={product?.serviceName}
-                                                className="w-full h-full object-cover object-top opacity-90 hover:scale-105 transition-transform"
+                                                className="w-full h-full object-cover object-top opacity-90 hover:scale-105 transition-transform border "
                                             />
                                         </div>
                                     </Link>
                                     
-                                    <div className="p-4">
+                                    <div className="px-4">
                                         <Link to={`product/${product?._id}`}>
-                                            <h3 className={`${style.text} font-bold text-base mb-2 line-clamp-1`}>
+                                            <h3 className={`${style.text} mt-0 font-bold text-base mb-2 line-clamp-1`}>
                                                 {product?.serviceName}
                                             </h3>
                                         </Link>
-                                        
-                                        <div className=" mb-3">
+
+                                        <div className="mb-1">
+                <ul className={`space-y-1 text-xs ${style.textSecondary}`}>
+                    {product?.packageIncludes?.slice(0, 2).map((detail, idx) => (
+                        <li key={idx} className="flex items-center gap-2 capitalize line-clamp-1 overflow-hidden">
+                            <span className="w-1 h-1 bg-red-500 rounded-full flex-shrink-0"></span>
+                            <span className="truncate">{detail}</span>
+                        </li>
+                    ))}
+                </ul>
+                {product?.packageIncludes?.length > 2 && (
+                    <Link 
+                        to={`product/${product?._id}`} 
+                        className={`text-xs ${style.textSecondary} hover:underline mt-1 block`}
+                    >
+                        + {product.packageIncludes.length - 2} more
+                    </Link>
+                )}
+            </div>
+
+
+                <div className={`pt-2 border-t ${style.border} flex mb-3`}>
+                    {/* {displayINRCurrency(product?.sellingPrice)} */}
+                    <div className={`text-base font-bold ${style.text} flex`}>
+                    <span className={`text-xs font-normal ${style.icon} ml-1`}>Customize Plan </span>
+                    <span className={`text-sm font-normal ${style.icon} ml-1 mt-0.5`}><FaLongArrowAltRight/></span>
+                    </div>
+            </div> 
+                                        {/* <div className=" mb-3">
                                             <span className={`text-xs capitalize line-clamp-1 ${style.textSecondary}`}>Suitable For: {product?.perfectFor?.join(', ')}</span>
-                                            </div>
+                                            </div> */}
                                         
-                                        <div className="flex flex-wrap gap-1 mb-2">
+                                        {/* <div className="flex flex-wrap gap-1 mb-2">
                                                 {techStacks[product?.category]?.map((tech) => (
                                                     <span key={tech} className={`text-xs font-medium ${style.tagBg} px-1.5 py-0.5 rounded-md shadow-sm border`}>
                                                         {tech}
                                                     </span>
                                                 ))}
-                                            </div>
+                                            </div> */}
                                         
-                                        <div className={`pt-3 border-t ${style.border}`}>
+                                        {/* <div className={`pt-3 border-t ${style.border}`}>
                                             <p className={`text-base font-bold ${style.text}`}>
                                                 {displayINRCurrency(product?.sellingPrice)}
                                                 <span className={`text-xs font-normal ${style.icon} ml-1`}>onwards</span>
                                             </p>
-                                        </div>
+                                        </div> */}
                                     </div>
                                 </div>
                             </div>

@@ -693,7 +693,7 @@ const AppConvertingBanner = () => {
     const description = stripHtmlTags(welcome.description);
     
     return (
-      <div className='px-4 rounded-xl shadow-sm'>
+      <div className='rounded-xl shadow-md border'>
         <div className="bg-gradient-to-r rounded-xl from-blue-50 to-red-50 px-4 py-5">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 leading-tight mb-2 text-left">
@@ -887,7 +887,7 @@ const AppConvertingBanner = () => {
       return <OrdersMobileView order={orders[0]} />;
     } else {
       return (
-        <div className="container mx-auto w-full px-14">
+        <div className="container mx-auto w-full md:px-14">
           <OrdersDesktopView order={orders[0]} />
         </div>
       );
@@ -897,7 +897,7 @@ const AppConvertingBanner = () => {
   // User Welcome View - Show when user is logged in but has no orders
   if (user?._id && dataInitialized && orders?.length === 0 && userWelcome) {
     return (
-      <div className="container mx-auto px-14 w-full">
+      <div className="container mx-auto md:px-14 px-4">
         {isMobile ? (
           <WelcomeMobileView welcome={userWelcome} />
         ) : (
