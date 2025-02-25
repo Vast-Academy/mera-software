@@ -232,7 +232,7 @@ const VerticalCardProduct = ({category, heading}) => {
                                         </div>
                                     </Link>
                                     
-                                    <div className="px-4">
+                                    <div className="px-4 -mt-2">
                                         <Link to={`product/${product?._id}`}>
                                             <h3 className={`${style.text} mt-0 font-bold text-base mb-2 line-clamp-1`}>
                                                 {product?.serviceName}
@@ -259,7 +259,7 @@ const VerticalCardProduct = ({category, heading}) => {
             </div>
 
 
-                <div className={`pt-2 border-t ${style.border} flex mb-3`}>
+                <div className={`pt-2 border-t ${style.border} flex mb-4`}>
                     {/* {displayINRCurrency(product?.sellingPrice)} */}
                     <div className={`text-base font-bold ${style.text} flex`}>
                     <span className={`text-xs font-normal ${style.icon} ml-1`}>Customize Plan </span>
