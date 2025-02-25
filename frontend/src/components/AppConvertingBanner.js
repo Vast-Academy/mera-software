@@ -887,7 +887,7 @@ const AppConvertingBanner = () => {
       return <OrdersMobileView order={orders[0]} />;
     } else {
       return (
-        <div className="container mx-auto">
+        <div className="container mx-auto w-full max-w-[1200px]">
           <OrdersDesktopView order={orders[0]} />
         </div>
       );
