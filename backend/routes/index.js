@@ -61,6 +61,8 @@ const updateGuestSlidesController = require('../controller/welcomeBanner/updateG
 const updateUserWelcomeController = require('../controller/welcomeBanner/updateUserWelcomeController')
 const deleteUserWelcomeController = require('../controller/welcomeBanner/deleteUserWelcomeController')
 const deleteGuestSlidesController = require('../controller/welcomeBanner/deleteGuestSlidesController')
+const updatePlanProgressController = require('../controller/admin/updatePlanProgressController')
+const adminUpdatePlansController = require('../controller/admin/adminUpdatePlansController')
 // const uploadWelcomeController = require('../controller/welcomeBanner/uploadWelcomeController')
 // const getWelcomeController = require('../controller/welcomeBanner/getWelcomeController')
 // const updateWelcomeController = require('../controller/welcomeBanner/updateWelcomeController')
@@ -86,6 +88,8 @@ router.get("/get-developer", getAllDevelopersController)
 router.post("/edit-developer/:id", authToken, editDeveloperController)
 router.get("/get-projects", authToken, getProjectsController)
 router.post("/update-project-progress", authToken, updateProgressController)
+router.get("/get-update-plans", authToken, adminUpdatePlansController)
+router.post("/update-plan-progress", authToken, updatePlanProgressController)
 router.post("/project-message", authToken, sendMessageController)
 
 // product

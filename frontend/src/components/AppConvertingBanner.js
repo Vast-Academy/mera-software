@@ -380,26 +380,26 @@ const AppConvertingBanner = () => {
               
               {/* Progress Section */}
               {isUpdate ? (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-600">Updates Progress</span>
-                    <span className="text-sm font-medium text-orange-600">{usedUpdates} of {totalUpdates}</span>
-                  </div>
-                  <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="absolute top-0 left-0 h-full w-full bg-gradient-to-r from-orange-400 via-red-500 to-purple-500 opacity-20"></div>
-                    <div className="relative flex gap-1">
-                      {Array.from({ length: totalUpdates }).map((_, index) => (
-                        <div
-                          key={index}
-                          className={`flex-1 h-2 border-r-2 border-white last:border-r-0 ${
-                            index < usedUpdates ? 'bg-gradient-to-r from-orange-400 via-red-500 to-purple-500' : ''
-                          }`}
-                        ></div>
-                      ))}
-                    </div>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600">Updates Progress</span>
+                  <span className="text-sm font-medium text-orange-600">{usedUpdates} of {totalUpdates}</span>
+                </div>
+                <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="absolute top-0 left-0 h-full w-full bg-gradient-to-r from-orange-400 via-red-500 to-purple-500 opacity-20"></div>
+                  <div className="relative flex gap-1">
+                    {Array.from({ length: totalUpdates }).map((_, index) => (
+                      <div
+                        key={index}
+                        className={`flex-1 h-2 border-r-2 border-white last:border-r-0 ${
+                          index < usedUpdates ? 'bg-gradient-to-r from-orange-400 via-red-500 to-purple-500' : ''
+                        }`}
+                      ></div>
+                    ))}
                   </div>
                 </div>
-              ) : (
+              </div>
+            )  : (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium text-gray-600">Project Progress</span>
@@ -416,6 +416,25 @@ const AppConvertingBanner = () => {
               )}
               
               {/* Status and Time Section */}
+              {isUpdate ? (
+              <div className="flex gap-8 py-4 border-y border-gray-100">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-gray-500">Plan Expires In</span>
+                  <div className="flex items-baseline gap-1 mt-1">
+                    <span className="text-2xl font-bold text-orange-600">{remainingDays}</span>
+                    <span className="text-sm text-gray-500">days</span>
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-gray-500">Updates Remaining</span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-2xl font-bold text-green-600">{totalUpdates - usedUpdates}</span>
+                    <span className="text-sm text-gray-500">updates</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              // Regular website project time display
               <div className="flex gap-8 py-4 border-y border-gray-100">
                 <div className="flex flex-col">
                   <span className="text-sm font-medium text-gray-500">Time Left</span>
@@ -432,216 +451,197 @@ const AppConvertingBanner = () => {
                   </div>
                 </div>
               </div>
+            )}
               
               {/* Footer Section */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center text-gray-500 text-sm">
-                  <Clock className="w-4 h-4 mr-1" />
-                  <span>Started: {formatDate(order.createdAt)}</span>
-                </div>
-                <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-red-500 to-purple-500 rounded-lg blur-sm opacity-50 group-hover:opacity-75 transition-opacity"></div>
-                  <button 
-                    className="relative flex items-center gap-2 bg-white text-gray-700 px-4 py-2 rounded-lg hover:text-gray-900 transition-colors"
-                    onClick={() => handleOrderClick(order._id)}
-                  >
-                    <span>View Details</span>
-                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </div>
+              <div className="flex items-center text-gray-500 text-sm">
+                <Clock className="w-4 h-4 mr-1" />
+                <span>
+                  {isUpdate ? 'Plan Activated' : 'Started'}: {formatDate(order.createdAt)}
+                </span>
               </div>
-            </div>
-          </div>
-          
-          {/* Right Section - Updated to match guest slide and welcome image styling */}
-          <div className="w-1/2 flex justify-end">
-            <div className="w-[550px] h-[300px]">
-              <img 
-                src={guestSlide}
-                alt="Preview" 
-                className="w-full h-full object-cover rounded-3xl shadow-xl"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Orders Mobile View - Keep the existing design
-  const OrdersMobileView = ({ order }) => {
-    return (
-      <div className="px-4">
-        <div className="w-full bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-          <div className="p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="flex items-center">
-                  <FileText className="h-5 w-5 text-teal-500 mr-2" />
-                  <h2 className="text-base font-bold text-gray-800">
-                    {order.productId?.serviceName}
-                  </h2>
-                </div>
-                <p className="text-sm text-gray-500 mt-0.5 ml-7">
-                  {order.productId?.category?.split('_').join(' ')}
-                </p>
-              </div>
-              <div className="bg-gray-50 rounded-md px-2 py-0.5 border border-gray-200">
-                <span className="text-xs text-gray-500">#{order._id.slice(-6)}</span>
-              </div>
-            </div>
-            
-            {(() => {
-              if (isUpdatePlan(order.productId?.category)) {
-                // Calculate remaining days
-                const remainingDays = calculateRemainingDays(order);
-                
-                // Calculate validity percentage
-                const validityInDays = order.productId.validityPeriod;
-                const startDate = new Date(order.createdAt);
-                const endDate = new Date(startDate);
-                endDate.setDate(endDate.getDate() + validityInDays);
-                const today = new Date();
-                const totalDuration = endDate - startDate;
-                const elapsed = today - startDate;
-                const validityPercentage = Math.max(0, Math.min(100, 
-                  ((totalDuration - elapsed) / totalDuration) * 100
-                ));
-                
-                // Calculate update metrics
-                const totalUpdates = order.productId?.updateCount || 0;
-                const usedUpdates = order.updatesUsed || 0;
-                
-                return (
-                  <div className="mt-5 grid grid-cols-3 gap-3">
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Validity</span>
-                        <span className="text-sm font-bold text-teal-600">
-                          {remainingDays}d left
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                        <div 
-                          className="h-full bg-teal-500 rounded-full transition-all duration-1000"
-                          style={{ 
-                            width: `${validityPercentage}%` 
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Updates</span>
-                        <span className="text-sm font-bold text-teal-600">
-                          {`${usedUpdates}/${totalUpdates}`}
-                        </span>
-                      </div>
-                      <div className="flex items-end h-6 space-x-1">
-                        {Array.from({ length: totalUpdates }).map((_, i) => (
-                          <div 
-                            key={i} 
-                            className={`w-1 rounded-t ${i < usedUpdates ? 'bg-teal-500' : 'bg-gray-200'}`}
-                            style={{ height: `${((i + 1) / totalUpdates) * 100}%` }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Status</span>
-                        <span className="text-sm font-bold text-teal-600">
-                          {order.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </div>
-                      <div className="relative h-6 flex items-center">
-                        <div 
-                          className={`w-full py-1 px-2 text-xs text-center rounded ${
-                            order.isActive 
-                              ? 'bg-green-100 text-green-700' 
-                              : 'bg-gray-100 text-gray-700'
-                          }`}
-                        >
-                          {order.isActive ? 'Plan Active' : 'Plan Inactive'}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-
-              // Original website project metrics
-              return (
-                <div className="mt-5 grid grid-cols-3 gap-3">
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Progress</span>
-                      <span className="text-sm font-bold text-teal-600">{order.projectProgress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                      <div 
-                        className="h-full bg-teal-500 rounded-full transition-all duration-1000"
-                        style={{ width: `${order.projectProgress}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Tasks</span>
-                      <span className="text-sm font-bold text-teal-600">
-                        {order.checkpoints ? 
-                          `${order.checkpoints.filter(cp => cp.completed).length}/${order.checkpoints.length}` : 
-                          "0/0"}
-                      </span>
-                    </div>
-                    <div className="flex items-end h-6 space-x-1">
-                      {[15, 25, 40, 30, 42, 35, 50, 45, 60].map((height, i) => (
-                        <div 
-                          key={i} 
-                          className="w-1 bg-teal-500 rounded-t"
-                          style={{height: `${height}%`}}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Time</span>
-                      <span className="text-sm font-bold text-teal-600">8d left</span>
-                    </div>
-                    <div className="relative h-6 flex items-center">
-                      <div className="h-1 w-full bg-gray-200 rounded"></div>
-                      <div className="absolute h-1 w-2/3 bg-teal-500 rounded" />
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-            
-            <div className="mt-4 pt-3 border-t border-gray-100">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center text-sm text-gray-500">
-                  <Clock className="h-4 w-4 mr-1.5 text-teal-500" />
-                  <span>Started: {formatDate(order.createdAt)}</span>
-                </div>
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-red-500 to-purple-500 rounded-lg blur-sm opacity-50 group-hover:opacity-75 transition-opacity"></div>
                 <button 
-                  className="flex items-center text-sm text-teal-600 font-medium hover:text-teal-700 transition-colors"
+                  className="relative flex items-center gap-2 bg-white text-gray-700 px-4 py-2 rounded-lg hover:text-gray-900 transition-colors"
                   onClick={() => handleOrderClick(order._id)}
                 >
-                  <span>View Details</span>
-                  <ExternalLink className="ml-1 h-4 w-4" />
+                  <span>{isUpdate ? 'View Update Plan' : 'View Project'}</span>
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
             </div>
           </div>
         </div>
+        
+        {/* Right Section */}
+        <div className="w-1/2 flex justify-end">
+          <div className="w-[550px] h-[300px]">
+            <img 
+              src={guestSlide}
+              alt="Preview" 
+              className="w-full h-full object-cover rounded-3xl shadow-xl"
+            />
+          </div>
+        </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
+
+  // Orders Mobile View - Keep the existing design
+  const OrdersMobileView = ({ order }) => {
+    const isUpdate = isUpdatePlan(order.productId?.category);
+
+    return (
+       <div className="px-4">
+      <div className="w-full bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+        <div className="p-4">
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="flex items-center">
+                <FileText className="h-5 w-5 text-teal-500 mr-2" />
+                <h2 className="text-base font-bold text-gray-800">
+                  {order.productId?.serviceName}
+                </h2>
+              </div>
+              <p className="text-sm text-gray-500 mt-0.5 ml-7">
+                {order.productId?.category?.split('_').join(' ')}
+              </p>
+            </div>
+            <div className="bg-gray-50 rounded-md px-2 py-0.5 border border-gray-200">
+              <span className="text-xs text-gray-500">#{order._id.slice(-6)}</span>
+            </div>
+          </div>
+          
+          {isUpdate ? (
+            // Updates plan mobile view
+            <div className="mt-5 grid grid-cols-3 gap-3">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Validity</span>
+                  <span className="text-sm font-bold text-teal-600">
+                    {calculateRemainingDays(order)}d left
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                  <div 
+                    className="h-full bg-teal-500 rounded-full transition-all duration-1000"
+                    style={{ 
+                      width: `${(calculateRemainingDays(order) / order.productId.validityPeriod) * 100}%` 
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Updates</span>
+                  <span className="text-sm font-bold text-teal-600">
+                    {`${order.updatesUsed || 0}/${order.productId?.updateCount || 0}`}
+                  </span>
+                </div>
+                <div className="flex items-end h-6 space-x-1">
+                  {Array.from({ length: order.productId?.updateCount || 0 }).map((_, i) => (
+                    <div 
+                      key={i} 
+                      className={`w-1 rounded-t ${i < (order.updatesUsed || 0) ? 'bg-teal-500' : 'bg-gray-200'}`}
+                      style={{ height: `${((i + 1) / (order.productId?.updateCount || 1)) * 100}%` }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Status</span>
+                  <span className="text-sm font-bold text-teal-600">
+                    {order.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                <div className="relative h-6 flex items-center">
+                  <div 
+                    className={`w-full py-1 px-2 text-xs text-center rounded ${
+                      order.isActive 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {order.isActive ? 'Plan Active' : 'Plan Inactive'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            // Regular website project mobile view - your existing code
+            <div className="mt-5 grid grid-cols-3 gap-3">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Progress</span>
+                  <span className="text-sm font-bold text-teal-600">{order.projectProgress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                  <div 
+                    className="h-full bg-teal-500 rounded-full transition-all duration-1000"
+                    style={{ width: `${order.projectProgress}%` }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Tasks</span>
+                  <span className="text-sm font-bold text-teal-600">
+                    {order.checkpoints ? 
+                      `${order.checkpoints.filter(cp => cp.completed).length}/${order.checkpoints.length}` : 
+                      "0/0"}
+                  </span>
+                </div>
+                <div className="flex items-end h-6 space-x-1">
+                  {[15, 25, 40, 30, 42, 35, 50, 45, 60].map((height, i) => (
+                    <div 
+                      key={i} 
+                      className="w-1 bg-teal-500 rounded-t"
+                      style={{height: `${height}%`}}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Time</span>
+                  <span className="text-sm font-bold text-teal-600">8d left</span>
+                </div>
+                <div className="relative h-6 flex items-center">
+                  <div className="h-1 w-full bg-gray-200 rounded"></div>
+                  <div className="absolute h-1 w-2/3 bg-teal-500 rounded" />
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className="mt-4 pt-3 border-t border-gray-100">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center text-sm text-gray-500">
+                <Clock className="h-4 w-4 mr-1.5 text-teal-500" />
+                <span>{isUpdate ? 'Activated' : 'Started'}: {formatDate(order.createdAt)}</span>
+              </div>
+              <button 
+                className="flex items-center text-sm text-teal-600 font-medium hover:text-teal-700 transition-colors"
+                onClick={() => handleOrderClick(order._id)}
+              >
+                <span>View Details</span>
+                <ExternalLink className="ml-1 h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
   // Welcome Desktop View - Similar to GuestSlidesDesktop
   const WelcomeDesktopView = ({ welcome }) => {

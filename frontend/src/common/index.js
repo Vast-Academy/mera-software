@@ -181,6 +181,14 @@ const SummaryApi = {
         url : `${backendDomain}/api/update-project-progress`,
         method: "post"
     },
+    adminUpdatePlans : {
+        url: `${backendDomain}/api/get-update-plans`,
+        method: "get"
+    },
+    updatePlanProgress: {
+        url: `${backendDomain}/api/update-plan-progress`,
+        method: "post"
+    },
     sendProjectMessage: {
         url : `${backendDomain}/api/project-message`,
         method : "post"

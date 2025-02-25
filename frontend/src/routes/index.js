@@ -25,6 +25,7 @@ import ProjectDetails from "../pages/ProjectDetails";
 import WalletDetails from "../pages/WalletDetails";
 import ServiceCard from "../pages/ServiceCard";
 import AllWelcomeContent from "../pages/AllWelcomeContent";
+import AdminWebsiteUpdates from "../pages/AdminWebsiteUpdates";
 
 
 const router = createBrowserRouter([
@@ -107,6 +108,10 @@ const router = createBrowserRouter([
                     {
                         path : "projects",
                         element : <AdminProjects/>
+                    },
+                    {
+                        path: "website-updates",
+                        element: <AdminWebsiteUpdates/>
                     },
                     {
                         path: "all-developers",
