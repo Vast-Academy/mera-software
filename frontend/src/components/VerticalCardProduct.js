@@ -107,7 +107,7 @@ const VerticalCardProduct = ({category, heading}) => {
     }
 
     return (
-        <div className='container mx-auto px-14 my-1 mb-6 relative'>
+        <div className='container mx-auto md:px-14 px-4 my-1 mb-6 relative'>
              <div className="flex justify-between items-center py-3">
                 <h2 className='text-xl font-semibold'>{heading}</h2>
                 <Link 
