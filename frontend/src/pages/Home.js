@@ -19,7 +19,7 @@ const Home = () => {
       {/* <VerticalCardProduct category={"static_websites"} heading={"Static Websites"}/> */}
       <VerticalCardProduct category={"standard_websites"} heading={"Standard Websites"}/>
       <VerticalCardProduct category={"dynamic_websites"} heading={"Dynamic Websites"}/>
-      <VerticalCardProduct category={"web_applications"} heading={"Cloud Softwares"}/>
+      {/* <VerticalCardProduct category={"web_applications"} heading={"Cloud Softwares"}/> */}
     </div>
   )
 }
