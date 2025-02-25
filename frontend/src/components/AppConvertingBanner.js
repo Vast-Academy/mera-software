@@ -813,7 +813,7 @@ const AppConvertingBanner = () => {
   // If we have guest slides, show them immediately (even if other data is still loading)
   if (!user?._id && guestSlides?.length > 0) {
     return (
-      <div className="relative container mx-auto w-full px-4">
+      <div className="relative container mx-auto w-full md:px-4">
         <div
           className="transition-all duration-500 ease-in-out flex"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
