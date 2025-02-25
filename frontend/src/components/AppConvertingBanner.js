@@ -813,7 +813,7 @@ const AppConvertingBanner = () => {
   // If we have guest slides, show them immediately (even if other data is still loading)
   if (!user?._id && guestSlides?.length > 0) {
     return (
-      <div className="relative container mx-auto">
+      <div className="relative container mx-auto w-full px-4">
         <div
           className="transition-all duration-500 ease-in-out flex"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
@@ -887,7 +887,7 @@ const AppConvertingBanner = () => {
       return <OrdersMobileView order={orders[0]} />;
     } else {
       return (
-        <div className="container mx-auto w-full max-w-[1200px]">
+        <div className="container mx-auto w-full px-4">
           <OrdersDesktopView order={orders[0]} />
         </div>
       );
@@ -897,7 +897,7 @@ const AppConvertingBanner = () => {
   // User Welcome View - Show when user is logged in but has no orders
   if (user?._id && dataInitialized && orders?.length === 0 && userWelcome) {
     return (
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 w-full">
         {isMobile ? (
           <WelcomeMobileView welcome={userWelcome} />
         ) : (
