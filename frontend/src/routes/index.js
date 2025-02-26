@@ -26,6 +26,9 @@ import WalletDetails from "../pages/WalletDetails";
 import ServiceCard from "../pages/ServiceCard";
 import AllWelcomeContent from "../pages/AllWelcomeContent";
 import AdminWebsiteUpdates from "../pages/AdminWebsiteUpdates";
+import AdminUpdateRequests from "../pages/AdminUpdateReuests";
+import UserUpdateDashboard from "../pages/UserUpdateDashboard";
+import DeveloperUpdatePanel from "../pages/DeveloperUpdatePanel";
 
 
 const router = createBrowserRouter([
@@ -94,6 +97,14 @@ const router = createBrowserRouter([
                 element : <ServiceCard/>
             },
             {
+                path: "my-updates",
+                element: <UserUpdateDashboard/>
+            },
+            {
+                path: "developer-updates",
+                element: <DeveloperUpdatePanel/>
+            },
+            {
                 path: "admin-panel",
                 element : <AdminPanel/>,
                 children :[
@@ -104,6 +115,10 @@ const router = createBrowserRouter([
                     {
                         path: "welcome-content",
                         element : <AllWelcomeContent/>
+                    },
+                    {
+                        path: "update-requests",
+                        element: <AdminUpdateRequests/>
                     },
                     {
                         path : "projects",

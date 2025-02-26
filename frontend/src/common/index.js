@@ -233,6 +233,54 @@ const SummaryApi = {
         url: `${backendDomain}/api/delete-user-welcome`,
         method: "delete"
       },
+      userUpdatePlans:{
+        url: `${backendDomain}/api/user-update-plans`,
+        method: "get"
+      },
+      requestUpdate: {
+        url: `${backendDomain}/api/user-request-update`,
+        method: "post"
+      },
+      userUpdateRequests : {
+        url : `${backendDomain}/api/get-update-requests`,
+        method: "get"
+      },
+      adminUpdateRequests: {
+        url: `${backendDomain}/api/get-admin-update-requests`,
+        method: "get"
+      },
+      assignUpdateRequestDeveloper: {
+        url : `${backendDomain}/api/assign-update-developer`,
+        method: "post"
+      },
+      updateRequestMessage: {
+        url: `${backendDomain}/api/update-request-message`,
+        method: "post"
+      },
+      completeUpdateRequest: {
+        url: `${backendDomain}/api/complete-update-request`,
+        method: "post"
+      },
+      rejectUpdateRequest: {
+        url : `${backendDomain}/api/reject-update-request`,
+        method: "post"
+      },
+      developerAssignedUpdates: {
+        url: `${backendDomain}/api/assigned-updates`,
+        method: "get"
+      },
+      developerUpdateMessage :{
+        url: `${backendDomain}/api/developer-update-message`,
+        method: "post"
+      },
+      addDeveloperNote: {
+        url : `${backendDomain}/api/developer-add-note`,
+        method: "post"
+      },
+      completeDeveloperUpdate :{
+        url : `${backendDomain}/api/developer-complete-update`,
+        method: "post"
+      },
     wallet : {
         balance :{
             url : `${backendDomain}/api/wallet/balance`,

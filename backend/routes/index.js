@@ -1,6 +1,9 @@
 const express = require('express')
 
 const router = express.Router()
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const userSignUpController = require("../controller/user/userSignUp")
 const userSignInController = require("../controller/user/userSignIn")
@@ -65,18 +68,77 @@ const updatePlanProgressController = require('../controller/admin/updatePlanProg
 const adminUpdatePlansController = require('../controller/admin/adminUpdatePlansController')
 const assignDeveloperController = require('../controller/admin/assignDeveloperController')
 const getSingleDeveloperController = require('../controller/admin/getSingleDeveloperController')
-// const uploadWelcomeController = require('../controller/welcomeBanner/uploadWelcomeController')
-// const getWelcomeController = require('../controller/welcomeBanner/getWelcomeController')
-// const updateWelcomeController = require('../controller/welcomeBanner/updateWelcomeController')
-// const deleteWelcomeController = require('../controller/welcomeBanner/deleteWelcomeController')
+const getUserUpdatePlans = require('../controller/user/getUserUpdatePlans');
+const submitUpdateRequest = require('../controller/user/submitUpdateRequest');
+const getUserUpdateRequests = require('../controller/user/getUserUpdateRequests');
+const getAllUpdateRequests = require('../controller/admin/getAllUpdateRequests');
+const assignUpdateRequestDeveloper = require('../controller/admin/assignUpdateRequestDeveloper');
+const sendUpdateRequestMessage = require('../controller/admin/sendUpdateRequestMessage');
+const completeUpdateRequest = require('../controller/admin/completeUpdateRequest');
+const rejectUpdateRequest = require('../controller/admin/rejectUpdateRequest');
+const getAssignedUpdates = require('../controller/developer/getAssignedUpdates');
+const sendUpdateMessage = require('../controller/developer/sendUpdateMessage');
+const addDeveloperNote = require('../controller/developer/addDeveloperNote');
+const completeUpdate = require('../controller/developer/completeUpdate');
+
+const ensureDirectoryExists = (directoryPath) => {
+  if (!fs.existsSync(directoryPath)){
+    fs.mkdirSync(directoryPath, { recursive: true });
+  }
+};
+
+// Multer storage configuration
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    // Get userId from auth middleware
+    const userId = req.userId;
+    // Get planId from request body
+    const planId = req.body.planId;
+    
+    if (!userId || !planId) {
+      return cb(new Error('User ID or Plan ID missing'));
+    }
+    
+    const uploadDir = path.join(__dirname, '../uploads/updates', userId.toString(), planId.toString());
+    
+    ensureDirectoryExists(uploadDir);
+    cb(null, uploadDir);
+  },
+  filename: function(req, file, cb) {
+    const uniqueFilename = `${Date.now()}-${file.originalname.replace(/\s+/g, '_')}`;
+    cb(null, uniqueFilename);
+  }
+});
+
+// File filter function
+const fileFilter = function(req, file, cb) {
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (ext === '.jpg' || ext === '.jpeg' || ext === '.txt' || ext === '.rtf') {
+    cb(null, true);
+  } else {
+    cb(new Error('Only JPG, JPEG, TXT, RTF files are allowed'));
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB max
+    files: 10 // Max 10 files per request
+  }
+});
 
 
+// user
 router.post("/signup", userSignUpController)
 router.post("/signin", userSignInController)
 router.get("/user-details", authToken, userDetailsController)
 router.get("/userLogout", userLogout)
 router.post("/update-profile", authToken, updateUserProfileController)
-
+router.get("/user-update-plans", authToken, getUserUpdatePlans)
+router.post("/user-request-update", authToken, upload.any(), submitUpdateRequest)
+router.get("/get-update-requests", authToken, getUserUpdateRequests)
 
 //admin panel
 router.get("/all-user", authToken, allUsers)
@@ -95,6 +157,17 @@ router.post("/update-plan-progress", authToken, updatePlanProgressController)
 router.post("/project-message", authToken, sendMessageController)
 router.post("/assign-developer", authToken, assignDeveloperController)
 router.get("/get-single-developer/:id", getSingleDeveloperController)
+router.get("/get-admin-update-requests", authToken, getAllUpdateRequests)
+router.post("/assign-update-developer", authToken, assignUpdateRequestDeveloper)
+router.post("/update-request-message", authToken, sendUpdateRequestMessage)
+router.post("/complete-update-request", authToken, completeUpdateRequest)
+router.post("/reject-update-request", authToken, rejectUpdateRequest)
+
+// developer
+router.get("/assigned-updates", authToken, getAssignedUpdates)
+router.post("/developer-update-message", authToken, sendUpdateMessage)
+router.post("/developer-add-note", authToken, addDeveloperNote)
+router.post("/developer-complete-update", authToken, completeUpdate)
 
 // product
 router.post("/upload-product", authToken, UploadProductController )

@@ -16,7 +16,7 @@ const validateUpdatePlan = async (req, res) => {
       });
     }
 
-    if (updateProduct.category !== 'website_updates') {
+    if (updateProduct.category !== 'website_updates' || !updateProduct.isWebsiteUpdate) {
       return res.status(400).json({
         success: false,
         message: 'Invalid product category'
