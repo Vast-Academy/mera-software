@@ -280,7 +280,7 @@ const AppConvertingBanner = () => {
   };
 
   const handleOrderClick = (orderId) => {
-    navigate(`/project-details/${orderId}`);
+    navigate("/my-updates");
   };
 
   const formatDate = (date) => {
