@@ -9,6 +9,10 @@ const getOrderDetails = async (req, res) => {
             .populate({
                 path: 'productId',
                 select: 'serviceName category sellingPrice serviceImage description validityPeriod updateCount isWebsiteUpdate'
+            })
+            .populate({
+                path: 'assignedDeveloper',
+                select: 'name email phone designation department avatar status' // जरूरी फील्ड्स सिलेक्ट करें
             });
 
         if (!order) {

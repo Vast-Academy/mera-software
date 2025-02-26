@@ -4,10 +4,13 @@ import { toast } from 'react-toastify';
 
 const AdminProjects = () => {
   const [projects, setProjects] = useState([]);
+  const [developers, setDevelopers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState(null);
   const [message, setMessage] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedDeveloper, setSelectedDeveloper] = useState('');
   const [selectedCheckpoint, setSelectedCheckpoint] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState(null);
 
@@ -32,8 +35,28 @@ const AdminProjects = () => {
     }
   };
 
+  // Fetch all developers
+  const fetchDevelopers = async () => {
+    try {
+      const response = await fetch(SummaryApi.allDevelopers.url, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      
+      if(data.success) {
+        setDevelopers(data.data || []);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Failed to fetch developers');
+    }
+  };
+
   useEffect(() => {
     fetchProjects();
+    fetchDevelopers();
   }, []);
 
   // Handle sending update and message
@@ -100,6 +123,42 @@ const AdminProjects = () => {
     }
   };
 
+  // Handle assigning developer to project
+  const handleAssignDeveloper = async () => {
+    if (!selectedDeveloper) {
+      toast.error('Please select a developer');
+      return;
+    }
+
+    try {
+      const response = await fetch(SummaryApi.assignDeveloper.url, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projectId: selectedProject._id,
+          developerId: selectedDeveloper
+        })
+      });
+
+      const data = await response.json();
+      
+      if(data.success) {
+        toast.success('Developer assigned successfully');
+        setIsAssignModalOpen(false);
+        setSelectedDeveloper('');
+        fetchProjects();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Failed to assign developer');
+    }
+  };
+
   // Find the next available checkpoint
   const getNextCheckpoint = (checkpoints) => {
     for (let i = 0; i < checkpoints.length; i++) {
@@ -111,7 +170,7 @@ const AdminProjects = () => {
   };
 
   const ProjectCard = ({ project }) => (
-    <div className="bg-white rounded-lg shadow-md p-4">
+    <div className="w-80 bg-white rounded-lg shadow-md p-4">
       <div className="flex justify-between items-start mb-4">
         <div>
           <h3 className="font-medium text-lg">{project.productId?.serviceName}</h3>
@@ -119,19 +178,37 @@ const AdminProjects = () => {
           <p className="text-sm text-gray-600">
             Ordered: {new Date(project.createdAt).toLocaleDateString()}
           </p>
+          {project.assignedDeveloper && (
+            <p className="text-sm text-blue-600">
+              Developer: {typeof project.assignedDeveloper === 'object' 
+                ? project.assignedDeveloper.name 
+                : 'Assigned'}
+            </p>
+          )}
         </div>
-        <button
-          onClick={() => {
-            setSelectedProject(project);
-            setSelectedCheckpoint(null);
-            setMessage('');
-            setEditingMessageId(null);
-            setIsModalOpen(true);
-          }}
-          className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-        >
-          Edit
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => {
+              setSelectedProject(project);
+              setIsAssignModalOpen(true);
+            }}
+            className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+          >
+            {project.assignedDeveloper ? 'Reassign' : 'Assign'}
+          </button>
+          <button
+            onClick={() => {
+              setSelectedProject(project);
+              setSelectedCheckpoint(null);
+              setMessage('');
+              setEditingMessageId(null);
+              setIsModalOpen(true);
+            }}
+            className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+          >
+            Edit
+          </button>
+        </div>
       </div>
       
       <div className="mt-4">
@@ -163,7 +240,7 @@ const AdminProjects = () => {
     const nextCheckpointIndex = getNextCheckpoint(selectedProject.checkpoints);
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
           {/* Modal Header */}
           <div className="flex justify-between items-center mb-6">
@@ -189,6 +266,13 @@ const AdminProjects = () => {
             <p className="text-gray-600">
               Ordered: {new Date(selectedProject.createdAt).toLocaleDateString()}
             </p>
+            {selectedProject.assignedDeveloper && (
+              <p className="text-blue-600">
+                Developer: {typeof selectedProject.assignedDeveloper === 'object' 
+                  ? selectedProject.assignedDeveloper.name 
+                  : 'Assigned'}
+              </p>
+            )}
           </div>
 
           {/* Progress Section */}
@@ -342,6 +426,87 @@ const AdminProjects = () => {
     );
   };
 
+  const AssignDeveloperModal = () => {
+    if (!selectedProject) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-semibold">
+              Assign Developer to Project
+            </h3>
+            <button 
+              onClick={() => {
+                setIsAssignModalOpen(false);
+                setSelectedDeveloper('');
+              }}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="mb-6">
+            <p className="text-gray-700 mb-2">Project: {selectedProject.productId?.serviceName}</p>
+            <p className="text-gray-700 mb-4">Client: {selectedProject.userId?.name}</p>
+            
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Developer
+            </label>
+            <select
+              value={selectedDeveloper}
+              onChange={(e) => setSelectedDeveloper(e.target.value)}
+              className="w-full p-2 border rounded mb-4 focus:outline-none focus:border-blue-500"
+            >
+              <option value="">-- Select a Developer --</option>
+              {developers
+                .filter(dev => dev.status !== 'On Leave')
+                .map((developer) => (
+                  <option key={developer._id} value={developer._id}>
+                    {developer.name} - {developer.department} ({developer.activeProjects.length}/{developer.workload.maxProjects} projects)
+                  </option>
+                ))}
+            </select>
+
+            {selectedDeveloper && (
+              <div className="bg-blue-50 p-3 rounded mb-4">
+                <p className="text-sm text-blue-800">
+                  {selectedProject.assignedDeveloper ? 
+                    'This will reassign the project to a new developer.' : 
+                    'The developer will be notified about this assignment.'}
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setIsAssignModalOpen(false);
+                  setSelectedDeveloper('');
+                }}
+                className="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAssignDeveloper}
+                disabled={!selectedDeveloper}
+                className={`px-4 py-2 rounded ${
+                  !selectedDeveloper 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-green-600 hover:bg-green-700 text-white'
+                }`}
+              >
+                {selectedProject.assignedDeveloper ? 'Reassign' : 'Assign'} Developer
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return <div className="p-4">Loading projects...</div>;
   }
@@ -357,6 +522,7 @@ const AdminProjects = () => {
       </div>
 
       {isModalOpen && <EditModal />}
+      {isAssignModalOpen && <AssignDeveloperModal />}
     </div>
   );
 };

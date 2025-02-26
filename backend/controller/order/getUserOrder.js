@@ -10,6 +10,7 @@ const getUserOrders = async (req, res) => {
             .populate('userId', 'name email')
             .populate('productId',
                  'serviceName category totalPages validityPeriod updateCount isWebsiteUpdate')
+            .populate('assignedDeveloper', 'name designation avatar status')
             .sort({ createdAt: -1 });
 
         console.log('Total projects found:', orders.length);

@@ -15,12 +15,34 @@ const ProjectDetails = () => {
 
   const fetchOrderDetails = async () => {
     try {
-      const response = await fetch(`${SummaryApi.orderDetails.url}/${orderId}`, {
+      // First fetch order data
+      const orderResponse = await fetch(`${SummaryApi.orderDetails.url}/${orderId}`, {
         credentials: 'include',
       });
-      const data = await response.json();
-      if (data.success) {
-        setOrder(data.data);
+      const orderData = await orderResponse.json();
+      
+      if (orderData.success) {
+        const order = orderData.data;
+        
+        // If there's an assigned developer ID but it's not already populated (it's just an ID string)
+        if (order.assignedDeveloper && typeof order.assignedDeveloper === 'string') {
+          try {
+            // Use your new endpoint to fetch developer details by ID
+            const devResponse = await fetch(`${SummaryApi.getSingleDeveloper.url}/${order.assignedDeveloper}`, {
+              credentials: 'include',
+            });
+            const devData = await devResponse.json();
+            
+            if (devData.success) {
+              // Combine the data
+              order.assignedDeveloper = devData.data;
+            }
+          } catch (devError) {
+            console.error("Error fetching developer:", devError);
+          }
+        }
+        
+        setOrder(order);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -45,11 +67,13 @@ const ProjectDetails = () => {
     });
   };
 
-  if (loading || !order) return   <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
-            <div className="rounded-lg p-8">
-              <TriangleMazeLoader />
-            </div>
-          </div>
+  if (loading || !order) return (
+    <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
+      <div className="rounded-lg p-8">
+        <TriangleMazeLoader />
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-xl mx-auto bg-gray-50 min-h-screen p-4">
@@ -76,54 +100,111 @@ const ProjectDetails = () => {
         </div>
       </div>
 
-      {/* Progress Card (Full Width) */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">Project Progress</h2>
-          <button 
-            onClick={() => setShowTimeline(true)}
-            className="px-4 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
-          >
-            View Timeline
-          </button>
-        </div>
-        <div className="flex flex-col items-center">
-          <div className="relative w-24 h-24">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-              <circle
-                className="text-gray-200"
-                strokeWidth="10"
-                stroke="currentColor"
-                fill="transparent"
-                r="45"
-                cx="50"
-                cy="50"
-              />
-              <circle
-                className="text-blue-500"
-                strokeWidth="10"
-                strokeLinecap="round"
-                stroke="currentColor"
-                fill="transparent"
-                r="45"
-                cx="50"
-                cy="50"
-                strokeDasharray={`${2 * Math.PI * 45}`}
-                strokeDashoffset={`${2 * Math.PI * 45 * (1 - order.projectProgress / 100)}`}
-              />
-            </svg>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <span className="text-2xl font-bold">{order.projectProgress}%</span>
+      {/* Developer Card and Progress Card (Grid Layout) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        {/* Developer Card - Conditionally display developer info or default view */}
+        <div className="bg-white rounded-2xl shadow-sm p-5">
+          <div className="flex flex-col items-center">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mb-2">
+                {order.assignedDeveloper && order.assignedDeveloper.avatar ? (
+                  <img 
+                    src={order.assignedDeveloper.avatar} 
+                    alt={order.assignedDeveloper.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-gray-400 text-2xl">👤</div>
+                )}
+              </div>
+              <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
             </div>
+            
+            {order.assignedDeveloper && typeof order.assignedDeveloper === 'object' ? (
+              <>
+                <h2 className="font-bold text-lg mt-1">{order.assignedDeveloper.name}</h2>
+                <p className="text-sm text-gray-600">{order.assignedDeveloper.designation}</p>
+                
+                <div className="flex space-x-2 mt-4">
+                  <a 
+                    href={`tel:${order.assignedDeveloper.phone}`} 
+                    className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                  </a>
+                  <a 
+                    href={`mailto:${order.assignedDeveloper.email}`} 
+                    className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </a>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 className="font-bold text-lg mt-1">Not Assigned</h2>
+                <p className="text-sm text-gray-600">Developer Not Yet Assigned</p>
+                
+                <div className="flex space-x-2 mt-4">
+                  <span className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center cursor-not-allowed opacity-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                  </span>
+                  <span className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center cursor-not-allowed opacity-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </span>
+                </div>
+              </>
+            )}
           </div>
-          <p className="text-sm text-gray-600 mt-3">
-            {order.projectProgress === 0 
-              ? 'Project has been initiated' 
-              : order.projectProgress < 100 
-                ? 'Your project is in progress'
-                : 'Project completed successfully!'
-            }
-          </p>
+        </div>
+          
+        {/* Progress Card */}
+        <div className="bg-white rounded-2xl shadow-sm p-5">
+          <div className="flex flex-col items-center">
+            <div className="relative w-20 h-20">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                <circle
+                  className="text-gray-200"
+                  strokeWidth="10"
+                  stroke="currentColor"
+                  fill="transparent"
+                  r="45"
+                  cx="50"
+                  cy="50"
+                />
+                <circle
+                  className="text-blue-500"
+                  strokeWidth="10"
+                  strokeLinecap="round"
+                  stroke="currentColor"
+                  fill="transparent"
+                  r="45"
+                  cx="50"
+                  cy="50"
+                  strokeDasharray={`${2 * Math.PI * 45}`}
+                  strokeDashoffset={`${2 * Math.PI * 45 * (1 - order.projectProgress / 100)}`}
+                />
+              </svg>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <span className="text-xl font-bold">{order.projectProgress}%</span>
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => setShowTimeline(true)}
+              className="mt-4 px-4 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
+            >
+              View Timeline
+            </button>
+          </div>
         </div>
       </div>
 
@@ -134,7 +215,7 @@ const ProjectDetails = () => {
           {order.messages?.map((msg, index) => (
             <div 
               key={index} 
-              className="relative pl-4 border-l-4 border-blue-500 last:border-yellow-500"
+              className={`relative pl-4 border-l-4 ${index === 0 ? 'border-yellow-500' : 'border-blue-500'}`}
             >
               <h3 className="font-semibold text-base">{msg.title || 'Project Update'}</h3>
               <p className="text-sm text-gray-600 mt-1">{msg.message}</p>
@@ -143,7 +224,7 @@ const ProjectDetails = () => {
                   {formatTime(msg.timestamp)}
                 </span>
                 <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                  {msg.checkpoint || 'Planning Phase'}
+                  {msg.checkpoint || (index === 0 ? 'Setup Phase' : 'Planning Phase')}
                 </span>
               </div>
             </div>

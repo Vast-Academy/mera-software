@@ -149,6 +149,14 @@ const SummaryApi = {
         url : `${backendDomain}/api/edit-developer`,
         method: "post"
     },
+    getSingleDeveloper: {
+        url: `${backendDomain}/api/get-single-developer`,
+        method : "get"
+    },
+    assignDeveloper:{
+        url: `${backendDomain}/api/assign-developer`,
+        method: "post"
+    },
     createOrder : {
         url : `${backendDomain}/api/create-order`,
         method: "post"

@@ -99,6 +99,15 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    assignedDeveloper: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Developer',
+        default: null
+      },
+      assignedAt: {
+        type: Date,
+        default: null
+      },
 }, {
     timestamps: true
 });
