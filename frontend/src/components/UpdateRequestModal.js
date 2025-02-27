@@ -127,6 +127,8 @@ const UpdateRequestModal = ({ plan, onClose, onSubmitSuccess }) => {
         formData.append(`file${index}`, fileObj.file, fileObj.name);
       });
       
+      console.log("Submitting update request...");
+      
       // Submit the request
       const response = await fetch(SummaryApi.requestUpdate.url, {
         method: SummaryApi.requestUpdate.method,
@@ -134,6 +136,28 @@ const UpdateRequestModal = ({ plan, onClose, onSubmitSuccess }) => {
         body: formData
       });
       
+      // First check if response is ok
+      if (!response.ok) {
+        let errorMsg = `Server returned ${response.status}: ${response.statusText}`;
+        
+        try {
+          // Try to parse the error response as JSON
+          const errorData = await response.json();
+          errorMsg = errorData.message || errorMsg;
+        } catch (parseError) {
+          // If we can't parse the error as JSON, try to get the text
+          try {
+            const errorText = await response.text();
+            errorMsg = errorText || errorMsg;
+          } catch (textError) {
+            // Fall back to the default error message
+          }
+        }
+        
+        throw new Error(errorMsg);
+      }
+      
+      // Now parse the successful response
       const data = await response.json();
       
       if (data.success) {
@@ -146,7 +170,7 @@ const UpdateRequestModal = ({ plan, onClose, onSubmitSuccess }) => {
       }
     } catch (error) {
       console.error('Error submitting update request:', error);
-      toast.error('Failed to submit update request');
+      toast.error(error.message || 'Failed to submit update request');
       setShowConfirmation(false);
     } finally {
       setLoading(false);
