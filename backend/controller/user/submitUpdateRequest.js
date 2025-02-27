@@ -95,6 +95,9 @@ const submitUpdateRequest = asyncHandler(async (req, res) => {
   // मेमोरी में स्टोर की गई फाइलों को संभालें
   const fileObjects = [];
   if (req.files && req.files.length > 0) {
+    console.log("File properties:", Object.keys(req.files[0]));
+  console.log("Has buffer?", !!req.files[0].buffer);
+  console.log("Buffer size:", req.files[0].buffer?.length);
     console.log("Processing files in memory...");
     
     for (const file of req.files) {

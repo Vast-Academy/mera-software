@@ -1,5 +1,5 @@
+// Schema ka correction (updateRequestModel.js)
 const mongoose = require('mongoose');
-
 const updateRequestSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -18,17 +18,20 @@ const updateRequestSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
-  files: [{
-    filename: String,
-    originalName: String,
-    type: String,
-    size: Number,
-    content: String, // Base64 एनकोडेड फाइल कंटेंट
-    uploadedAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
+  files: {
+    type: [{
+      filename: String,
+      originalName: String,
+      type: String,
+      size: Number,
+      content: String, // Base64 encoded content
+      uploadedAt: {
+        type: Date,
+        default: Date.now
+      }
+    }],
+    default: []
+  },
   status: {
     type: String,
     enum: ['pending', 'in_progress', 'completed', 'rejected'],
@@ -78,5 +81,4 @@ updateRequestSchema.index({ status: 1 });
 updateRequestSchema.index({ assignedDeveloper: 1, status: 1 });
 
 const updateRequestModel = mongoose.model('UpdateRequest', updateRequestSchema);
-
 module.exports = updateRequestModel;
