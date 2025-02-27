@@ -124,7 +124,7 @@ const UpdateRequestModal = ({ plan, onClose, onSubmitSuccess }) => {
       
       // Add each file
       files.forEach((fileObj, index) => {
-        formData.append(`file${index}`, fileObj.file, fileObj.name);
+        formData.append('fileData', JSON.stringify(files));
       });
       
       console.log("Submitting update request...");

@@ -95,23 +95,15 @@ const submitUpdateRequest = asyncHandler(async (req, res) => {
   // मेमोरी में स्टोर की गई फाइलों को संभालें
   const fileObjects = [];
   if (req.files && req.files.length > 0) {
-    console.log("File properties:", Object.keys(req.files[0]));
-  console.log("Has buffer?", !!req.files[0].buffer);
-  console.log("Buffer size:", req.files[0].buffer?.length);
-    console.log("Processing files in memory...");
-    
     for (const file of req.files) {
       try {
-        // फाइल को Base64 में कन्वर्ट करें
         const fileContent = file.buffer.toString('base64');
-        
-        // फाइल के मेटाडेटा एनकोड करें
         fileObjects.push({
           filename: file.originalname.replace(/\s+/g, '_'),
           originalName: file.originalname,
           type: file.mimetype,
           size: file.size,
-          content: fileContent // Base64 एनकोडेड कंटेंट
+          content: fileContent
         });
       } catch (error) {
         console.error('Error processing file:', error);
