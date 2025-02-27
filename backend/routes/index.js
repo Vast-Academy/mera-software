@@ -3,7 +3,7 @@ const express = require('express')
 const router = express.Router()
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
+// const fs = require('fs');
 
 const userSignUpController = require("../controller/user/userSignUp")
 const userSignInController = require("../controller/user/userSignIn")
@@ -81,51 +81,20 @@ const sendUpdateMessage = require('../controller/developer/sendUpdateMessage');
 const addDeveloperNote = require('../controller/developer/addDeveloperNote');
 const completeUpdate = require('../controller/developer/completeUpdate');
 
-const ensureDirectoryExists = (directoryPath) => {
-  if (!fs.existsSync(directoryPath)){
-    fs.mkdirSync(directoryPath, { recursive: true });
-  }
-};
-
-// Multer storage configuration
-const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-    // Get userId from auth middleware
-    const userId = req.userId;
-    // Get planId from request body
-    const planId = req.body.planId;
-    
-    if (!userId || !planId) {
-      return cb(new Error('User ID or Plan ID missing'));
-    }
-    
-    const uploadDir = path.join(__dirname, '../uploads/updates', userId.toString(), planId.toString());
-    
-    ensureDirectoryExists(uploadDir);
-    cb(null, uploadDir);
-  },
-  filename: function(req, file, cb) {
-    const uniqueFilename = `${Date.now()}-${file.originalname.replace(/\s+/g, '_')}`;
-    cb(null, uniqueFilename);
-  }
-});
-
-// File filter function
-const fileFilter = function(req, file, cb) {
-  const ext = path.extname(file.originalname).toLowerCase();
-  if (ext === '.jpg' || ext === '.jpeg' || ext === '.txt' || ext === '.rtf') {
-    cb(null, true);
-  } else {
-    cb(new Error('Only JPG, JPEG, TXT, RTF files are allowed'));
-  }
-};
-
+const memoryStorage = multer.memoryStorage();
 const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
+  storage: memoryStorage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB max
-    files: 10 // Max 10 files per request
+    fileSize: 5 * 1024 * 1024, // 5MB max
+    files: 5 // Max 5 files
+  },
+  fileFilter: function(req, file, cb) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (ext === '.jpg' || ext === '.jpeg' || ext === '.txt' || ext === '.rtf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only JPG, JPEG, TXT, RTF files are allowed'));
+    }
   }
 });
 

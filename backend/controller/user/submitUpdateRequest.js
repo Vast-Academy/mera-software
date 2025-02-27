@@ -1,11 +1,9 @@
 const updateRequestModel = require("../../models/updateRequestModel");
 const orderModel = require("../../models/orderProductModel");
-const fs = require('fs');
-const path = require('path');
 const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Types;
 
-// Try-catch wrapper function for better error handling
+// एरर हैंडलिंग वरैपर
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(err => {
     console.error('Error in async handler:', err);
@@ -17,14 +15,8 @@ const asyncHandler = (fn) => (req, res, next) => {
   });
 };
 
-const ensureDirectoryExists = (directoryPath) => {
-  if (!fs.existsSync(directoryPath)){
-    fs.mkdirSync(directoryPath, { recursive: true });
-  }
-};
-
 const submitUpdateRequest = asyncHandler(async (req, res) => {
-  console.log("Request body:", req.body);
+  console.log("Request body keys:", Object.keys(req.body));
   console.log("Files received:", req.files ? req.files.length : 'No files');
   
   const userId = req.userId;
@@ -51,7 +43,7 @@ const submitUpdateRequest = asyncHandler(async (req, res) => {
   if (req.body.instructions) {
     try {
       instructions = JSON.parse(req.body.instructions);
-      console.log("Parsed instructions:", instructions);
+      console.log("Parsed instructions count:", instructions.length);
     } catch (e) {
       console.error('Error parsing instructions:', e);
       return res.status(400).json({
@@ -100,23 +92,23 @@ const submitUpdateRequest = asyncHandler(async (req, res) => {
     });
   }
   
-  // Process files if any
-  const uploadDir = path.join(__dirname, '../../uploads/updates', userId.toString(), planId.toString());
-  ensureDirectoryExists(uploadDir);
-  
-  // Process each file individually
+  // मेमोरी में स्टोर की गई फाइलों को संभालें
   const fileObjects = [];
   if (req.files && req.files.length > 0) {
-    console.log("Processing files...");
+    console.log("Processing files in memory...");
     
     for (const file of req.files) {
       try {
+        // फाइल को Base64 में कन्वर्ट करें
+        const fileContent = file.buffer.toString('base64');
+        
+        // फाइल के मेटाडेटा एनकोड करें
         fileObjects.push({
-          filename: file.filename,
+          filename: file.originalname.replace(/\s+/g, '_'),
           originalName: file.originalname,
-          path: `/uploads/updates/${userId}/${planId}/${file.filename}`,
           type: file.mimetype,
-          size: file.size
+          size: file.size,
+          content: fileContent // Base64 एनकोडेड कंटेंट
         });
       } catch (error) {
         console.error('Error processing file:', error);
@@ -124,7 +116,7 @@ const submitUpdateRequest = asyncHandler(async (req, res) => {
     }
   }
   
-  console.log("Processed files:", fileObjects);
+  console.log("Processed files count:", fileObjects.length);
   
   // Create update request document
   try {
@@ -134,7 +126,7 @@ const submitUpdateRequest = asyncHandler(async (req, res) => {
       updatePlanId: new ObjectId(planId),
       instructions: instructions.map(msg => ({
         text: msg.text,
-        timestamp: new Date(msg.timestamp)
+        timestamp: new Date(msg.timestamp || Date.now())
       })),
       files: fileObjects,
       status: 'pending'

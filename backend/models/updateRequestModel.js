@@ -21,9 +21,9 @@ const updateRequestSchema = new mongoose.Schema({
   files: [{
     filename: String,
     originalName: String,
-    path: String,
     type: String,
     size: Number,
+    content: String, // Base64 एनकोडेड फाइल कंटेंट
     uploadedAt: {
       type: Date,
       default: Date.now
