@@ -14,7 +14,6 @@ const developerSchema = new mongoose.Schema({
   },
     phone: {
       type: String,
-      required: true,
       validate: {
         validator: function(v) {
           return /\d{10}/.test(v);
@@ -196,6 +195,10 @@ developerSchema.methods = {
     // नया प्रोजेक्ट assign करने का method
     async assignProject(projectId, projectDetails) {
       try {
+        // Initialize activeProjects if it doesn't exist
+    if (!this.activeProjects) {
+      this.activeProjects = [];
+    }
         // Check if developer can take more projects
         if (this.activeProjects.length >= this.workload.maxProjects) {
           throw new Error('Developer has reached maximum project capacity');

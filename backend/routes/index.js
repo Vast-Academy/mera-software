@@ -7,10 +7,13 @@ const path = require('path');
 
 const userSignUpController = require("../controller/user/userSignUp")
 const userSignInController = require("../controller/user/userSignIn")
+const userRoleSwitchController = require("../controller/user/userRoleSwitch")
 const userDetailsController = require('../controller/user/userDetails')
+const addRoleToUserController = require('../controller/user/addRoleToUser')
 const authToken = require('../middleware/authToken')
 const userLogout = require('../controller/user/userLogout')
 const allUsers = require('../controller/user/allUsers')
+const getPartnerCustomers = require('../controller/user/partnerCustomers')
 const updateUser = require('../controller/user/updateUser')
 const UploadProductController = require('../controller/product/uploadPoduct')
 const getProductController = require('../controller/product/getProduct')
@@ -80,34 +83,131 @@ const getAssignedUpdates = require('../controller/developer/getAssignedUpdates')
 const sendUpdateMessage = require('../controller/developer/sendUpdateMessage');
 const addDeveloperNote = require('../controller/developer/addDeveloperNote');
 const completeUpdate = require('../controller/developer/completeUpdate');
+const { updateFileSettings, getFileSettings } = require('../controller/admin/updateFileSettingsController');
+const downloadAllFiles = require('../controller/admin/downloadAllFiles');
+const getPendingTransactionsController = require('../controller/admin/getPendingTransactionsController');
+const approveTransactionController = require('../controller/admin/approveTransactionController');
+const rejectTransactionController = require('../controller/admin/rejectTransactionController');
+const verifyPaymentController = require('../controller/user/verifyPaymentController');
+const validateCoupon = require('../controller/user/validateCoupon');
+const getAllCoupons = require('../controller/admin/getAllCoupons');
+const createCoupon = require('../controller/admin/createCoupon');
+const updateCoupon = require('../controller/admin/updateCoupon');
+const deleteCoupon = require('../controller/admin/deleteCoupon');
+const getProductsForCoupon = require('../controller/admin/getProductsForCoupon');
+const adminTransactionHistoryController = require('../controller/admin/adminTransactionHistoryController');
+const payInstallment = require('../controller/user/payInstallment');
+const markInstallmentVerificationPending = require('../controller/admin/markInstallmentVerificationPending');
+const checkPendingOrderTransactions = require('../controller/admin/checkPendingOrderTransactions');
+const getAdminNotifications = require('../controller/admin/getNotificationsController');
+const getUserNotifications = require('../controller/user/getUserNotificationsController');
+const markNotificationRead = require('../controller/admin/markNotificationReadController');
+const getDeveloperNotifications = require('../controller/developer/getDeveloperNotification');
+const verifyOtpController = require('../controller/user/verifyOtpController');
+const resendOtpController = require('../controller/user/resendOtpController');
+const getPendingOrders = require('../controller/admin/getPendingOrders');
+const approveOrder = require('../controller/admin/approveOrder');
+const rejectOrder = require('../controller/admin/rejectOrder');
+const downloadInvoice = require('../controller/user/downloadInvoice');
+const submitContact = require('../controller/user/contactController');
+const createTicketController = require('../controller/user/createTicketController');
+const getUserTicketsController = require('../controller/user/getUserTicketsController');
+const getTicketDetailsController = require('../controller/user/getTicketDetailsController');
+const replyTicketController = require('../controller/user/replyTicketController');
+const closeTicketController = require('../controller/admin/closeTicketController');
+const getAllTicketsController = require('../controller/admin/getAllTicketsController');
+const updateProjectLinkController = require('../controller/admin/updateProjectLinkController');
+const getGeneralUsers = require('../controller/user/getGeneralUsers');
+const hideProductController = require('../controller/product/hideProduct');
+const unhideProductController = require('../controller/product/unhideProduct');
+const getHiddenProductsController = require('../controller/product/getHiddenProducts');
+const getAllProductsController = require('../controller/product/getAllProducts');
+const { getBusinessCreated } = require('../controller/partner/businessCreatedController');
+const { getFirstPurchaseList } = require('../controller/partner/firstPurchaseListController');
+const { getFirstPurchaseSummary } = require('../controller/partner/firstPurchaseSummaryController');
+const completeUserDetailsController = require('../controller/user/completeUserDetailsController');
+const getCommissionHistory = require('../controller/partner/getCommissionHistory');
+const getWalletSummary = require('../controller/partner/getWalletSummary');
+const requestWithdrawal = require('../controller/partner/requestWithdrawal');
+const getWithdrawalHistory = require('../controller/partner/getWithdrawalHistory');
+const getWithdrawalRequests = require('../controller/admin/getWithdrawalRequests');
+const approveWithdrawal = require('../controller/admin/approveWithdrawal');
+const rejectWithdrawal = require('../controller/admin/rejectWithdrawal');
+const updatePartnerCustomer = require('../controller/user/updatePartnerCustomer');
+const { getPendingVerifications } = require('../controller/admin/getPendingVerifications');
+const deleteTransactionController = require('../controller/admin/deleteTransactionController');
+const submitWebsiteRequirement = require('../controller/user/submitWebsiteRequirement');
 
 const memoryStorage = multer.memoryStorage();
+
+// Configure multer
 const upload = multer({
   storage: memoryStorage,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB max
-    files: 5 // Max 5 files
+    files: 20 // Max 20 files
   },
   fileFilter: function(req, file, cb) {
+    // Get file extension and mime type
     const ext = path.extname(file.originalname).toLowerCase();
-    if (ext === '.jpg' || ext === '.jpeg' || ext === '.txt' || ext === '.rtf') {
-      cb(null, true);
+    const mimeType = file.mimetype;
+    
+    // Allow specific file types
+    if (
+      ext === '.jpg' || ext === '.jpeg' || 
+      ext === '.txt' || ext === '.rtf' || 
+      ext === '.pdf' || ext === '.doc' || ext === '.docx'
+    ) {
+      // Additional MIME type verification
+      if (
+        mimeType === 'image/jpeg' || 
+        mimeType === 'text/plain' || 
+        mimeType === 'application/rtf' || 
+        mimeType === 'application/pdf' || 
+        mimeType === 'application/msword' || 
+        mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type'));
+      }
     } else {
-      cb(new Error('Only JPG, JPEG, TXT, RTF files are allowed'));
+      cb(new Error('Only JPG, JPEG, TXT, RTF, PDF, DOC, DOCX files are allowed'));
     }
   }
 });
 
+//user
+router.post("/signup", userSignUpController);
 
-// user
-router.post("/signup", userSignUpController)
-router.post("/signin", userSignInController)
+router.get("/partner-customers", authToken, getPartnerCustomers);
+router.post("/signin", userSignInController);
+router.get("/general-users", getGeneralUsers);
+router.post('/verify-otp', verifyOtpController);
+router.post('/resend-otp', resendOtpController);
+router.post("/role-switch", authToken, userRoleSwitchController);
 router.get("/user-details", authToken, userDetailsController)
 router.get("/userLogout", userLogout)
-router.post("/update-profile", authToken, updateUserProfileController)
+router.post("/update-profile", authToken, updateUserProfileController);
+router.post("/complete-profile", authToken, completeUserDetailsController);
+router.post("/update-partner-customer/:customerId", authToken, updatePartnerCustomer);
+
+// Add role to user
+router.post("/addRole", authToken, addRoleToUserController)
 router.get("/user-update-plans", authToken, getUserUpdatePlans)
 router.post("/user-request-update", authToken, upload.any(), submitUpdateRequest)
 router.get("/get-update-requests", authToken, getUserUpdateRequests)
+router.post("/validate-coupon", authToken, validateCoupon)
+router.post("/pay-installment", authToken, payInstallment)
+router.get("/user-notifications", authToken, getUserNotifications);
+router.post("/mark-notification-read", authToken, markNotificationRead);
+router.get('/download-invoice/:orderId', authToken, downloadInvoice);
+router.post("/contact-us", submitContact);
+router.post("/create-ticket", authToken, createTicketController);
+router.get("/get-user-tickets", authToken, getUserTicketsController);
+router.get("/get-ticket-details/:ticketId", authToken, getTicketDetailsController);
+router.post("/ticket-reply/:ticketId", authToken, replyTicketController);
+router.post("/submit-website-requirement", submitWebsiteRequirement);
 
 //admin panel
 router.get("/all-user", authToken, allUsers)
@@ -116,8 +216,14 @@ router.post("/wallet/add-balance", authToken, addWalletBalanceController)
 router.get("/wallet/balance", authToken, getWalletBalanceController)
 router.post("/wallet/deduct", authToken, deductWalletController);
 router.get("/wallet/history", authToken, getWalletHistoryController)
+router.post("/wallet/verify-payment", authToken, verifyPaymentController)
+router.get("/wallet/pending-transactions", authToken, getPendingTransactionsController)
+router.post("/wallet/approve-transaction", authToken, approveTransactionController)
+router.post("/wallet/reject-transaction", authToken, rejectTransactionController)
+router.get("/wallet/admin-transaction-history", authToken, adminTransactionHistoryController)
+router.delete("/wallet/delete-transaction/:transactionId", authToken, deleteTransactionController);
 router.post("/upload-developer", authToken, uploadDeveloperController)
-router.get("/get-developer", getAllDevelopersController)
+router.get("/get-developer", authToken, getAllDevelopersController)
 router.post("/edit-developer/:id", authToken, editDeveloperController)
 router.get("/get-projects", authToken, getProjectsController)
 router.post("/update-project-progress", authToken, updateProgressController)
@@ -131,12 +237,44 @@ router.post("/assign-update-developer", authToken, assignUpdateRequestDeveloper)
 router.post("/update-request-message", authToken, sendUpdateRequestMessage)
 router.post("/complete-update-request", authToken, completeUpdateRequest)
 router.post("/reject-update-request", authToken, rejectUpdateRequest)
+router.post("/update-file-settings", authToken, updateFileSettings);
+router.get("/get-file-settings", authToken, getFileSettings);
+router.get("/download-all-files/:requestId", downloadAllFiles)
+router.get("/get-coupons", authToken, getAllCoupons)
+router.post("/create-coupon", authToken, createCoupon)
+router.post("/update-coupon/:id", authToken, updateCoupon)
+router.delete("/delete-coupon/:id", authToken, deleteCoupon)
+router.get("/products-coupon", authToken, getProductsForCoupon)
+router.post("/mark-installment-pending", authToken, markInstallmentVerificationPending)
+router.get("/check-pending-order-transactions/:orderId", authToken, checkPendingOrderTransactions)
+router.get("/admin-notifications", authToken, getAdminNotifications);
+router.get('/pending-orders', authToken, getPendingOrders);
+router.post('/approve-order/:orderId', authToken, approveOrder);
+router.post('/reject-order/:orderId', authToken, rejectOrder);
+router.post("/ticket-close/:ticketId", authToken, closeTicketController);
+router.get("/get-all-tickets", authToken, getAllTicketsController)
+router.post("/update-project-link", authToken, updateProjectLinkController);
+router.get("/all-withdrawal-requests", authToken, getWithdrawalRequests);
+router.post("/approve-withdrawals/:requestId", authToken, approveWithdrawal);
+router.post("/reject-withdrawals/:requestId", authToken, rejectWithdrawal);
+router.get("/get-order-payment-verification", authToken, getPendingVerifications);
 
 // developer
 router.get("/assigned-updates", authToken, getAssignedUpdates)
 router.post("/developer-update-message", authToken, sendUpdateMessage)
 router.post("/developer-add-note", authToken, addDeveloperNote)
 router.post("/developer-complete-update", authToken, completeUpdate)
+router.get("/developer-notifications", authToken, getDeveloperNotifications)
+
+
+// Partner
+router.get("/business-created", authToken, getBusinessCreated);
+router.get("/first-purchase-list", authToken, getFirstPurchaseList);
+router.get("/only-first-order", authToken, getFirstPurchaseSummary);
+router.get("/get-commission-history", authToken, getCommissionHistory);
+router.get("/commission-wallet-summary", authToken, getWalletSummary);
+router.post("/request-withdrawal", authToken, requestWithdrawal);
+router.get("/get-withdrawal-history", authToken, getWithdrawalHistory);
 
 // product
 router.post("/upload-product", authToken, UploadProductController )
@@ -152,7 +290,11 @@ router.post("/upload-category",authToken, UploadCategoryController)
 router.get("/get-categories", getCategoryController)
 router.post("/update-category/:id",authToken, updateCategoryController)
 router.delete("/delete-category", authToken, DeleteCategoryController)
-router.get("/compatible-features", getCompatibleFeaturesController)
+router.get("/compatible-features", getCompatibleFeaturesController);
+router.post("/hide-product", authToken, hideProductController);
+router.post("/unhide-product", authToken, unhideProductController);
+router.get("/get-hidden-products", authToken, getHiddenProductsController);
+router.get("/all-products", authToken, getAllProductsController);
 
 //user add to cart
 router.post("/addtocart", authToken, addToCartController)
@@ -191,5 +333,6 @@ router.get("/get-user-welcome", getUserWelcomeController)
 router.post("/upload-user-welcome", authToken, uploadUserWelcomeController)
 router.post("/update-user-welcome/:id", authToken, updateUserWelcomeController)
 router.delete("/delete-user-welcome/:id", authToken, deleteUserWelcomeController)
+
 
 module.exports = router;

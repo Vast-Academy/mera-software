@@ -11,7 +11,13 @@ async function updateProductController (req,res){
 
         const { _id, ...resBody } = req.body
 
-        const updateProduct = await productModel.findByIdAndUpdate(_id,resBody)
+        // Allow updating isHidden field if present
+        const updateData = { ...resBody }
+        if (typeof resBody.isHidden !== 'undefined') {
+            updateData.isHidden = resBody.isHidden
+        }
+
+        const updateProduct = await productModel.findByIdAndUpdate(_id, updateData, { new: true })
 
         res.json({
             message : "Product Updated Successfully",

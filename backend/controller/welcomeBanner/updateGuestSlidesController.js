@@ -11,12 +11,12 @@ async function updateGuestSlidesController(req, res) {
         }
 
         // If setting this slide as active, deactivate all others
-        if (req.body.isActive) {
-            await GuestSlides.updateMany(
-                { _id: { $ne: slideId } },
-                { isActive: false }
-            )
-        }
+        // if (req.body.isActive) {
+        //     await GuestSlides.updateMany(
+        //         { _id: { $ne: slideId } },
+        //         { isActive: false }
+        //     )
+        // }
 
         const updatedSlide = await GuestSlides.findByIdAndUpdate(
             slideId,

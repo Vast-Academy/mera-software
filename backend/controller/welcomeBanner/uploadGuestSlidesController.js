@@ -8,12 +8,12 @@ async function uploadGuestSlidesController(req, res) {
             throw new Error("Permission denied")
         }
 
-        if (req.body.isActive) {
-            await GuestSlides.updateMany(
-                { _id: { $ne: null } },
-                { isActive: false }
-            )
-        }
+        // if (req.body.isActive) {
+        //     await GuestSlides.updateMany(
+        //         { _id: { $ne: null } },
+        //         { isActive: false }
+        //     )
+        // }
 
         const guestSlides = new GuestSlides(req.body)
         const savedContent = await guestSlides.save()

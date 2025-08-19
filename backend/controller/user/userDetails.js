@@ -3,7 +3,7 @@ const userModel = require("../../models/userModel")
 async function userDetailsController (req,res) {
     try {
         console.log("userId", req.userId);
-        const user = await userModel.findById(req.userId)
+         const user = await userModel.findById(req.userId).select('name email roles walletBalance userDetails'); 
 
         if (!user) {
             throw new Error("User not found");
@@ -12,7 +12,13 @@ async function userDetailsController (req,res) {
         res.status(200).json({
             data: {
                 ...user._doc,
-                walletBalance: user.walletBalance  // Explicitly include wallet balance
+                role: req.userRole, 
+                walletBalance: user.walletBalance, // Explicitly include wallet balance
+                 // Explicitly ensure userDetails is included with isDetailsCompleted
+                userDetails: {
+                    ...user.userDetails,
+                    isDetailsCompleted: user.userDetails?.isDetailsCompleted || false
+                }
             },
             error : false,
             success: true,

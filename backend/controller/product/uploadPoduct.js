@@ -9,7 +9,13 @@ async function UploadProductController(req,res){
             throw new Error("Permission denied")
         }
 
-        const uploadProduct = new productModel(req.body)
+        // Allow setting isHidden field if present
+        const productData = { ...req.body }
+        if (typeof req.body.isHidden !== 'undefined') {
+            productData.isHidden = req.body.isHidden
+        }
+
+        const uploadProduct = new productModel(productData)
         const saveProduct = await uploadProduct.save()
 
         res.status(201).json({

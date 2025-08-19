@@ -1,14 +1,18 @@
 const updateRequestModel = require("../../models/updateRequestModel");
-const developerModel = require("../../models/developerModel");
+const developerPermission = require("../../helpers/developerPermission");
 
 async function getAssignedUpdates(req, res) {
   try {
     const developerId = req.userId;
-    
-    // Verify developer exists
-    const developer = await developerModel.findById(developerId);
-    if (!developer) {
-      throw new Error("Developer not found");
+
+
+    // Check developer permission
+    const hasPermission = await developerPermission(developerId);
+    if (!hasPermission) {
+      return res.status(403).json({
+        success: false,
+        message: "You don't have permission to perform this action"
+      });
     }
     
     // Find all update requests assigned to this developer

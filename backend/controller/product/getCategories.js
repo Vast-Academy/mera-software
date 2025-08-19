@@ -3,7 +3,7 @@ const categoryModel = require("../../models/categoryModel")
 const getCategoryController = async (req, res) => {
     try {
         // Only get active categories
-        const allCategories = await categoryModel.find({ isActive: true })
+        const allCategories = await categoryModel.find()
             .sort({ order: 1 })
         
         console.log("Sending categories:", allCategories); // Debug log

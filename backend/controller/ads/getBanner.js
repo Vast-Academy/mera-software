@@ -3,7 +3,7 @@ const bannerModel = require("../../models/bannerModel")
 const getBannersController = async (req, res) => {
     try {
         // Get all active banners, sorted by position and displayOrder
-        const allBanners = await bannerModel.find({ isActive: true })
+        const allBanners = await bannerModel.find()
             .sort({ position: 1, displayOrder: 1 });
 
         // Group banners by position for easier frontend handling

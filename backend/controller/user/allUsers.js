@@ -1,10 +1,15 @@
-const userModel = require("../../models/userModel")
+const userModel = require("../../models/userModel");
 
 async function allUsers (req,res){
     try {
         console.log("userid all users",req.userId);
 
-        const allUsers = await userModel.find()
+        const filter = {};
+        if (req.query.referredBy) {
+            filter.referredBy = req.query.referredBy;
+        }
+
+        const allUsers = await userModel.find(filter);
 
         res.json({
             message: "All User",

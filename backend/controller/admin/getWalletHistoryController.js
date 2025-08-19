@@ -7,7 +7,7 @@ const getWalletHistoryController = async (req, res) => {
         const orders = await Order.find({ userId: req.userId })
             .populate('productId', 'serviceName category')
             .sort({ createdAt: -1 });
-
+            
         const orderTransactions = orders.map(order => ({
             id: order._id,
             amount: -(order.price * order.quantity),
@@ -18,28 +18,40 @@ const getWalletHistoryController = async (req, res) => {
             date: order.createdAt,
             quantity: order.quantity
         }));
-
+        
         // Get refund and deposit transactions
         const walletTransactions = await Transaction.find({
             userId: req.userId
         }).sort({ createdAt: -1 });
-
+        
         const otherTransactions = walletTransactions.map(transaction => ({
             id: transaction._id,
             amount: transaction.amount,
             type: transaction.type,
             description: transaction.description,
             relatedOrderId: transaction.relatedOrderId,
-            date: transaction.createdAt
+            date: transaction.createdAt,
+            status: transaction.status, // Include status for deposits
+            upiTransactionId: transaction.upiTransactionId // Include UPI transaction ID
         }));
-
+        
         // Combine and sort all transactions by date
         const combinedHistory = [...orderTransactions, ...otherTransactions]
             .sort((a, b) => new Date(b.date) - new Date(a.date));
-
+            
+        // Filter out pending transactions for deposits 
+        // (only show completed or failed deposit transactions)
+        const filteredHistory = combinedHistory.filter(transaction => {
+            // If it's not a deposit transaction, show it
+            if (transaction.type !== 'deposit') return true;
+            
+            // If it's a deposit, only show it if it's completed or failed (not pending)
+            return transaction.status === 'completed' || transaction.status === 'failed';
+        });
+        
         res.status(200).json({
             message: "Wallet history fetched successfully",
-            data: combinedHistory,
+            data: filteredHistory,
             success: true,
             error: false
         });

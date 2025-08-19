@@ -1,6 +1,8 @@
 const updateRequestModel = require("../../models/updateRequestModel");
 const developerModel = require("../../models/developerModel");
 const assignDeveloperPermission = require("../../helpers/permission");
+const { sendDeveloperAssignedNotification, sendDeveloperAssignmentEmail } = require("../../helpers/emailService");
+const { createNotification, createDeveloperNotification } = require("../../helpers/notificationService");
 
 async function assignUpdateRequestDeveloper(req, res) {
   try {
@@ -34,15 +36,13 @@ async function assignUpdateRequestDeveloper(req, res) {
       throw new Error("Developer not found");
     }
    
-    // प्रोजेक्ट कंट्रोलर की तरह सिंपल चेक करें
-    // - working hours चेक न करें
-    // - checkAvailability() मेथड न कॉल करें
-    const activeUpdates = developer.currentUpdates ? developer.currentUpdates.length : 0;
-    const maxUpdates = developer.workload ? developer.workload.maxUpdatesPerDay : 2;
+     // Check developer capacity
+     const activeUpdates = developer.currentUpdates ? developer.currentUpdates.length : 0;
+     const maxUpdates = developer.workload ? developer.workload.maxUpdatesPerDay : 2;
     
-    if (activeUpdates >= maxUpdates) {
-      throw new Error("Developer has reached maximum updates capacity");
-    }
+     if (activeUpdates >= maxUpdates) {
+       throw new Error("Developer has reached maximum updates capacity");
+     }
    
     // Assign developer to update request
     updateRequest.assignedDeveloper = developerId;
@@ -74,7 +74,60 @@ async function assignUpdateRequestDeveloper(req, res) {
     });
     
     await developer.save();
+
+    // Populate the update request for email notification
+    const populatedRequest = await updateRequestModel.findById(requestId)
+      .populate('userId', 'name email')
+      .populate('assignedDeveloper', 'name email department');
+    
+    // Send email notification to user about developer assignment
+    console.log("Sending developer assignment email notification...");
+    try {
+      await sendDeveloperAssignedNotification(populatedRequest);
+      console.log("Developer assigned email notification sent to user");
+    } catch (emailError) {
+      console.error("Error sending developer assigned email:", emailError);
+      // Continue execution even if email fails
+    }
+    
+    // Create in-app notification for the user
+    console.log("Creating in-app notification for user...");
+    try {
+      await createNotification({
+        userId: updateRequest.userId,
+        type: 'developer_assigned',
+        title: 'Developer Assigned',
+        message: `A developer has been assigned to your website update request.`,
+        relatedId: updateRequest._id,
+        onModel: 'UpdateRequest',
+        isAdmin: false
+      });
+      console.log("User in-app notification created");
+    } catch (notifError) {
+      console.error("Error creating user notification:", notifError);
+      // Continue execution even if notification creation fails
+    }
    
+    // Send email notification to developer about assignment
+    console.log("Sending email notification to developer...");
+    try {
+      await sendDeveloperAssignmentEmail(populatedRequest);
+      console.log("Developer assignment email sent");
+    } catch (emailError) {
+      console.error("Error sending developer assignment email:", emailError);
+      // Continue execution even if email fails
+    }
+    
+    // Create in-app notification for the developer
+    console.log("Creating in-app notification for developer...");
+    try {
+      await createDeveloperNotification(populatedRequest);
+      console.log("Developer in-app notification created");
+    } catch (notifError) {
+      console.error("Error creating developer notification:", notifError);
+      // Continue execution even if notification creation fails
+    }
+
     return res.status(200).json({
       message: "Developer assigned successfully",
       error: false,

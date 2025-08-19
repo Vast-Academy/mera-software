@@ -3,12 +3,13 @@ const userModel = require("../../models/userModel")
 
 const allOrderController = async(request,response)=>{
     const userId = request.userId
+    const userRole = request.userRole
 
     const user = await userModel.findById(userId)
 
-    if(user.role !== 'ADMIN'){
-        return response.status(500).json({
-            message : "not access"
+    if(userRole.toLowerCase() !== 'admin' || !user.roles.includes('admin')){
+        return response.status(403).json({
+            message : "Unauthorized access"
         })
     }
 

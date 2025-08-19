@@ -1,8 +1,19 @@
 const updateRequestModel = require("../../models/updateRequestModel");
+const developerPermission = require("../../helpers/developerPermission");
 
 async function addDeveloperNote(req, res) {
     try {
       const developerId = req.userId;
+
+      // Check developer permission
+    const hasPermission = await developerPermission(developerId);
+    if (!hasPermission) {
+      return res.status(403).json({
+        success: false,
+        message: "You don't have permission to perform this action"
+      });
+    }
+    
       const { requestId, note } = req.body;
       
       if (!requestId || !note) {

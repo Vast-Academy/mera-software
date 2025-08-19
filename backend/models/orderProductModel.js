@@ -14,6 +14,13 @@ const messageSchema = new mongoose.Schema({
     timestamp: {
         type: Date,
         default: Date.now
+    },
+    // Add these fields to connect messages to checkpoints
+    checkpointId: {
+        type: Number
+    },
+    checkpointName: {
+        type: String
     }
 });
 
@@ -35,6 +42,39 @@ const checkpointProgressSchema = new mongoose.Schema({
     percentage: Number
 });
 
+const installmentSchema = new mongoose.Schema({
+    installmentNumber: {
+        type: Number,
+        required: true
+    },
+    percentage: {
+        type: Number,
+        required: true
+    },
+    amount: {
+        type: Number,
+        required: true
+    },
+    paid: {
+        type: Boolean,
+        default: false
+    },
+    paymentStatus: {
+        type: String,
+        enum: ['none', 'pending-approval', 'rejected'],
+        default: 'none'
+    },
+    paidDate: {
+        type: Date
+    },
+    dueDate: {
+        type: Date
+    },
+    transactionId: {
+        type: String
+    }
+});
+
 const orderSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -54,6 +94,19 @@ const orderSchema = new mongoose.Schema({
     price: {
         type: Number,
         required: true
+    },
+     // Add coupon-related fields
+     couponApplied: {
+        type: String,
+        default: null
+    },
+    discountAmount: {
+        type: Number,
+        default: 0
+    },
+    originalPrice: {
+        type: Number,
+        default: null
     },
     status: {
         type: String,
@@ -103,14 +156,101 @@ const orderSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Developer',
         default: null
-      },
-      assignedAt: {
+    },
+    assignedAt: {
         type: Date,
         default: null
-      },
+    },
+    isPartialPayment: {
+        type: Boolean,
+        default: false
+    },
+    currentInstallment: {
+        type: Number,
+        default: 1,
+        min: 1,
+        max: 3
+    },
+    totalAmount: {
+        type: Number
+    },
+    paidAmount: {
+        type: Number,
+        default: 0
+    },
+    remainingAmount: {
+        type: Number,
+        default: 0
+    },
+    installments: [installmentSchema],
+    paymentComplete: {
+        type: Boolean,
+        default: false
+    },
+    orderVisibility: {
+        type: String,
+        enum: ['visible', 'approved', 'pending-approval', 'payment-rejected', 'hidden'],
+        default: 'visible'
+    },
+    rejectionReason: {
+        type: String,
+        default: null
+    },
+    orderItems: {
+        type: [{
+            id: String,
+            name: String,
+            type: { type: String, enum: ['main', 'feature'] },
+            quantity: Number,
+            originalPrice: Number,
+            finalPrice: Number,
+            additionalQuantity: { type: Number, default: 0 }
+        }],
+        default: []
+    },
+    isCombinedOrder: {
+        type: Boolean,
+        default: false
+    },
+    // Add project link field
+    projectLink: {
+        type: String,
+        default: ''
+    }
 }, {
     timestamps: true
 });
+
+orderSchema.pre('save', async function(next) {
+    // Only run when order is first created (isNew) and doesn't already have checkpoints
+    if (this.isNew && this.productId && (!this.checkpoints || this.checkpoints.length === 0)) {
+      try {
+        // Fetch the product to get checkpoints
+        const product = await mongoose.model('product').findById(this.productId);
+        
+        if (product) {
+          // Set isWebsiteProject based on product category
+          const websiteCategories = ['standard_websites', 'dynamic_websites', 'cloud_software_development', 'app_development'];
+          this.isWebsiteProject = websiteCategories.includes(product.category);
+          
+          // Copy checkpoints from product if they exist
+          if (product.checkpoints && product.checkpoints.length > 0) {
+            console.log('Copying checkpoints from product');
+            this.checkpoints = product.checkpoints.map((cp, index) => ({
+              checkpointId: index + 1,
+              name: cp.name,
+              percentage: cp.percentage,
+              completed: false
+            }));
+            console.log('Order checkpoints after mapping:', JSON.stringify(this.checkpoints));
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing checkpoints:', error);
+      }
+    }
+    next();
+  });
 
 // Middleware to update lastUpdated
 orderSchema.pre('save', function(next) {
@@ -127,6 +267,36 @@ orderSchema.pre('save', function(next) {
     }
     next();
 });
+
+orderSchema.methods.payInstallment = function(installmentNumber, amount) {
+    // Find the installment
+    const installment = this.installments.find(i => i.installmentNumber === installmentNumber);
+    
+    if (installment && !installment.paid) {
+        installment.paid = true;
+        installment.paidDate = new Date();
+        
+        // Update payment tracking
+        this.paidAmount += amount;
+        this.remainingAmount = this.totalAmount - this.paidAmount;
+        
+        // If all installments are paid, mark as complete
+        const allPaid = this.installments.every(i => i.paid);
+        if (allPaid) {
+            this.paymentComplete = true;
+        } else {
+            // Move to next installment
+            const nextInstallment = this.installments.find(i => !i.paid);
+            if (nextInstallment) {
+                this.currentInstallment = nextInstallment.installmentNumber;
+            }
+        }
+        
+        return true;
+    }
+    
+    return false;
+};
 
 const orderModel = mongoose.model('order', orderSchema);
 module.exports = orderModel;

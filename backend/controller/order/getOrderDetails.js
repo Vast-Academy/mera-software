@@ -2,35 +2,49 @@ const orderProductModel = require("../../models/orderProductModel")
 
 const getOrderDetails = async (req, res) => {
     try {
-        const orderId = req.params.orderId;  // Changed from req.body to req.params
+        const { orderId } = req.params;
         const userId = req.userId;
-
+        
+        // Find the specific order for this user
         const order = await orderProductModel.findOne({ _id: orderId, userId })
-            .populate({
-                path: 'productId',
-                select: 'serviceName category sellingPrice serviceImage description validityPeriod updateCount isWebsiteUpdate'
-            })
-            .populate({
-                path: 'assignedDeveloper',
-                select: 'name email phone designation department avatar status' // जरूरी फील्ड्स सिलेक्ट करें
-            });
-
+            .populate('userId', 'name email address')
+            .populate('productId', 'serviceName category totalPages validityPeriod updateCount isWebsiteUpdate price sellingPrice')
+            .populate('assignedDeveloper', 'name designation avatar status');
+            
         if (!order) {
             return res.status(404).json({
                 success: false,
                 message: 'Order not found'
             });
         }
-
-        return res.status(200).json({
+        
+        // Determine the order status for display
+        let status = "Processing";
+        
+        if (order.orderVisibility === 'payment-rejected') {
+            status = "Rejected";
+        } else if (order.orderVisibility === 'pending-approval') {
+            status = "Processing";
+        } else if (order.projectProgress >= 100 || order.currentPhase === 'completed') {
+            status = "Completed";
+        } else if (order.orderVisibility === 'approved') {
+            status = "In Progress";
+        }
+        
+        // Send the complete order details
+        res.status(200).json({
             success: true,
-            data: order
+            data: {
+                ...order.toObject(),
+                status: status,
+                orderNumber: `ORD-${order._id.toString().substr(-4)}`
+            }
         });
     } catch (error) {
-        console.error('Get order details error:', error);
-        return res.status(500).json({
+        console.error('Error fetching order details:', error);
+        res.status(500).json({
             success: false,
-            message: 'Failed to fetch order details'
+            message: error.message
         });
     }
 };

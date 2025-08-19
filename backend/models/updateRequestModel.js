@@ -1,5 +1,5 @@
-// Schema ka correction (updateRequestModel.js)
 const mongoose = require('mongoose');
+
 const updateRequestSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -18,20 +18,33 @@ const updateRequestSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
-  files: {
-    type: [{
-      filename: String,
-      originalName: String,
+  files: [{
+    filename: {
       type: String,
-      size: Number,
-      content: String, // Base64 encoded content
-      uploadedAt: {
-        type: Date,
-        default: Date.now
-      }
-    }],
-    default: []
-  },
+      required: true
+    },
+    originalName: {
+      type: String
+    },
+    type: {
+      type: String
+    },
+    size: {
+      type: Number
+    },
+    driveFileId: {
+      type: String
+    },
+    driveLink: {
+      type: String
+    },
+    embedLink: {
+      type: String
+    },
+    expirationDate: {
+      type: Date
+    }
+  }],
   status: {
     type: String,
     enum: ['pending', 'in_progress', 'completed', 'rejected'],
@@ -61,6 +74,8 @@ const updateRequestSchema = new mongoose.Schema({
   timestamps: true
 });
 
+
+
 // Virtual field to get the completed status
 updateRequestSchema.virtual('isCompleted').get(function() {
   return this.status === 'completed';
@@ -80,5 +95,7 @@ updateRequestSchema.index({ updatePlanId: 1 });
 updateRequestSchema.index({ status: 1 });
 updateRequestSchema.index({ assignedDeveloper: 1, status: 1 });
 
+
 const updateRequestModel = mongoose.model('UpdateRequest', updateRequestSchema);
+
 module.exports = updateRequestModel;

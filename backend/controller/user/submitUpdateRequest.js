@@ -1,9 +1,28 @@
 const updateRequestModel = require("../../models/updateRequestModel");
 const orderModel = require("../../models/orderProductModel");
+const AdminSettings = require("../../models/adminSettingsModel");
+const GoogleDriveService = require("../../helpers/googleDriveService");
+const { sendUpdateRequestNotification, sendUserConfirmation } = require("../../helpers/emailService");
+const { createUpdateRequestNotification } = require("../../helpers/notificationService");
+const userModel = require('../../models/userModel');
 const mongoose = require('mongoose');
+const path = require('path');
 const { ObjectId } = mongoose.Types;
 
-// एरर हैंडलिंग वरैपर
+// Path to the Google Drive credentials file
+let KEY_FILE_PATH;
+
+// Check if running in production (Render)
+if (process.env.NODE_ENV === 'production' && process.env.GOOGLE_DRIVE_CREDENTIALS_PATH) {
+  // Use the path from environment variable
+  KEY_FILE_PATH = process.env.GOOGLE_DRIVE_CREDENTIALS_PATH;
+} else {
+  // Use local development path
+  KEY_FILE_PATH = path.join(__dirname, '../../config/google-drive-credentials.json');
+}
+const FOLDER_NAME = 'ClientUpdateFiles';
+
+// Error handling wrapper
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(err => {
     console.error('Error in async handler:', err);
@@ -92,29 +111,93 @@ const submitUpdateRequest = asyncHandler(async (req, res) => {
     });
   }
   
-  // मेमोरी में स्टोर की गई फाइलों को संभालें
+  // Initialize Google Drive service
+  const driveService = new GoogleDriveService(KEY_FILE_PATH, FOLDER_NAME);
+  
+  // Get file expiration days from admin settings
+  const adminSettings = await AdminSettings.getSettings();
+  const fileExpirationDays = adminSettings.fileExpirationDays;
+  
+  // Create Google Drive folder for this request
+  const folderId = await driveService.createFolder();
+  
+  // Process uploaded files and upload to Google Drive
   const fileObjects = [];
   if (req.files && req.files.length > 0) {
+    console.log("***** FILE UPLOAD DEBUGGING *****");
+    console.log("Files received count:", req.files.length);
+
+    // Create Google Drive folder for this request
+  console.log("Creating Google Drive folder for the request");
+  const folderId = await driveService.createFolder();
+  console.log("Folder created with ID:", folderId);
+
+
     for (const file of req.files) {
       try {
-        const fileContent = file.buffer.toString('base64');
-        fileObjects.push({
-          filename: file.originalname.replace(/\s+/g, '_'),
-          originalName: file.originalname,
-          type: file.mimetype,
-          size: file.size,
-          content: fileContent
-        });
+        // Set expiration date for the file
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + fileExpirationDays);
+        
+        // Create a Buffer from the file
+        const fileBuffer = Buffer.from(file.buffer);
+        
+        // Clean filename and upload to Google Drive
+        const safeFilename = file.originalname.replace(/\s+/g, '_');
+        
+        // Upload file to Google Drive
+        console.log(`Uploading file "${safeFilename}" to Google Drive`);
+        const uploadedFile = await driveService.uploadFile(
+          safeFilename,
+          fileBuffer,
+          file.mimetype,
+          folderId
+        );
+
+        // Generate direct download link and embedable link for images
+      const downloadLink = driveService.getDownloadLink(uploadedFile.id);
+      let embedLink = null;
+  
+       // Handle different file types
+      if (file.mimetype.startsWith('image/')) {
+        // For images
+        embedLink = driveService.getEmbedableImageLink(uploadedFile.id);
+      } else if (file.mimetype === 'application/pdf') {
+        // For PDFs
+        embedLink = driveService.getEmbedableDocumentLink(uploadedFile.id);
+      } else if (file.mimetype === 'application/msword' || 
+                file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        // For Word documents
+        embedLink = driveService.getEmbedableDocumentLink(uploadedFile.id);
+      }
+        
+       // Add file info to the array - make sure each property is the right type
+       fileObjects.push({
+        filename: safeFilename,
+        originalName: file.originalname,
+        type: file.mimetype,
+        size: file.size,
+        driveFileId: uploadedFile.id,
+        driveLink: uploadedFile.link,
+        downloadLink: downloadLink,
+        embedLink: embedLink,
+        expirationDate: expirationDate
+      });
+        
+      console.log(`Uploaded file: ${file.originalname} to Google Drive with ID: ${uploadedFile.id}`);
       } catch (error) {
         console.error('Error processing file:', error);
+        console.error('File type:', file.mimetype, 'File name:', file.originalname);
+       
       }
     }
   }
   
-  console.log("Processed files count:", fileObjects.length);
-  
   // Create update request document
   try {
+    console.log("***** DATABASE SAVE DEBUGGING *****");
+    console.log("Files object structure:", JSON.stringify(fileObjects));
+
     // Create the update request
     const updateRequest = new updateRequestModel({
       userId: new ObjectId(userId),
@@ -135,6 +218,43 @@ const submitUpdateRequest = asyncHandler(async (req, res) => {
       { _id: new ObjectId(planId) },
       { $inc: { updatesUsed: 1 } }
     );
+
+    // Populate the update request for email notifications
+    const populatedRequest = await updateRequestModel.findById(updateRequest._id)
+      .populate('userId', 'name email')
+      .populate({
+        path: 'updatePlanId',
+        populate: {
+          path: 'productId',
+          select: 'serviceName validityPeriod updateCount'
+        }
+      });
+    
+    // Send email notifications
+    console.log("Sending email notifications...");
+    try {
+      // Get admin emails from database or environment variable
+      const adminUsers = await userModel.find({ role: 'ADMIN' }).select('email');
+      const adminEmails = adminUsers.map(admin => admin.email);
+      
+      if (adminEmails.length > 0) {
+        await sendUpdateRequestNotification(populatedRequest, adminEmails);
+        console.log(`Admin notification emails sent to ${adminEmails.length} admins`);
+      } else {
+        console.warn("No admin emails found for notifications");
+      }
+      
+      // Send confirmation to user
+      await sendUserConfirmation(populatedRequest);
+      console.log("User confirmation email sent");
+      
+      // Create in-app notifications for admins
+      await createUpdateRequestNotification(populatedRequest);
+      console.log("Admin in-app notifications created");
+    } catch (emailError) {
+      console.error("Error with notification process:", emailError);
+      // Continue execution even if notification fails
+    }
     
     return res.status(200).json({
       message: "Update request submitted successfully",
@@ -147,6 +267,7 @@ const submitUpdateRequest = asyncHandler(async (req, res) => {
     });
   } catch (error) {
     console.error('Database error:', error);
+    console.error('Error details:', error.errors ? JSON.stringify(error.errors) : 'No detailed errors');
     return res.status(500).json({
       message: error.message || 'Failed to save update request',
       error: true,
