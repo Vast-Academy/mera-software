@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { useOnlineStatus } from './App';
 import { setUserDetails, updateWalletBalance, logout } from './store/userSlice';
 import Header from './components/Header';
@@ -10,6 +10,12 @@ import SummaryApi from './common';
 import Context from './context';
 import CookieManager from './utils/cookieManager';
 import StorageService from './utils/storageService';
+import ScrollToTop from './helpers/scrollTop';
+import QRModal from './components/QRModal';
+import socket from './components/socket';
+// import LoadingWrapper from './components/LoadingWrapper';
+// import { AnimatePresence } from 'framer-motion';
+// import AnimatedRoutes from './components/AnimatedRoutes';
 
 const STORAGE_KEYS = {
   WALLET_BALANCE: 'walletBalance',
@@ -19,9 +25,36 @@ const STORAGE_KEYS = {
 
 const AppContent = () => {
   const dispatch = useDispatch();
+  const user = useSelector(state => state?.user?.user);
+  const navigate = useNavigate();
+  const location = useLocation();
   const { isOnline, isInitialized } = useOnlineStatus(); 
   const [cartProductCount, setCartProductCount] = useState(0);
   const [walletBalance, setWalletBalance] = useState(0);
+  const [activeProject, setActiveProject] = useState(null);
+  const [showQR, setShowQR] = useState(false);
+
+useEffect(() => {
+        // Agar user logged in hai aur home page par hai to role-based redirect karo
+        if (user?._id && location.pathname === '/') {
+            switch(user.role) {
+                case 'admin':
+                    navigate('/admin-panel/all-products');
+                    break;
+                    case 'manager':
+                    navigate('/manager-panel/dashboard');
+                    break;
+                    case 'partner':
+                    navigate('/partner-panel/dashboard');
+                    break;
+                case 'developer':
+                    navigate('/developer-panel/developer-update-requests');
+                    break;
+                default:
+                    navigate('/home');
+            }
+        }
+    }, [user, location.pathname, navigate]);
 
   const handleLogout = async () => {
     try {
@@ -170,6 +203,12 @@ const AppContent = () => {
     }
   };
 
+   // Add a function to update active project that can be called from child components
+ const updateActiveProject = (project) => {
+  // console.log("AppContent: updating activeProject:", project);
+  setActiveProject(project);
+};
+
   useEffect(() => {
     const initializeData = async () => {
       try {
@@ -187,6 +226,7 @@ const AppContent = () => {
         // Try to get user data from localStorage first
         const cachedUser = StorageService.getUserDetails();
         if (cachedUser) {
+          // console.log("🧾 Cached user from localStorage:", cachedUser);
           dispatch(setUserDetails(cachedUser));
           await fetchUserAddToCart();
           return;
@@ -217,6 +257,70 @@ const AppContent = () => {
     initializeData();
   }, [isInitialized]);
 
+  // In AppContent.js
+useEffect(() => {
+  const fetchActiveProject = async () => {
+    if (!user?._id) return;
+    
+    try {
+      const response = await fetch(SummaryApi.ordersList.url, {
+        method: SummaryApi.ordersList.method,
+        credentials: 'include'
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        const allOrders = data.data || [];
+        
+        // Filter for website projects
+        const websiteProjects = allOrders.filter(order => {
+          const category = order.productId?.category?.toLowerCase();
+          return ['standard_websites', 'dynamic_websites', 'cloud_software_development', 'app_development'].includes(category);
+        });
+        
+        // Find active (in-progress) project
+        const activeProj = websiteProjects.find(project => {
+          const category = project.productId?.category?.toLowerCase();
+          if (!category) return false;
+          
+          if (['standard_websites', 'dynamic_websites', 'cloud_software_development', 'app_development'].includes(category)) {
+            if (project.orderVisibility === 'pending-approval' || project.orderVisibility === 'payment-rejected') {
+              return false;
+            }
+            return project.projectProgress < 100 || project.currentPhase !== 'completed';
+          }
+          return false;
+        });
+        
+        // console.log("Setting active project at AppContent level:", activeProj);
+        setActiveProject(activeProj || null);
+      }
+    } catch (error) {
+      console.error("Error fetching active project:", error);
+    }
+  };
+
+  fetchActiveProject();
+  
+  // Re-fetch at intervals or when user changes
+  const interval = setInterval(fetchActiveProject, 300000); // every 5 minutes
+  return () => clearInterval(interval);
+  
+}, [user?._id]);
+
+useEffect(() => {
+  const handleQR = () => setShowQR(true);
+  socket.on('qr', handleQR);
+  return () => socket.off('qr', handleQR);
+}, []);
+
+useEffect(() => {
+  const handleReady = () => setShowQR(false); // WhatsApp ready, hide modal
+
+  socket.on('ready', handleReady);
+  return () => socket.off('ready', handleReady);
+}, []);
+  // const isDashboard = window.location.pathname.includes('/dashboard');
 
   return (
      <Context.Provider value={{
@@ -226,19 +330,27 @@ const AppContent = () => {
         walletBalance,
         setWalletBalance, // Add this to allow components to update wallet balance
         fetchWalletBalance,
-        handleLogout
+        handleLogout,
+         activeProject,
+      updateActiveProject 
       }}>
+        {/* {console.log("Rendering Header with activeProject:", activeProject)} */}
+         <ScrollToTop />
         <ToastContainer
          position='top-center' 
          autoClose={1000}
          />
-        <Header />
-        <main className='min-h-[calc(100vh-120px)] pt-24 md:pt-16'>
-          <Outlet />
+        {user?.role !== 'partner' && <Header activeProject={activeProject} />}
+        <main className='min-h-[calc(100vh-120px)] pt-0 md:pt-0'>
+           {/* <LoadingWrapper> */}
+              <Outlet/>
+        {/* </LoadingWrapper> */}
         </main>
-        <Footer />
+        {user?.role !== 'partner' && <Footer />}
+
+         <QRModal show={showQR} onClose={() => setShowQR(false)} />
       </Context.Provider>
   )
 }
 
-export default AppContent
+export default AppContent;

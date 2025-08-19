@@ -26,6 +26,13 @@ const expertiseLevelOptions = [
   { value: 'Expert', label: 'Expert' }
 ];
 
+const statusOptions = [
+  { value: 'Available', label: 'Available' },
+  { value: 'Working', label: 'Working' },
+  { value: 'On Leave', label: 'On Leave' },
+  { value: 'Training', label: 'Training' }
+];
+
 const EditDeveloper = ({ onClose, fetchData, developerData }) => {
   const [data, setData] = useState(developerData || {
     name: '',
@@ -34,6 +41,7 @@ const EditDeveloper = ({ onClose, fetchData, developerData }) => {
     designation: '',
     department: '',
     employeeId: '',
+    status: '',
     expertise: [],
     experience: {
       totalYears: 0,
@@ -229,6 +237,7 @@ const EditDeveloper = ({ onClose, fetchData, developerData }) => {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="employeeId" className="block text-sm font-medium text-gray-700">
                 Employee ID
@@ -243,7 +252,70 @@ const EditDeveloper = ({ onClose, fetchData, developerData }) => {
                 className="mt-1 p-2 w-full border rounded-md"
               />
             </div>
+
+            <div>
+              <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                  Status
+                </label>
+                <Select
+                  options={statusOptions}
+                  value={statusOptions.find(option => option.value === data.status)}
+                  onChange={(option) => setData(prev => ({
+                    ...prev,
+                    status: option.value
+                  }))}
+                  className="mt-1"
+                />
+            </div>
+
+            </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+  <div>
+    <label htmlFor="maxProjects" className="block text-sm font-medium text-gray-700">
+      Max Projects
+    </label>
+    <input
+      type="number"
+      name="maxProjects"
+      id="maxProjects"
+      min="1"
+      max="10"
+      value={data.workload.maxProjects}
+      onChange={(e) => setData(prev => ({
+        ...prev,
+        workload: {
+          ...prev.workload,
+          maxProjects: parseInt(e.target.value)
+        }
+      }))}
+      className="mt-1 p-2 w-full border rounded-md"
+    />
+  </div>
+
+  <div>
+    <label htmlFor="maxUpdatesPerDay" className="block text-sm font-medium text-gray-700">
+      Max Updates Per Day
+    </label>
+    <input
+      type="number"
+      name="maxUpdatesPerDay"
+      id="maxUpdatesPerDay"
+      min="1"
+      max="5"
+      value={data.workload.maxUpdatesPerDay}
+      onChange={(e) => setData(prev => ({
+        ...prev,
+        workload: {
+          ...prev.workload,
+          maxUpdatesPerDay: parseInt(e.target.value)
+        }
+      }))}
+      className="mt-1 p-2 w-full border rounded-md"
+    />
+  </div>
+</div>
 
           <div className="mt-4">
             <button

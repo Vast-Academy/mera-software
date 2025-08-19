@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { X, Upload, FilePlus, Send, FileText, Image } from 'lucide-react';
+import { X, Upload, Send, FileText, Image } from 'lucide-react';
 import SummaryApi from '../common';
 import { toast } from 'react-toastify';
 import TriangleMazeLoader from '../components/TriangleMazeLoader';
 import imageCompression from 'browser-image-compression'; // You'll need to install this package
+import SpinningLoader from './SpinningLoader';
 
 const UpdateRequestModal = ({ plan, onClose, onSubmitSuccess }) => {
   const [message, setMessage] = useState('');
@@ -11,23 +12,53 @@ const UpdateRequestModal = ({ plan, onClose, onSubmitSuccess }) => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const messageInputRef = useRef(null);
 
   // File upload handling
   const handleFileUpload = async (e) => {
     const uploadedFiles = Array.from(e.target.files);
+    const maxFileSize = 5 * 1024 * 1024; // 5MB in bytes
     
-    // Validate file types
-    const validFiles = uploadedFiles.filter(file => {
-      const isValidImage = file.type.startsWith('image/jpeg') || file.type.startsWith('image/jpg');
-      const isValidDocument = file.type === 'text/plain' || file.type === 'application/rtf';
+    // Validate file types and sizes
+    const validFiles = [];
+    const invalidFiles = [];
+    
+    uploadedFiles.forEach(file => {
+      // Check file size first
+      if (file.size > maxFileSize) {
+        invalidFiles.push({ name: file.name, reason: 'size' });
+        return;
+      }
       
-      return isValidImage || isValidDocument;
+      // Check file type
+      const isValidImage = file.type.startsWith('image/jpeg') || file.type.startsWith('image/jpg');
+      const isValidDocument = file.type === 'text/plain' || 
+                              file.type === 'application/rtf' || 
+                              file.type === 'application/pdf' || 
+                              file.type === 'application/msword' || 
+                              file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      
+      if (isValidImage || isValidDocument) {
+        validFiles.push(file);
+      } else {
+        invalidFiles.push({ name: file.name, reason: 'type' });
+      }
     });
     
-    if (validFiles.length !== uploadedFiles.length) {
-      toast.error('Only JPG, RTF and TXT files are supported');
+    // Show error messages for invalid files
+    if (invalidFiles.length > 0) {
+      const sizeErrors = invalidFiles.filter(file => file.reason === 'size');
+      const typeErrors = invalidFiles.filter(file => file.reason === 'type');
+      
+      if (sizeErrors.length > 0) {
+        toast.error(`${sizeErrors.length > 1 ? 'Some files exceed' : 'File exceeds'} the 5MB size limit`);
+      }
+      
+      if (typeErrors.length > 0) {
+        toast.error('Only JPG, PDF, DOC, RTF and TXT files are supported');
+      }
     }
     
     // Process and add valid files
@@ -109,11 +140,13 @@ const UpdateRequestModal = ({ plan, onClose, onSubmitSuccess }) => {
   };
   
   // Final submission
+  // Modified submitUpdateRequest function for UpdateRequestModal.js
   const submitUpdateRequest = async () => {
     if (loading) return;
     
     try {
       setLoading(true);
+      setIsUploading(true);
       
       // Create form data for the files
       const formData = new FormData();
@@ -122,61 +155,85 @@ const UpdateRequestModal = ({ plan, onClose, onSubmitSuccess }) => {
       // Add all instructions as a JSON string
       formData.append('instructions', JSON.stringify(messages));
       
-      // Add each file
-      files.forEach((fileObj, index) => {
-        formData.append('fileData', JSON.stringify(files));
+      // Add each file separately with the same field name 'files'
+      files.forEach((fileObj) => {
+        formData.append('files', fileObj.file, fileObj.name);
       });
       
       console.log("Submitting update request...");
       
       // Submit the request
-      const response = await fetch(SummaryApi.requestUpdate.url, {
-        method: SummaryApi.requestUpdate.method,
-        credentials: 'include',
-        body: formData
-      });
-      
-      // First check if response is ok
-      if (!response.ok) {
-        let errorMsg = `Server returned ${response.status}: ${response.statusText}`;
+      try {
+        const response = await fetch(SummaryApi.requestUpdate.url, {
+          method: SummaryApi.requestUpdate.method,
+          credentials: 'include',
+          body: formData
+        });
         
-        try {
-          // Try to parse the error response as JSON
-          const errorData = await response.json();
-          errorMsg = errorData.message || errorMsg;
-        } catch (parseError) {
-          // If we can't parse the error as JSON, try to get the text
+        // First check if response is ok
+        if (!response.ok) {
+          let errorMsg = `Server returned ${response.status}: ${response.statusText}`;
+          
           try {
-            const errorText = await response.text();
-            errorMsg = errorText || errorMsg;
-          } catch (textError) {
-            // Fall back to the default error message
+            // Try to parse the error response as JSON
+            const errorData = await response.json();
+            errorMsg = errorData.message || errorMsg;
+          } catch (parseError) {
+            // If we can't parse the error as JSON, try to get the text
+            try {
+              const errorText = await response.text();
+              errorMsg = errorText || errorMsg;
+            } catch (textError) {
+              // Fall back to the default error message
+            }
           }
+          
+          throw new Error(errorMsg);
         }
         
-        throw new Error(errorMsg);
-      }
-      
-      // Now parse the successful response
-      const data = await response.json();
-      
-      if (data.success) {
-        toast.success('Update request submitted successfully');
-        onSubmitSuccess?.();
-        onClose();
-      } else {
-        toast.error(data.message || 'Failed to submit update request');
+        // Now parse the successful response
+        const data = await response.json();
+        
+        if (data.success) {
+          toast.success('Update request submitted successfully');
+          onSubmitSuccess?.();
+          onClose();
+        } else {
+          toast.error(data.message || 'Failed to submit update request');
+          setShowConfirmation(false);
+        }
+      } catch (error) {
+        console.error('Error submitting update request:', error);
+        toast.error(error.message || 'Failed to submit update request');
         setShowConfirmation(false);
+      } finally {
+        setIsUploading(false);
+        setLoading(false);
       }
     } catch (error) {
-      console.error('Error submitting update request:', error);
+      console.error('Error preparing update request:', error);
       toast.error(error.message || 'Failed to submit update request');
       setShowConfirmation(false);
-    } finally {
+      setIsUploading(false);
       setLoading(false);
     }
   };
   
+// Update the file icons to handle new file types
+const getFileIcon = (fileType) => {
+  if (fileType.startsWith('image/')) {
+    return <Image className="w-10 h-10 text-gray-400 mr-3" />;
+  } else if (fileType === 'application/pdf') {
+    return <FileText className="w-10 h-10 text-red-400 mr-3" />;
+  } else if (fileType === 'application/msword' || 
+             fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    return <FileText className="w-10 h-10 text-blue-400 mr-3" />;
+  } else {
+    return <FileText className="w-10 h-10 text-gray-400 mr-3" />;
+  }
+};
+
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] flex flex-col">
@@ -193,10 +250,16 @@ const UpdateRequestModal = ({ plan, onClose, onSubmitSuccess }) => {
         </div>
         
         {loading && (
-          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-            <TriangleMazeLoader />
-          </div>
-        )}
+  <>
+    {isUploading ? (
+      <SpinningLoader totalFiles={files.length} />
+    ) : (
+      <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+        <TriangleMazeLoader />
+      </div>
+    )}
+  </>
+)}
         
         {showConfirmation ? (
           /* Confirmation Screen */
@@ -240,7 +303,7 @@ const UpdateRequestModal = ({ plan, onClose, onSubmitSuccess }) => {
               <div className="mb-6">
                 <h4 className="font-medium mb-3">Upload Files</h4>
                 <p className="text-sm text-gray-600 mb-4">
-                  Only JPG images, TXT and RTF documents are supported. Images will be automatically compressed.
+                Only JPG images, PDF, DOC, TXT and RTF documents are supported. Max file size: 5MB. Images will be automatically compressed.
                 </p>
                 
                 {/* File upload button */}
@@ -256,7 +319,7 @@ const UpdateRequestModal = ({ plan, onClose, onSubmitSuccess }) => {
                       ref={fileInputRef}
                       type="file"
                       multiple
-                      accept=".jpg,.jpeg,.txt,.rtf"
+                      accept=".jpg,.jpeg,.txt,.rtf,.pdf,.doc,.docx"
                       className="hidden"
                       onChange={handleFileUpload}
                     />
@@ -277,9 +340,7 @@ const UpdateRequestModal = ({ plan, onClose, onSubmitSuccess }) => {
                               className="w-full h-full object-cover"
                             />
                           </div>
-                        ) : (
-                          <FileText className="w-10 h-10 text-gray-400 mr-3" />
-                        )}
+                        ) : getFileIcon(file.type)}
                         
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{file.name}</p>
@@ -358,7 +419,18 @@ const UpdateRequestModal = ({ plan, onClose, onSubmitSuccess }) => {
             {/* Footer */}
             <div className="p-4 border-t">
               <button
-                onClick={() => setShowConfirmation(true)}
+                onClick={() => {
+                  // Agar message field mein kuch hai to pehle usse send kar do
+                if (message.trim()) {
+                  setMessages(prev => [...prev, { 
+                    text: message.trim(),
+                    timestamp: new Date()
+                  }]);
+                  setMessage(''); // Clear the message field
+                }
+                // Phir confirmation screen pe jao
+                 setShowConfirmation(true);
+                }}
                 disabled={files.length === 0 && messages.length === 0}
                 className={`w-full py-2 rounded-lg font-medium ${
                   files.length === 0 && messages.length === 0

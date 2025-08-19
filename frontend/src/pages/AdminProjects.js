@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import SummaryApi from '../common';
 import { toast } from 'react-toastify';
 
@@ -13,6 +13,12 @@ const AdminProjects = () => {
   const [selectedDeveloper, setSelectedDeveloper] = useState('');
   const [selectedCheckpoint, setSelectedCheckpoint] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState(null);
+  const [projectLink, setProjectLink] = useState('');
+  
+  // Add refs for the inputs
+  // const projectLinkInputRef = useRef(null);
+  const messageTextareaRef = useRef(null);
+  const projectLinkRef = useRef(null);
 
   // Fetch all website projects
   const fetchProjects = async () => {
@@ -59,14 +65,45 @@ const AdminProjects = () => {
     fetchDevelopers();
   }, []);
 
+  // Function to open edit modal
+  const openEditModal = (project) => {
+    setSelectedProject(project);
+    setProjectLink(project.projectLink || '');
+    setSelectedCheckpoint(null);
+    setMessage('');
+    setEditingMessageId(null);
+    setIsModalOpen(true);
+  };
+
   // Handle sending update and message
-  const handleSendUpdate = async (projectId) => {
+  const handleSendUpdate = async (projectId, projectLink) => {
     if (!message.trim()) {
       toast.error('Please enter a message');
       return;
     }
-
+  
     try {
+      // Update project link if it has changed
+      if (projectLink !== selectedProject.projectLink) {
+        const linkUpdateResponse = await fetch(SummaryApi.updateProjectLink.url, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            projectId,
+            projectLink
+          })
+        });
+  
+        const linkUpdateData = await linkUpdateResponse.json();
+        if (!linkUpdateData.success) {
+          toast.error(linkUpdateData.message || 'Failed to update project link');
+          // Continue with the rest of the updates even if link update fails
+        }
+      }
+  
       // If a checkpoint is selected, update progress first
       if (selectedCheckpoint) {
         const progressResponse = await fetch(SummaryApi.updateProjectProgress.url, {
@@ -82,14 +119,14 @@ const AdminProjects = () => {
             completed: true
           })
         });
-
+  
         const progressData = await progressResponse.json();
         if (!progressData.success) {
           toast.error(progressData.message || 'Failed to update progress');
           return;
         }
       }
-
+  
       // Send message update
       const messageResponse = await fetch(SummaryApi.sendProjectMessage.url, {
         method: 'POST',
@@ -101,10 +138,12 @@ const AdminProjects = () => {
           projectId,
           message: message.trim(),
           messageId: editingMessageId,
-          isEdit: Boolean(editingMessageId) // Add flag to indicate if this is an edit
+          isEdit: Boolean(editingMessageId),
+          checkpointId: selectedCheckpoint ? selectedCheckpoint.checkpointId : null,
+          checkpointName: selectedCheckpoint ? selectedCheckpoint.name : null
         })
       });
-
+  
       const messageData = await messageResponse.json();
       
       if(messageData.success) {
@@ -112,6 +151,7 @@ const AdminProjects = () => {
         setMessage('');
         setSelectedCheckpoint(null);
         setEditingMessageId(null);
+        setProjectLink('');
         setIsModalOpen(false);
         fetchProjects();
       } else {
@@ -121,6 +161,16 @@ const AdminProjects = () => {
       console.error('Error:', error);
       toast.error('Failed to send update');
     }
+  };
+
+  // Handle project link change
+  const handleProjectLinkChange = (e) => {
+    setProjectLink(e.target.value);
+  };
+
+  // Handle message change
+  const handleMessageChange = (e) => {
+    setMessage(e.target.value);
   };
 
   // Handle assigning developer to project
@@ -146,7 +196,7 @@ const AdminProjects = () => {
       const data = await response.json();
       
       if(data.success) {
-        toast.success('Developer assigned successfully');
+        toast.success('Developer assigned successfully! Notifications have been sent to both client and developer.');
         setIsAssignModalOpen(false);
         setSelectedDeveloper('');
         fetchProjects();
@@ -197,13 +247,7 @@ const AdminProjects = () => {
             {project.assignedDeveloper ? 'Reassign' : 'Assign'}
           </button>
           <button
-            onClick={() => {
-              setSelectedProject(project);
-              setSelectedCheckpoint(null);
-              setMessage('');
-              setEditingMessageId(null);
-              setIsModalOpen(true);
-            }}
+            onClick={() => openEditModal(project)}
             className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
           >
             Edit
@@ -214,12 +258,12 @@ const AdminProjects = () => {
       <div className="mt-4">
         <div className="flex justify-between mb-2">
           <span className="text-sm font-medium">Progress</span>
-          <span className="text-sm text-gray-600">{project.projectProgress}%</span>
+          <span className="text-sm text-gray-600">{Math.round(project.projectProgress)}%</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div
             className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-            style={{ width: `${project.projectProgress}%` }}
+            style={{ width: `${Math.round(project.projectProgress)}%` }}
           ></div>
         </div>
       </div>
@@ -235,10 +279,42 @@ const AdminProjects = () => {
   );
 
   const EditModal = () => {
+      // यहां हम नए state variables जोड़ेंगे
+  const [showLinkForm, setShowLinkForm] = useState(false);
+  const [linkText, setLinkText] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
+  
     if (!selectedProject) return null;
+    
+
+  // लिंक बटन को मैसेज में जोड़ने का फंक्शन
+  const addLinkToMessage = () => {
+    if (!linkText.trim() || !linkUrl.trim()) {
+      toast.error('Please enter both button text and URL');
+      return;
+    }
+    
+    // लिंक को एक विशेष फॉर्मेट में जोड़ें: [[TEXT||URL]]
+    const linkMarkup = `[[${linkText}||${linkUrl}]]`;
+    
+    // मैसेज में इस लिंक मार्कअप को जोड़ें
+    setMessage(prevMessage => prevMessage + ' ' + linkMarkup);
+    
+    // फॉर्म को रीसेट करें
+    setLinkText('');
+    setLinkUrl('');
+    setShowLinkForm(false);
+    
+    // फोकस को वापस मैसेज टेक्स्टएरिया पर करें
+    setTimeout(() => {
+      if (messageTextareaRef.current) {
+        messageTextareaRef.current.focus();
+      }
+    }, 0);
+  };
 
     const nextCheckpointIndex = getNextCheckpoint(selectedProject.checkpoints);
-
+      
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -253,13 +329,14 @@ const AdminProjects = () => {
                 setSelectedCheckpoint(null);
                 setMessage('');
                 setEditingMessageId(null);
+                setProjectLink(''); 
               }}
               className="text-gray-500 hover:text-gray-700"
             >
               ✕
             </button>
           </div>
-
+  
           {/* Project Details */}
           <div className="mb-6">
             <p className="text-gray-600">Client: {selectedProject.userId?.name}</p>
@@ -274,7 +351,36 @@ const AdminProjects = () => {
               </p>
             )}
           </div>
-
+  
+          {/* Project Link Field - NEW */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">
+              Project Link <span className="text-gray-500 text-xs">(Visible to client)</span>
+            </label>
+            <input
+  ref={projectLinkRef}
+  type="text"
+  value={projectLink}
+  onChange={(e) => {
+    setProjectLink(e.target.value);
+    // Force focus to stay on this input after the state update
+    setTimeout(() => {
+      if (projectLinkRef.current) {
+        projectLinkRef.current.focus();
+        // Keep cursor at the end
+        const length = e.target.value.length;
+        projectLinkRef.current.setSelectionRange(length, length);
+      }
+    }, 0);
+  }}
+  placeholder="https://example.com/project"
+  className="w-full p-2 border rounded text-sm focus:outline-none focus:border-blue-500"
+/>
+            <p className="text-xs text-gray-500 mt-1">
+              Enter the URL where the client can view their completed project
+            </p>
+          </div>
+  
           {/* Progress Section */}
           <div className="mb-6">
             <label className="block text-sm font-medium mb-2">
@@ -299,12 +405,12 @@ const AdminProjects = () => {
                   value={index}
                   disabled={index !== nextCheckpointIndex}
                 >
-                  {checkpoint.name} {checkpoint.completed ? '(Completed)' : ''}
+                  {checkpoint.name} ({checkpoint.percentage}%) {checkpoint.completed ? '(Completed)' : ''}
                 </option>
               ))}
             </select>
           </div>
-
+  
           {/* Completed Checkpoints */}
           <div className="mb-6">
             <h4 className="text-sm font-medium mb-2">Completed Steps</h4>
@@ -322,7 +428,7 @@ const AdminProjects = () => {
                 ))}
             </div>
           </div>
-
+  
           {/* Previous Messages */}
           <div className="mb-6">
             <h4 className="text-sm font-medium mb-2">Previous Updates</h4>
@@ -351,7 +457,7 @@ const AdminProjects = () => {
               ))}
             </div>
           </div>
-
+  
           {/* Message Section */}
           <div className="space-y-3">
             {selectedCheckpoint && (
@@ -373,43 +479,96 @@ const AdminProjects = () => {
                 </button>
               </div>
             )}
+
+            {/* Link Button Form */}
+          {showLinkForm && (
+            <div className="bg-gray-50 p-3 rounded border">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="text-sm font-medium">Add Link Button</h4>
+                <button 
+                  onClick={() => setShowLinkForm(false)}
+                  className="text-gray-500 hover:text-gray-700 text-xs"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={linkText}
+                  onChange={(e) => setLinkText(e.target.value)}
+                  placeholder="Button Text (e.g. Access Your Software)"
+                  className="w-full p-2 border rounded text-sm focus:outline-none focus:border-blue-500"
+                />
+                <input
+                  type="text"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  placeholder="URL (e.g. https://example.com)"
+                  className="w-full p-2 border rounded text-sm focus:outline-none focus:border-blue-500"
+                />
+                <div className="flex justify-end space-x-2">
+                  <button
+                    onClick={() => setShowLinkForm(false)}
+                    className="px-3 py-1 border rounded text-sm hover:bg-gray-100"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={addLinkToMessage}
+                    className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                  >
+                    Add Link
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
             <div className="flex gap-2">
               <div className="flex-1 relative">
-                <textarea
-                  ref={(textArea) => {
-                    // Keep focus on textarea if it already has focus
-                    if (textArea && textArea === document.activeElement) {
-                      const len = textArea.value.length;
-                      textArea.setSelectionRange(len, len);
-                    }
-                  }}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    // Prevent losing focus on Tab
-                    if (e.key === 'Tab') {
-                      e.preventDefault();
-                      const start = e.target.selectionStart;
-                      const end = e.target.selectionEnd;
-                      setMessage(
-                        message.substring(0, start) + '    ' + message.substring(end)
-                      );
-                      // Move cursor after tab
-                      setTimeout(() => {
-                        e.target.setSelectionRange(start + 4, start + 4);
-                      }, 0);
-                    }
-                  }}
-                  placeholder={selectedCheckpoint ? "Message is required for progress update..." : "Send update to client..."}
-                  className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500 min-h-[80px] resize-none"
-                  autoFocus
-                />
+              <textarea
+  ref={messageTextareaRef}
+  value={message}
+  onChange={(e) => {
+    setMessage(e.target.value);
+    // Force focus to stay on this textarea after the state update
+    setTimeout(() => {
+      if (messageTextareaRef.current) {
+        messageTextareaRef.current.focus();
+        // Keep cursor at the end
+        const length = e.target.value.length;
+        messageTextareaRef.current.setSelectionRange(length, length);
+      }
+    }, 0);
+  }}
+  onKeyDown={(e) => {
+    // Prevent losing focus on Tab
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = e.target.selectionStart;
+      const end = e.target.selectionEnd;
+      setMessage(
+        message.substring(0, start) + '    ' + message.substring(end)
+      );
+      // Move cursor after tab
+      setTimeout(() => {
+        if (messageTextareaRef.current) {
+          messageTextareaRef.current.setSelectionRange(start + 4, start + 4);
+        }
+      }, 0);
+    }
+  }}
+  placeholder={selectedCheckpoint ? "Message is required for progress update..." : "Send update to client..."}
+  className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500 min-h-[80px] resize-none"
+/>
                 <div className="absolute bottom-2 right-2 text-xs text-gray-400">
                   {message.length} characters
                 </div>
               </div>
+               <div className="flex flex-col space-y-2">
               <button
-                onClick={() => handleSendUpdate(selectedProject._id)}
+                onClick={() => handleSendUpdate(selectedProject._id, projectLink)}
                 disabled={selectedCheckpoint && !message.trim()}
                 className={`px-4 py-2 rounded text-sm whitespace-nowrap ${
                   selectedCheckpoint && !message.trim()
@@ -419,12 +578,37 @@ const AdminProjects = () => {
               >
                 {editingMessageId ? 'Save Changes' : 'Send'}
               </button>
+              
+              {/* Add Link Button */}
+              <button
+                onClick={() => setShowLinkForm(true)}
+                className="px-4 py-2 rounded text-sm whitespace-nowrap bg-gray-200 hover:bg-gray-300 text-gray-700"
+              >
+                Add Link
+              </button>
             </div>
           </div>
+          
+          {/* Preview section to show how links will appear */}
+          {message.includes('[[') && message.includes('||') && message.includes(']]') && (
+            <div className="mt-3 bg-gray-50 p-3 rounded border">
+              <p className="text-xs font-medium mb-2">Preview:</p>
+              <div className="text-sm" dangerouslySetInnerHTML={{ 
+                __html: message.replace(
+                  /\[\[(.+?)\|\|(.+?)\]\]/g, 
+                  '<span class="text-blue-600 cursor-pointer px-2 py-1 bg-blue-100 rounded">👉 $1</span>'
+                ) 
+              }} />
+              <p className="text-xs text-gray-500 mt-2">
+                Links will appear as buttons in the client's email
+              </p>
+            </div>
+          )}
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   const AssignDeveloperModal = () => {
     if (!selectedProject) return null;

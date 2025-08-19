@@ -6,7 +6,7 @@ import SummaryApi from '../common';
 import { useOnlineStatus } from '../App';
 import StorageService from '../utils/storageService';
 import { FileText, Clock, ExternalLink, ChevronRight, Activity, ChevronLeft, ArrowRight } from "lucide-react";
-import guestSlide from '../assest/guestslide.jpg';
+import guestSlide from '../assest/guestslide.png';
 
 const AppConvertingBanner = () => {
   const navigate = useNavigate();
@@ -45,7 +45,7 @@ const AppConvertingBanner = () => {
       const category = order.productId?.category?.toLowerCase();
       return (
         category === 'website_updates' ||
-        ['standard_websites', 'dynamic_websites', 'web_applications', 'mobile_apps'].includes(category)
+        ['standard_websites', 'dynamic_websites', 'cloud_software_development', 'app_development'].includes(category)
       );
     });
   
@@ -66,7 +66,7 @@ const AppConvertingBanner = () => {
   
     // Otherwise, show the most recent website project
     const websiteProject = sortedOrders.find(order => 
-      ['standard_websites', 'dynamic_websites', 'web_applications', 'mobile_apps'].includes(
+      ['standard_websites', 'dynamic_websites', 'cloud_software_development', 'app_development'].includes(
         order.productId?.category?.toLowerCase()
       )
     );
@@ -111,9 +111,11 @@ const AppConvertingBanner = () => {
     try {
       // Try to get from localStorage first
       const cachedSlides = StorageService.getGuestSlides();
+      // console.log("Cached slides:", cachedSlides); 
       
       if (cachedSlides) {
         setGuestSlides(cachedSlides);
+        // console.log("Setting slides from cache:", cachedSlides.length); 
         setDataInitialized(true);
         setIsLoading(false);
         
@@ -144,8 +146,11 @@ const AppConvertingBanner = () => {
     try {
       const response = await fetch(SummaryApi.guestSlides.url);
       const data = await response.json();
+      // console.log("API response:", data); 
       
       if (data.success && Array.isArray(data.data)) {
+        // console.log("Fetched slides count:", data.data.length); 
+      // console.log("Fetched slides:", data.data)
         setGuestSlides(data.data);
         setDataInitialized(true);
         
@@ -256,7 +261,7 @@ const AppConvertingBanner = () => {
 
   // Helper functions remain the same
   const isWebsiteService = (category = '') => {
-    return ['static_websites', 'standard_websites', 'dynamic_websites'].includes(category?.toLowerCase());
+    return [ 'standard_websites', 'cloud_software_development', 'app_development'].includes(category?.toLowerCase());
   };
 
   const isUpdatePlan = (category = '') => {
@@ -495,7 +500,7 @@ const AppConvertingBanner = () => {
     const isUpdate = isUpdatePlan(order.productId?.category);
 
     return (
-       <div className="px-4">
+       <div className="px-4 mt-4">
       <div className="w-full bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
         <div className="p-4">
           <div className="flex justify-between items-start">
@@ -693,7 +698,7 @@ const AppConvertingBanner = () => {
     const description = stripHtmlTags(welcome.description);
     
     return (
-      <div className='rounded-xl shadow-md border'>
+      <div className='rounded-xl shadow-md border mt-4'>
         <div className="bg-gradient-to-r rounded-xl from-blue-50 to-red-50 px-4 py-5">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 leading-tight mb-2 text-left">
@@ -719,51 +724,45 @@ const AppConvertingBanner = () => {
   };
 
   // Guest Slides Desktop View
-  const GuestSlidesDesktop = ({ slide }) => (
-    <div className="bg-gradient-to-r from-blue-50 to-red-50 py-16 ">
-      <div className="container mx-auto px-6">
-        <div className="flex items-center justify-between">
-          <div className="w-1/2">
-            <h1 className="text-5xl font-bold text-gray-900 leading-tight mb-6">
-              {slide.title}
-            </h1>
-            <p className="text-xl text-gray-600 mb-8">
-              {slide.description}
-            </p>
-            <div className="flex gap-4">
-              {slide.ctaButtons?.map((button, btnIndex) => (
-                <a key={btnIndex} href={button.link}>
-                  <button 
-                    className={`${
-                      button.type === 'primary' 
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                        : 'border border-blue-600 hover:bg-red-50'
-                    } px-14 py-3 rounded-lg text-lg transition-colors flex items-center`}
-                  >
-                    {button.text}
-                    {button.type === 'primary' && <ArrowRight className="ml-2 w-5 h-5" />}
-                  </button>
-                </a>
-              ))}
-            </div>
-          </div>
-          <div className="w-1/2 flex justify-end">
-            <div className="w-[550px] h-[300px]">
-              <img 
-                src={guestSlide} 
-                alt="Hero" 
-                className="w-full h-full object-cover rounded-3xl shadow-xl"
-              />
-            </div>
+const GuestSlidesDesktop = ({ slide }) => (
+  <section className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 py-16 w-full">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-6">
+            {slide.title}
+          </h1>
+          <p className="text-xl text-gray-600 mt-6">
+            {slide.description}
+          </p>
+          {slide.ctaButtons?.length > 0 && (
+            <a href={slide.ctaButtons[0].link}>
+              <button
+                className="mt-8 bg-gradient-to-br from-cyan-800 to-cyan-500 text-white px-8 py-4 rounded-lg text-lg font-semibold bg-gradient-to-br from-cyan-500 hover:to-cyan-900 flex items-center transition-colors"
+              >
+                {slide.ctaButtons[0].text} <ChevronRight className="ml-2 w-5 h-5" />
+              </button>
+            </a>
+          )}
+        </div>
+        <div className="relative flex justify-end"> {/* Changed to justify-end */}
+          <div className="bg-gradient-to-br from-cyan-600 to-teal-600 rounded-full w-96 h-96 mx-auto flex items-center justify-center shadow-2xl">
+            <img
+             src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"  // Ensure guestSlide is correctly imported and available
+              alt="Services Banner"
+              className="w-80 h-80 rounded-full object-cover"
+            />
           </div>
         </div>
       </div>
     </div>
-  );
+  </section>
+);
+
 
   // Guest Slides Mobile View
   const GuestSlidesMobile = ({ slide }) => (
-    <div className='px-4 rounded-xl shadow-sm '>
+    <div className='px-4 rounded-xl shadow-sm mt-4'>
       <div className="bg-gradient-to-r rounded-xl from-blue-50 to-red-50 px-4 py-5">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 leading-tight mb-2 text-left">
@@ -811,25 +810,33 @@ const AppConvertingBanner = () => {
   }
 
   // If we have guest slides, show them immediately (even if other data is still loading)
-  if (!user?._id && guestSlides?.length > 0) {
+  // Filter guestSlides to only active ones
+  const activeGuestSlides = guestSlides ? guestSlides.filter(slide => slide.isActive) : [];
+
+  if (!user?._id && activeGuestSlides.length > 0) {
+    console.log("Rendering active slides:", activeGuestSlides.length);
+    console.log("Current slide index:", currentSlide);
+
     return (
-      <div className="relative container mx-auto w-full md:px-14">
+      <div className="relative"> {/* Add this wrapper div with relative positioning */}
+      <div className="overflow-hidden">
         <div
-          className="transition-all duration-500 ease-in-out flex"
+          className="transition-all duration-500 ease-in-out flex w-full overflow-hidden"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
           {isMobile ? (
-            <GuestSlidesMobile slide={guestSlides[currentSlide]} />
+            <GuestSlidesMobile slide={activeGuestSlides[currentSlide]} />
           ) : (
-            <GuestSlidesDesktop slide={guestSlides[currentSlide]} />
+            <GuestSlidesDesktop slide={activeGuestSlides[currentSlide]} />
           )}
         </div>
-
-        {/* Navigation Arrows - Only show on desktop */}
-        {!isMobile && guestSlides.length > 1 && (
+        </div>
+        
+        {/* Navigation Arrows - Only show on desktop */} 
+        {!isMobile && activeGuestSlides.length > 1 && (
           <>
             <button 
               onClick={() => currentSlide > 0 && setCurrentSlide(prev => prev - 1)}
@@ -838,18 +845,18 @@ const AppConvertingBanner = () => {
               <ChevronLeft className="w-6 h-6 text-gray-600" />
             </button>
             <button 
-              onClick={() => currentSlide < guestSlides.length - 1 && setCurrentSlide(prev => prev + 1)}
+              onClick={() => currentSlide < activeGuestSlides.length - 1 && setCurrentSlide(prev => prev + 1)}
               className="absolute right-4 top-1/2 -translate-y-1/2 bg-white p-3 rounded-full shadow-lg hover:bg-gray-50 transition-colors"
             >
               <ChevronRight className="w-6 h-6 text-gray-600" />
             </button>
           </>
         )}
-
+    
         {/* Slide Indicators */}
-        {guestSlides.length > 1 && (
+        {activeGuestSlides.length > 1 && (
           <div className="flex justify-center mt-3 gap-2">
-            {guestSlides.map((_, index) => (
+            {activeGuestSlides.map((_, index) => (
               <button
                 key={index}
                 className={`w-2 h-2 rounded-full transition-all duration-300 ${
@@ -895,7 +902,8 @@ const AppConvertingBanner = () => {
   }
 
   // User Welcome View - Show when user is logged in but has no orders
-  if (user?._id && dataInitialized && orders?.length === 0 && userWelcome) {
+  // Check if userWelcome is active before rendering
+  if (user?._id && dataInitialized && orders?.length === 0 && userWelcome && userWelcome.isActive) {
     return (
       <div className="container mx-auto md:px-14 px-4">
         {isMobile ? (

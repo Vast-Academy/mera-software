@@ -9,6 +9,14 @@ const SummaryApi = {
        url : `${backendDomain}/api/signin`,
         method: "post"
     },
+    verifyOtp:{
+      url : `${backendDomain}/api/verify-otp`,
+      method: "post"
+    },
+    resendOtp: {
+      url: `${backendDomain}/api/resend-otp`,
+      method: "post"
+    },
     current_user : {
         url : `${backendDomain}/api/user-details`,
         method : "get"
@@ -32,6 +40,10 @@ const SummaryApi = {
     allProduct : {
         url : `${backendDomain}/api/get-product`,
         method : "get"
+    },
+    getAllProducts: {
+      url : `${backendDomain}/api/all-products`,
+      method : "get"
     },
     updateProduct : {
         url : `${backendDomain}/api/update-product`,
@@ -201,6 +213,10 @@ const SummaryApi = {
         url : `${backendDomain}/api/project-message`,
         method : "post"
     },
+    updateProjectLink:{
+      url : `${backendDomain}/api/update-project-link`,
+      method: "post"
+    },
     guestSlides: {
         url: `${backendDomain}/api/get-guest-slides`,
         method: "get"
@@ -281,6 +297,198 @@ const SummaryApi = {
         url : `${backendDomain}/api/developer-complete-update`,
         method: "post"
       },
+      getAdminUpdateSettings: {
+        url: `${backendDomain}/api/get-file-settings`,
+        method: "get"
+      },
+      adminUpdateSettings: {
+        url : `${backendDomain}/api/update-file-settings`,
+        method: "post"
+      },
+      downloadAllFiles:{
+        url: `${backendDomain}/api/download-all-files/:requestId`,
+        method: "get"
+      },
+      validateCoupon: {
+        url : `${backendDomain}/api/validate-coupon`,
+        method: "post"
+      },
+      getAllCoupons: {
+        url: `${backendDomain}/api/get-coupons`,
+        method: "get"
+      },
+      createCoupon: {
+        url: `${backendDomain}/api/create-coupon`,
+        method: "post"
+      },
+      updateCoupon: {
+        url: `${backendDomain}/api/update-coupon`,
+        method: "post"
+      },
+      deleteCoupon : {
+        url: `${backendDomain}/api/delete-coupon`,
+        method: "delete"
+      },
+      getProductsForCoupon : {
+        url: `${backendDomain}/api/products-coupon`,
+        method: "get"
+      },
+      payInstallment: {
+        url: `${backendDomain}/api/pay-installment`,
+        method: "post"
+      },
+      markInstallmentVerificationPending: {
+        url: `${backendDomain}/api/mark-installment-pending`,
+        method: "post"
+      },
+      checkPendingOrderTransactions:{
+        url: `${backendDomain}/api/check-pending-order-transactions`,
+        method :"get"
+      },
+      getAdminNotifications: {
+        url: `${backendDomain}/api/admin-notifications`,
+        method: "get"
+      },
+      markNotificationRead: {
+        url: `${backendDomain}/api/mark-notification-read`,
+        method: "post"
+      },
+      getUserNotifications: {
+        url: `${backendDomain}/api/user-notifications`,
+        method: "get"
+      },
+      getDeveloperNotifications: {
+        url: `${backendDomain}/api/developer-notifications`,
+        method: "get"
+      },
+      pendingOrders: {
+        url : `${backendDomain}/api/pending-orders`,
+        method: "get"
+      },
+      approveOrder: {
+        url : `${backendDomain}/api/approve-order`,
+        method: "post"
+      },
+      rejectOrder: {
+        url : `${backendDomain}/api/reject-order`,
+        method: "post"
+      },
+      downloadInvoice:{
+        url : `${backendDomain}/api/download-invoice`,
+        method: "get"
+      },
+      contactUs: {
+        url : `${backendDomain}/api/contact-us`,
+        method: "post"
+      },
+      createTicket: {
+        url : `${backendDomain}/api/create-ticket`,
+        method: "post"
+      },
+      getUserTickets: {
+        url : `${backendDomain}/api/get-user-tickets`,
+        method: "get"
+      },
+      getTicketDetails: {
+        url : `${backendDomain}/api/get-ticket-details`,
+        method: "get"
+      },
+      replyTicket: {
+        url : `${backendDomain}/api/ticket-reply`,
+        method: "post"
+      },
+      closeTicket: {
+        url : `${backendDomain}/api/ticket-close`,
+        method: "post"
+      },
+      getAllTickets: {
+        url : `${backendDomain}/api/get-all-tickets`,
+        method: "get"
+      },
+      getGeneralUsers: {
+         url: `${backendDomain}/api/general-users`,
+         method: "get"
+      },
+      addRoleToUser: {
+        url: `${backendDomain}/api/addRole`,
+        method: "post"
+      },
+      hideProduct: {
+        url: `${backendDomain}/api/hide-product`,
+        method: "post"
+      },
+      UnhideProduct: {
+        url: `${backendDomain}/api/unhide-product`,
+        method: "post"
+      },
+      getHiddenProducts: {
+        url: `${backendDomain}/api/get-hidden-products`,
+        method: "get"
+      },
+      userRoleSwitch: {
+        url: `${backendDomain}/api/role-switch`,
+        method: "post"
+      },
+      businessCreatedToPartner: {
+        url: `${backendDomain}/api/business-created`,
+        method: "get"
+      },
+      businessCreatedFirstPurchase: {
+        url: `${backendDomain}/api/first-purchase-list`,
+        method: "get"
+      },
+      onlyFirstPurchase: {
+        url: `${backendDomain}/api/only-first-order`,
+        method: "get"
+      },
+      partnerCustomers : {
+        url: `${backendDomain}/api/partner-customers`,
+        method: "get"
+      },
+     completeProfile : {
+      url: `${backendDomain}/api/complete-profile`,
+      method : "post"
+     },
+     getCommissionHistory:{
+      url: `${backendDomain}/api/get-commission-history`,
+      method: "get"
+     },
+      getCommissionWalletSummary:{
+      url: `${backendDomain}/api/commission-wallet-summary`,
+      method: "get"
+     },
+     getWithdrawalHistory :{
+      url: `${backendDomain}/api/get-withdrawal-history`,
+      method: "get"
+     },
+     requestWithdrawal : {
+      url: `${backendDomain}/api/request-withdrawal`,
+      method: "post"
+     },
+     getAllWithdrawalRequests: {
+      url: `${backendDomain}/api/all-withdrawal-requests`,
+      method: "get"
+     },
+     approveWithdrawalRequest : {
+      url: `${backendDomain}/api/approve-withdrawals`,
+      method: "post"
+     },
+      rejectWithdrawalRequest : {
+      url: `${backendDomain}/api/reject-withdrawals`,
+      method: "post"
+     },
+     updatePartnerCustomer : {
+      url: `${backendDomain}/api/update-partner-customer`,
+      method: "post"
+     },
+     getPendingOrdersAndPayments:{
+      url: `${backendDomain}/api/get-order-payment-verification`,
+      method: "get"
+     },
+      submitWebsiteRequirement:{
+      url: `${backendDomain}/api/submit-website-requirement`,
+      method: "post"
+     },
     wallet : {
         balance :{
             url : `${backendDomain}/api/wallet/balance`,
@@ -297,7 +505,31 @@ const SummaryApi = {
         history : {
             url : `${backendDomain}/api/wallet/history`,
             method : "get"
-        }
+        },
+        verifyPayment: {
+            url: `${backendDomain}/api/wallet/verify-payment`,
+            method: "post"
+        },
+        pendingTransactions: {
+            url : `${backendDomain}/api/wallet/pending-transactions`,
+            method: "get"
+        },
+        approveTransaction: {
+            url: `${backendDomain}/api/wallet/approve-transaction`,
+            method: "post"
+        },
+        rejectTransaction: {
+            url: `${backendDomain}/api/wallet/reject-transaction`,
+            method: "post"
+        },
+        adminTransactionHistory: {
+            url: `${backendDomain}/api/wallet/admin-transaction-history`,
+            method: "get"
+        },
+        deleteTransaction: {
+            url: `${backendDomain}/api/wallet/delete-transaction`,
+            method: "delete"
+        },
     }
 }
 

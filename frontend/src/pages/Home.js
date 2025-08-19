@@ -5,6 +5,10 @@ import BannerProduct from '../components/BannerProduct'
 import VerticalCardProduct from '../components/VerticalCardProduct'
 import AppConvertingBanner from '../components/AppConvertingBanner'
 import HomeSecondBanner from '../components/HomeSecondBanner'
+import WhyChooseSection from '../components/WhyChooseSection'
+import WhatDoYouNeedSection from '../components/WhatDoYouNeedSection'
+import CompleteBusinessSolutions from '../components/CompleteBusinessSolutions'
+// import OurReadySolutions from '../components/OurReadySolutions'
 
 const Home = () => {
   return (
@@ -12,16 +16,22 @@ const Home = () => {
 
       <AppConvertingBanner/>
       <CategoryList/>
-      <BannerProduct serviceName="home"/>
+      <WhyChooseSection/>
+      <WhatDoYouNeedSection/>
+      <CompleteBusinessSolutions/>
+      {/* <OurReadySolutions/> */}
+      {/* <VerticalCardProduct category={"standard_websites"} heading={"Standard Websites"}/> */}
+      {/* <VerticalCardProduct category={"dynamic_websites"} heading={"Dynamic Websites"}/> */}
+      
+      {/* <BannerProduct serviceName="home"/> */}
+      {/* <VerticalCardProduct category={"app_development"} heading={"Mobile Apps"}/> */}
+      {/* <VerticalCardProduct category={"cloud_software_development"} heading={"Cloud Softwares"}/> */}
+      {/* <VerticalCardProduct category={"feature_upgrades"} heading={"Feature Upgrades"}/> */}
 
       <HomeSecondBanner/>
-      
-      {/* <VerticalCardProduct category={"static_websites"} heading={"Static Websites"}/> */}
-      <VerticalCardProduct category={"standard_websites"} heading={"Standard Websites"}/>
-      <VerticalCardProduct category={"dynamic_websites"} heading={"Dynamic Websites"}/>
-      {/* <VerticalCardProduct category={"web_applications"} heading={"Cloud Softwares"}/> */}
+    
     </div>
   )
 }
 
-export default Home
+export default Home;
