@@ -12,6 +12,7 @@ const app = express()
 const allowedOrigins = [
     'https://mera-software.vercel.app', // आपका फ्रंटएंड डोमेन 
     'https://www.mera-software.vercel.app',
+    'https://www.codeonwork.com',
     process.env.FORNTEND_URL, // आपके .env से
     'http://localhost:3000' // लोकल डेवलपमेंट के लिए
   ];
