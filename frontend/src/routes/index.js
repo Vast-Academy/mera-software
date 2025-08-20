@@ -77,6 +77,13 @@ import FeatureUpgradesService from "../pages/FeatureUpgradesService";
 import StaticWebsitesPage from "../pages/StaticWebsitesPage";
 import DynamicWebistesPage from "../pages/DynamicWebistesPage";
 import CodingBasedWebsitePage from "../pages/CodingBasedWebsitePage";
+import AboutUs from "../pages/AboutUs";
+import OurTeamPage from "../pages/OurTeamPage";
+import ComplaintManagement from "../pages/ComplaintManagement";
+import LaptopMobileRepair from "../pages/LaptopMobileRepair";
+import PartnerServiceManagement from "../pages/PartnerServiceManagement";
+import CustomerRelationManagement from "../pages/CustomerRelationManagement";
+import FAQ from "../pages/FAQ";
 
 // Create a conditional home route
 // const HomeRoute = () => {
@@ -257,6 +264,34 @@ const router = createBrowserRouter([
             {
                 path: "local-business-setup",
                 element: <LocalBusinessWebsite/>
+            },
+            {
+                path: "about-us",
+                element: <AboutUs/>
+            },
+            {
+                path: "our-team",
+                element: <OurTeamPage/>
+            },
+            {
+                path: "customer-relation-management",
+                element: <CustomerRelationManagement/>
+            },
+            {
+                path: "complaint-management",
+                element: <ComplaintManagement/>
+            },
+            {
+                path: "laptop-mobile-repair-registration",
+                element: <LaptopMobileRepair/>
+            },
+            {
+                path: "partner-service-management",
+                element: <PartnerServiceManagement/>
+            },
+            {
+                path: "faq",
+                element: <FAQ/>
             },
             {
                 path: "admin-panel",
