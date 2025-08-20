@@ -244,19 +244,19 @@ const Header = () => {
         {
           category: 'Software Solutions',
           items: [
-            { name: 'Customer Relation Management', href: '/solutions?type=crm' },
-            { name: 'Complaint Management', href: '/solutions?type=complaint-management' },
-            { name: 'Laptop/Mobile Repair Registration', href: '/solutions?type=laptop-mobile-repair-registration' },
-            { name: 'Partner and Service Management', href: '/solutions?type=partner-service-management' }
+            { name: 'Small Business', href: '/solutions?type=small-business' },
+            { name: 'Enterprise', href: '/solutions?type=enterprise' },
+            { name: 'Startups', href: '/solutions?type=startups' },
+            { name: 'Non-Profit', href: '/solutions?type=non-profit' }
           ]
         },
         {
           category: 'IT Solutions',
           items: [
-            { name: 'Security Alarm & Theft Prevention', href:'https://www.3gdigital.net/Solutions/security-alarm/' },
-            { name: 'Parking Management System', href: 'https://www.3gdigital.net/Solutions/parking-managemen/t' },
-            { name: 'Automatic Main Gates', href: 'https://www.3gdigital.net/Solutions/automatic-gates/' },
-            { name: 'Fire Hydrant & Alarms', href: 'https://www.3gdigital.net/Solutions/fire-hydrant-alarms/' }
+            { name: 'Education', href: '/solutions?industry=education' },
+            { name: 'Healthcare', href: '/solutions?industry=healthcare' },
+            { name: 'Retail', href: '/solutions?industry=retail' },
+            { name: 'Real Estate', href: '/solutions?industry=real-estate' }
           ]
         }
       ]
@@ -282,15 +282,17 @@ const Header = () => {
           category: 'About',
           items: [
             { name: 'About Us', href: '/about' },
-            { name: 'Our Team', href: '/team' }
+            { name: 'Our Team', href: '/team' },
+            { name: 'Careers', href: '/careers' },
+            { name: 'Press & Media', href: '/press' }
           ]
         },
         {
           category: 'Legal',
           items: [
-            { name: 'Terms & Conditions', href: '/terms' },
-            { name: 'Privacy Policy', href: '/privacy' },
-            { name: 'Cookie Policy', href: '/cookies' }
+            { name: 'Terms & Conditions', href: '/terms-and-conditions' },
+            { name: 'Privacy Policy', href: '/privacy-policy' },
+            { name: 'Cookie Policy', href: '/cookies-policy' }
           ]
         }
       ]

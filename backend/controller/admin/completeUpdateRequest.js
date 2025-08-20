@@ -2,7 +2,7 @@ const updateRequestModel = require("../../models/updateRequestModel");
 const assignDeveloperPermission = require("../../helpers/permission");
 const { sendUpdateCompletedNotification } = require("../../helpers/emailService");
 const { createNotification } = require("../../helpers/notificationService");
-const { sendWhatsAppMessage } = require("../../helpers/whatsappService"); // ADD THIS IMPORT
+// const { sendWhatsAppMessage } = require("../../helpers/whatsappService"); 
 
 async function completeUpdateRequest(req, res) {
     try {
@@ -69,33 +69,32 @@ async function completeUpdateRequest(req, res) {
       }
 
       // Send WhatsApp message notification
-      console.log("Sending WhatsApp completion notification...");
-      try {
-        const clientPhone = populatedRequest.userId.phone;
-        if (clientPhone) {
-          const whatsappMessage = `Hello ${populatedRequest.userId.name},
-              Your website update request has been successfully completed.
-              You can now visit your website to view the updates.
-                Thank you for choosing our service!`;
+      // console.log("Sending WhatsApp completion notification...");
+      // try {
+      //   const clientPhone = populatedRequest.userId.phone;
+      //   if (clientPhone) {
+      //     const whatsappMessage = `Hello ${populatedRequest.userId.name},
+      //         Your website update request has been successfully completed.
+      //         You can now visit your website to view the updates.
+      //           Thank you for choosing our service!`;
 
-          const sendStatus = await sendWhatsAppMessage(clientPhone, whatsappMessage);
+      //     const sendStatus = await sendWhatsAppMessage(clientPhone, whatsappMessage);
           
-          if (sendStatus?.status === 'not_logged_in') {
-            return res.status(200).json({
-              success: false,
-              error: false,
-              message: 'Update request completed but WhatsApp session expired. Please scan QR code.',
-              triggerQr: true
-            });
-          }
-          console.log("WhatsApp completion notification sent");
-        } else {
-          console.log("No phone number found for user");
-        }
-      } catch (whatsappError) {
-        console.error("Error sending WhatsApp notification:", whatsappError);
-        // Continue execution even if WhatsApp fails
-      }
+      //     if (sendStatus?.status === 'not_logged_in') {
+      //       return res.status(200).json({
+      //         success: false,
+      //         error: false,
+      //         message: 'Update request completed but WhatsApp session expired. Please scan QR code.',
+      //         triggerQr: true
+      //       });
+      //     }
+      //     console.log("WhatsApp completion notification sent");
+      //   } else {
+      //     console.log("No phone number found for user");
+      //   }
+      // } catch (whatsappError) {
+      //   console.error("Error sending WhatsApp notification:", whatsappError);
+      // }
      
       return res.status(200).json({
         message: "Update request marked as completed",
