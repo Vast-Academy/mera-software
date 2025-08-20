@@ -2,7 +2,7 @@ const uploadProductPermission = require("../../helpers/permission");
 const orderModel = require("../../models/orderProductModel");
 const emailService = require("../../helpers/emailService");
 const notificationService = require("../../helpers/notificationService");
-const { sendWhatsAppMessage } = require("../../helpers/whatsappService");
+// const { sendWhatsAppMessage } = require("../../helpers/whatsappService");
 
 async function sendMessageController(req, res) {
     try {
@@ -61,19 +61,19 @@ async function sendMessageController(req, res) {
             
             project.messages.push(newMessage);
 
-            const clientPhone = project.userId.phone;
-        if (clientPhone) {
-            const msgText = `Hello ${project.userId.name},\n\nYou have a new update on your project "${project.productId.serviceName}":\n"${message}"\n\nProgress: ${project.projectProgress}%`;
-           const sendStatus = await sendWhatsAppMessage(clientPhone, msgText);
-            if (sendStatus?.status === 'not_logged_in') {
-                return res.status(200).json({
-                    success: false,
-                    error: false,
-                    message: 'WhatsApp session expired. Please scan QR code.',
-                    triggerQr: true
-                });
-            }
-        }
+        //     const clientPhone = project.userId.phone;
+        // if (clientPhone) {
+        //     const msgText = `Hello ${project.userId.name},\n\nYou have a new update on your project "${project.productId.serviceName}":\n"${message}"\n\nProgress: ${project.projectProgress}%`;
+        //    const sendStatus = await sendWhatsAppMessage(clientPhone, msgText);
+        //     if (sendStatus?.status === 'not_logged_in') {
+        //         return res.status(200).json({
+        //             success: false,
+        //             error: false,
+        //             message: 'WhatsApp session expired. Please scan QR code.',
+        //             triggerQr: true
+        //         });
+        //     }
+        // }
 
 
            // COMMENTED OUT: Email and notification functionality for new messages
