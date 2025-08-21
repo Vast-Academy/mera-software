@@ -684,339 +684,339 @@ const getCloudOfferingFirstLetter = (serviceName) => {
         </div>
       </section>
 
-      {/* 6) Other Services - Reusing from WebsiteDevelopmentService */}
-      <section id="others" className="py-12 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* COMBINED SECTION FOR "OTHER SERVICES" (6) AND "CUSTOM DEVELOPMENT FORM" (7) */}
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
 
-          {/* Heading */}
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Explore Our Other Services</h2>
-            <p className="text-gray-600">One team for complete end-to-end digital solutions</p>
-          </div>
+          {/* 6) Other Services */}
+          <div className="w-full">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Explore Our Other Services</h2>
+              <p className="text-gray-600">One team for complete end-to-end digital solutions</p>
+            </div>
 
-          {/* Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
+            {/* Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
 
-            {/* Cloud Software Development (Self-referential, but good for navigation) */}
-            <a href="/cloud-software-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
-              <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
-                <Cloud className="w-6 h-6 text-blue-700" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Web App Development</h3>
-              <p className="text-gray-600 text-sm mb-3">Scalable SaaS, cloud apps & integrations</p>
-              <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
-                See Details <ArrowRight className="w-4 h-4 ml-1" />
-              </span>
-            </a>
-
-            {/* Software Solutions */}
-            <a href="/software-solutions" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
-              <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
-                <Layers className="w-6 h-6 text-blue-700" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Software Solutions</h3>
-              <p className="text-gray-600 text-sm mb-3">ERP, CRM, dashboards & automation</p>
-              <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
-                Explore More <ArrowRight className="w-4 h-4 ml-1" />
-              </span>
-            </a>
-
-            {/* Mobile App Development */}
-            <a href="/mobile-app-development-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
-              <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
-                <Smartphone className="w-6 h-6 text-blue-700" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Mobile App Development</h3>
-              <p className="text-gray-600 text-sm mb-3">React Native / Flutter / Native Apps</p>
-              <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
-                Learn More <ArrowRight className="w-4 h-4 ml-1" />
-              </span>
-            </a>
-
-            {/* Website / Software Updates */}
-            <a href="/feature-upgrades-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
-              <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
-                <RefreshCw className="w-6 h-6 text-blue-700" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Website / Software Updates</h3>
-              <p className="text-gray-600 text-sm mb-3">Regular updates, fixes & feature upgrades</p>
-              <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
-                Get Started <ArrowRight className="w-4 h-4 ml-1" />
-              </span>
-            </a>
-
-          </div>
-        </div>
-      </section>
-
-      {/* 7) Custom Development Form - Reusing from WebsiteDevelopmentService with minor text changes */}
-      <section id="custom-form" className="py-12 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">Couldn't find a suitable cloud solution?</h2>
-            <p className="text-gray-600 text-xl">
-              Don't worry! We'll build you a custom cloud software from scratch.
-            </p>
-          </div>
-
-          {!formSubmitted ? (
-            <div className="bg-gradient-to-br from-blue-300 to-purple-200 rounded-2xl p-8 shadow-lg">
-              <div className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Full Name</label>
-                    <input
-                      type="text"
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter your full name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Email Address</label>
-                    <input
-                      type="email"
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter your email"
-                    />
-                  </div>
+              {/* Cloud Software Development (Self-referential, but good for navigation) */}
+              <RouterLink to="/cloud-software-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
+                <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
+                  <Cloud className="w-6 h-6 text-blue-700" />
                 </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Web App Development</h3>
+                <p className="text-gray-600 text-sm mb-3">Scalable SaaS, cloud apps & integrations</p>
+                <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
+                  See Details <ArrowRight className="w-4 h-4 ml-1" />
+                </span>
+              </RouterLink>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Phone Number</label>
-                    <div className="flex">
-                      <select
-                        className="px-4 py-3 border border-gray-300 rounded-l-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="+91">🇮🇳 +91 (India)</option>
-                        <option value="+61">🇦🇺 +61 (Australia)</option>
-                        <option value="+1">🇺🇸 +1 (America)</option>
-                        <option value="+44">🇬🇧 +44 (U.K.)</option>
-                        <option value="+1">🇨🇦 +1 (Canada)</option>
-                      </select>
+              {/* Software Solutions */}
+              <RouterLink to="/software-solutions" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
+                <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
+                  <Layers className="w-6 h-6 text-blue-700" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Software Solutions</h3>
+                <p className="text-gray-600 text-sm mb-3">ERP, CRM, dashboards & automation</p>
+                <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
+                  Explore More <ArrowRight className="w-4 h-4 ml-1" />
+                </span>
+              </RouterLink>
+
+              {/* Mobile App Development */}
+              <RouterLink to="/mobile-app-development-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
+                <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
+                  <Smartphone className="w-6 h-6 text-blue-700" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Mobile App Development</h3>
+                <p className="text-gray-600 text-sm mb-3">React Native / Flutter / Native Apps</p>
+                <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
+                  Learn More <ArrowRight className="w-4 h-4 ml-1" />
+                </span>
+              </RouterLink>
+
+              {/* Website / Software Updates */}
+              <RouterLink to="/feature-upgrades-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
+                <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
+                  <RefreshCw className="w-6 h-6 text-blue-700" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Website / Software Updates</h3>
+                <p className="text-gray-600 text-sm mb-3">Regular updates, fixes & feature upgrades</p>
+                <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
+                  Get Started <ArrowRight className="w-4 h-4 ml-1" />
+                </span>
+              </RouterLink>
+
+            </div>
+          </div>
+
+          {/* 7) Custom Development Form */}
+          <div className="w-full">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-3">Couldn't find a suitable cloud solution?</h2>
+              <p className="text-gray-600 text-xl">
+                Don't worry! We'll build you a custom cloud software from scratch.
+              </p>
+            </div>
+
+            {!formSubmitted ? (
+              <div className="bg-gradient-to-br from-blue-300 to-purple-200 rounded-2xl p-8 shadow-lg">
+                <div className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">Full Name</label>
                       <input
-                        type="tel"
+                        type="text"
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-r-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter your phone number"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter your full name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">Email Address</label>
+                      <input
+                        type="email"
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter your email"
                       />
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Company Name (Optional)</label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter your company name"
-                    />
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">Phone Number</label>
+                      <div className="flex">
+                        <select
+                          className="px-4 py-3 border border-gray-300 rounded-l-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="+91">🇮🇳 +91 (India)</option>
+                          <option value="+61">🇦🇺 +61 (Australia)</option>
+                          <option value="+1">🇺🇸 +1 (America)</option>
+                          <option value="+44">🇬🇧 +44 (U.K.)</option>
+                          <option value="+1">🇨🇦 +1 (Canada)</option>
+                        </select>
+                        <input
+                          type="tel"
+                          required
+                          className="w-full px-4 py-3 border border-gray-300 rounded-r-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Enter your phone number"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">Company Name (Optional)</label>
+                      <input
+                        type="text"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter your company name"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* STEP 1: Business Category (max 5 in UI) */}
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">Business Category</label>
-                  <select
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    value={businessCategory}
-                    onChange={(e) => {
-                      setBusinessCategory(e.target.value);
-                      setBusinessType('');
-                      setUpdatePlan('');
-                      setWhoUpdates('');
-                      setBudgetRange('');
-                      setContactPreference('');
-                    }}
-                  >
-                    <option value="">Select your business category</option>
-                    {businessTypes.slice(0, CATEGORIES_LIMIT).map((c, i) => (
-                      <option key={i} value={c.category}>{c.category}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* STEP 2: Sub Category (5–9 in UI) */}
-                {businessCategory && (
+                  {/* STEP 1: Business Category (max 5 in UI) */}
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">Business Sub-Category</label>
+                    <label className="block text-gray-700 font-medium mb-2">Business Category</label>
                     <select
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={businessType}
+                      value={businessCategory}
                       onChange={(e) => {
-                        setBusinessType(e.target.value);
+                        setBusinessCategory(e.target.value);
+                        setBusinessType('');
                         setUpdatePlan('');
                         setWhoUpdates('');
                         setBudgetRange('');
                         setContactPreference('');
                       }}
                     >
-                      <option value="">Select a sub-category</option>
-                      {subTypesForSelectedCategory.map((t, idx) => (
-                        <option key={idx} value={t}>{t}</option>
+                      <option value="">Select your business category</option>
+                      {businessTypes.slice(0, CATEGORIES_LIMIT).map((c, i) => (
+                        <option key={i} value={c.category}>{c.category}</option>
                       ))}
                     </select>
                   </div>
-                )}
 
-                {/* STEP 3: Software Update Plan */}
-                {businessType && (
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Software Plan — Updates</label>
-                    <select
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={updatePlan}
-                      onChange={(e) => {
-                        setUpdatePlan(e.target.value);
-                        setWhoUpdates('');
-                        setBudgetRange('');
-                        setContactPreference('');
-                      }}
-                    >
-                      <option value="">How will you update the software?</option>
-                      <option value="one-time">One-time software development</option>
-                      <option value="occasional">Occasional updates</option>
-                      <option value="mostly">Mostly updated (frequent updates)</option>
-                    </select>
-                  </div>
-                )}
-
-                {/* STEP 4A: If One-time → Budget (small) */}
-                {updatePlan === 'one-time' && (
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Budget Range</label>
-                    <select
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={budgetRange}
-                      onChange={(e) => setBudgetRange(e.target.value)}
-                    >
-                      <option value="">Select budget range</option>
-                      {budgetOptionsSmall.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* STEP 4B: If Occasional or Mostly → who updates + budget */}
-                {(updatePlan === 'occasional' || updatePlan === 'mostly') && (
-                  <>
+                  {/* STEP 2: Sub Category (5–9 in UI) */}
+                  {businessCategory && (
                     <div>
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Who will do the updates?
-                      </label>
+                      <label className="block text-gray-700 font-medium mb-2">Business Sub-Category</label>
                       <select
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        value={whoUpdates}
+                        value={businessType}
                         onChange={(e) => {
-                          setWhoUpdates(e.target.value);
+                          setBusinessType(e.target.value);
+                          setUpdatePlan('');
+                          setWhoUpdates('');
                           setBudgetRange('');
+                          setContactPreference('');
                         }}
                       >
-                        <option value="">Select an option</option>
-                        <option value="self">I will update myself</option>
-                        <option value="us">You/Developer will update</option>
+                        <option value="">Select a sub-category</option>
+                        {subTypesForSelectedCategory.map((t, idx) => (
+                          <option key={idx} value={t}>{t}</option>
+                        ))}
                       </select>
                     </div>
+                  )}
 
-                    {whoUpdates && (
+                  {/* STEP 3: Software Update Plan */}
+                  {businessType && (
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">Software Plan — Updates</label>
+                      <select
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        value={updatePlan}
+                        onChange={(e) => {
+                          setUpdatePlan(e.target.value);
+                          setWhoUpdates('');
+                          setBudgetRange('');
+                          setContactPreference('');
+                        }}
+                      >
+                        <option value="">How will you update the software?</option>
+                        <option value="one-time">One-time software development</option>
+                        <option value="occasional">Occasional updates</option>
+                        <option value="mostly">Mostly updated (frequent updates)</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {/* STEP 4A: If One-time → Budget (small) */}
+                  {updatePlan === 'one-time' && (
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">Budget Range</label>
+                      <select
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        value={budgetRange}
+                        onChange={(e) => setBudgetRange(e.target.value)}
+                      >
+                        <option value="">Select budget range</option>
+                        {budgetOptionsSmall.map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* STEP 4B: If Occasional or Mostly → who updates + budget */}
+                  {(updatePlan === 'occasional' || updatePlan === 'mostly') && (
+                    <>
                       <div>
-                        <label className="block text-gray-700 font-medium mb-2">Budget Range</label>
+                        <label className="block text-gray-700 font-medium mb-2">
+                          Who will do the updates?
+                        </label>
                         <select
                           required
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          value={budgetRange}
-                          onChange={(e) => setBudgetRange(e.target.value)}
+                          value={whoUpdates}
+                          onChange={(e) => {
+                            setWhoUpdates(e.target.value);
+                            setBudgetRange('');
+                          }}
                         >
-                          <option value="">Select budget range</option>
-                          {(whoUpdates === 'self' ? budgetOptionsSelfUpdates : budgetOptionsSmall).map((o) => (
-                            <option key={o.value} value={o.value}>{o.label}</option>
-                          ))}
+                          <option value="">Select an option</option>
+                          <option value="self">I will update myself</option>
+                          <option value="us">You/Developer will update</option>
                         </select>
                       </div>
-                    )}
-                  </>
-                )}
 
-                {/* STEP 5: Contact Preference */}
-                {(updatePlan === 'one-time' ? budgetRange : whoUpdates ? budgetRange : false) && (
+                      {whoUpdates && (
+                        <div>
+                          <label className="block text-gray-700 font-medium mb-2">Budget Range</label>
+                          <select
+                            required
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            value={budgetRange}
+                            onChange={(e) => setBudgetRange(e.target.value)}
+                          >
+                            <option value="">Select budget range</option>
+                            {(whoUpdates === 'self' ? budgetOptionsSelfUpdates : budgetOptionsSmall).map((o) => (
+                              <option key={o.value} value={o.value}>{o.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* STEP 5: Contact Preference */}
+                  {(updatePlan === 'one-time' ? budgetRange : whoUpdates ? budgetRange : false) && (
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">How should we contact you?</label>
+                      <select
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        value={contactPreference}
+                        onChange={(e) => setContactPreference(e.target.value)}
+                      >
+                        <option value="">Choose a contact method</option>
+                        <option value="callback">Call back</option>
+                        <option value="chat">Chat (WhatsApp/Message)</option>
+                        <option value="meeting">In-person meeting</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Requirements textarea */}
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">How should we contact you?</label>
-                    <select
+                    <label className="block text-gray-700 font-medium mb-2">Describe your cloud software requirements</label>
+                    <textarea
                       required
+                      rows={4}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={contactPreference}
-                      onChange={(e) => setContactPreference(e.target.value)}
-                    >
-                      <option value="">Choose a contact method</option>
-                      <option value="callback">Call back</option>
-                      <option value="chat">Chat (WhatsApp/Message)</option>
-                      <option value="meeting">In-person meeting</option>
-                    </select>
+                      placeholder="Describe your cloud software requirements..."
+                    ></textarea>
                   </div>
-                )}
 
-                {/* Requirements textarea */}
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">Describe your cloud software requirements</label>
-                  <textarea
-                    required
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Describe your cloud software requirements..."
-                  ></textarea>
-                </div>
-
-                <div className="text-center">
-                  <button
-                    onClick={handleFormSubmit}
-                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 flex items-center mx-auto"
-                    disabled={
-                      !businessCategory ||
-                      !businessType ||
-                      !updatePlan ||
-                      (updatePlan !== 'one-time' && !whoUpdates) ||
-                      !budgetRange ||
-                      !contactPreference
-                    }
-                    title="Please complete all steps before submitting"
-                  >
-                    Submit Requirements
-                    <ChevronRight className="ml-2 w-5 h-5" />
-                  </button>
+                  <div className="text-center">
+                    <button
+                      onClick={handleFormSubmit}
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 flex items-center mx-auto"
+                      disabled={
+                        !businessCategory ||
+                        !businessType ||
+                        !updatePlan ||
+                        (updatePlan !== 'one-time' && !whoUpdates) ||
+                        !budgetRange ||
+                        !contactPreference
+                      }
+                      title="Please complete all steps before submitting"
+                    >
+                      Submit Requirements
+                      <ChevronRight className="ml-2 w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 text-center shadow-lg">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-10 h-10 text-emerald-600" />
+            ) : (
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 text-center shadow-lg">
+                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-10 h-10 text-emerald-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Thank You!</h3>
+                <p className="text-gray-600 mb-6">
+                  Your requirements have been submitted. Our team will contact you within 24 hours.
+                </p>
+                <button
+                  onClick={() => {
+                    setFormSubmitted(false);
+                    setBusinessCategory('');
+                    setBusinessType('');
+                    setUpdatePlan('');
+                    setWhoUpdates('');
+                    setBudgetRange('');
+                    setContactPreference('');
+                  }}
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Submit Another Request
+                </button>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Thank You!</h3>
-              <p className="text-gray-600 mb-6">
-                Your requirements have been submitted. Our team will contact you within 24 hours.
-              </p>
-              <button
-                onClick={() => {
-                  setFormSubmitted(false);
-                  setBusinessCategory('');
-                  setBusinessType('');
-                  setUpdatePlan('');
-                  setWhoUpdates('');
-                  setBudgetRange('');
-                  setContactPreference('');
-                }}
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                Submit Another Request
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </section>
     </div>
