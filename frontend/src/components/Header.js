@@ -244,19 +244,19 @@ const Header = () => {
         {
           category: 'Software Solutions',
           items: [
-            { name: 'Small Business', href: '/solutions?type=small-business' },
-            { name: 'Enterprise', href: '/solutions?type=enterprise' },
-            { name: 'Startups', href: '/solutions?type=startups' },
-            { name: 'Non-Profit', href: '/solutions?type=non-profit' }
+            { name: 'Customer Relation Management', href: '/customer-relation-management' },
+            { name: 'Complaint Management', href: '/complaint-management' },
+            { name: 'Laptop/Mobile Repair Registration', href: '/laptop-mobile-repair-registration' },
+            { name: 'Partner and Service Management', href: '/partner-service-management' }
           ]
         },
         {
           category: 'IT Solutions',
           items: [
-            { name: 'Education', href: '/solutions?industry=education' },
-            { name: 'Healthcare', href: '/solutions?industry=healthcare' },
-            { name: 'Retail', href: '/solutions?industry=retail' },
-            { name: 'Real Estate', href: '/solutions?industry=real-estate' }
+            { name: 'Security Alarm & Theft Prevention', href:'https://www.3gdigital.net/Solutions/security-alarm/' },
+            { name: 'Parking Management System', href: 'https://www.3gdigital.net/Solutions/parking-managemen/t' },
+            { name: 'Automatic Main Gates', href: 'https://www.3gdigital.net/Solutions/automatic-gates/' },
+            { name: 'Fire Hydrant & Alarms', href: 'https://www.3gdigital.net/Solutions/fire-hydrant-alarms/' }
           ]
         }
       ]
@@ -281,10 +281,8 @@ const Header = () => {
         {
           category: 'About',
           items: [
-            { name: 'About Us', href: '/about' },
-            { name: 'Our Team', href: '/team' },
-            { name: 'Careers', href: '/careers' },
-            { name: 'Press & Media', href: '/press' }
+            { name: 'About Us', href: '/about-us' },
+            { name: 'Our Team', href: '/our-team' }
           ]
         },
         {
