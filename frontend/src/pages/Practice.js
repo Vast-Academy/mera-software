@@ -1,420 +1,778 @@
-import React, { useState } from 'react';
-import { Search, Eye, Check, X, Clock, AlertTriangle, User, FileText, MapPin, Camera } from 'lucide-react';
+import React, { useContext, useEffect, useRef, useState } from 'react'
+import Logo from '../assest/newlogo.png' // Make sure this path is correct
+import { GrSearch } from "react-icons/gr";
+import { FaRegCircleUser } from "react-icons/fa6";
+import { GoArrowSwitch } from "react-icons/go";
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import SummaryApi from '../common'; // Make sure this path is correct
+import { toast } from 'react-toastify';
+import { setUserDetails, logout } from '../store/userSlice'; // Make sure this path is correct
+import ROLE from '../common/role'; // Make sure this path is correct
+import Context from '../context'; // Make sure this path is correct
+import { useOnlineStatus } from '../App'; // Make sure this path is correct
+import { IoWalletOutline } from "react-icons/io5";
+import CookieManager from '../utils/cookieManager'; // Make sure this path is correct
+import StorageService from '../utils/storageService'; // Make sure this path is correct
+import displayCurrency from "../helpers/displayCurrency" // Make sure this path is correct
+import NotificationBell from '../components/NotificationBell'; // Make sure this path is correct
+import LoginPopup from '../components/LoginPopup'; // Make sure this path is correct
+import TriangleMazeLoader from '../components/TriangleMazeLoader'; // Make sure this path is correct
+import { ChevronRight, Home, Menu, X } from 'lucide-react'; // Ensure lucide-react is installed
 
-const KYCAdminPanel = () => {
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [rejectReason, setRejectReason] = useState({
-    document: false,
-    address: false,
-    selfie: false,
-    customReason: ''
-  });
-  const [showRejectModal, setShowRejectModal] = useState(false);
+const Header = () => {
+  const user = useSelector(state => state?.user?.user)
+  const dispatch = useDispatch()
+  const { isOnline } = useOnlineStatus();
+  const context = useContext(Context);
+  const activeProject = context.activeProject;
+  const navigate = useNavigate();
+  const [menuDisplay, setMenuDisplay] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+  const searchInput = useLocation();
+  const URLSearch = new URLSearchParams(searchInput?.search)
+  const searchQuery = URLSearch.getAll("q")
+  const [search, setSearch] = useState(searchQuery)
+  const [serviceTypes, setServiceTypes] = useState([])
+  const [loading, setLoading] = useState(true);
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
+  const [isRoleSwitching, setIsRoleSwitching] = useState(false);
 
-  // Mock data for demonstration
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: 'Rajesh Kumar',
-      email: 'rajesh.kumar@email.com',
-      phone: '+91 98765 43210',
-      status: 'pending',
-      submittedAt: '2025-08-15T10:30:00Z',
-      documents: {
-        idDocument: {
-          type: 'Aadhaar Card',
-          url: '/api/placeholder/400/300',
-          status: 'pending'
-        },
-        addressProof: {
-          type: 'Utility Bill',
-          url: '/api/placeholder/400/300',
-          status: 'pending'
-        },
-        selfie: {
-          url: '/api/placeholder/300/400',
-          status: 'pending'
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [activeServiceSubCategory, setActiveServiceSubCategory] = useState(null);
+  const [hoveredServiceItemName, setHoveredServiceItemName] = useState(null);
+  const dropdownTimeoutRef = useRef(null);
+  const [activeCategoryByMenu, setActiveCategoryByMenu] = useState({}); // { [menuIndex]: catIndex }
+
+  const userDetails = useSelector((state) => state.user.user);
+  const isAuthenticated = !!userDetails?._id;
+  const isInitialized = useSelector((state) => state.user.initialized);
+
+  const onBack = () => navigate(-1);
+
+  const getProjectLink = () => {
+    if (activeProject && activeProject._id) return `/project-details/${activeProject._id}`;
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith('/project-details/')) return currentPath;
+    return '/order';
+  };
+
+  const handleProtectedNavigation = (e) => {
+    e.preventDefault();
+    if (isInitialized && !userDetails) setShowLoginPopup(true);
+    else window.location.href = e.currentTarget.href;
+  };
+
+  useEffect(() => {
+    const loadServiceTypes = async () => {
+      const cached = StorageService.getProductsData('categories');
+      if (cached) {
+        processCategories(cached);
+        setLoading(false);
+      }
+      if (isOnline) {
+        try {
+          const res = await fetch(SummaryApi.allCategory.url);
+          const data = await res.json();
+          if (data.success) {
+            StorageService.setProductsData('categories', data.data);
+            processCategories(data.data);
+          }
+        } catch (e) {
+          console.error('Error fetching categories:', e);
+        } finally {
+          setLoading(false);
         }
       }
+    };
+    loadServiceTypes();
+  }, [isOnline]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target) && menuDisplay) {
+        setMenuDisplay(false);
+      }
+      if (activeDropdown !== null && !event.target.closest('.main-nav-dropdown')) {
+        setActiveDropdown(null);
+        setActiveServiceSubCategory(null);
+        setHoveredServiceItemName(null);
+      }
+    };
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape') {
+        if (menuDisplay) setMenuDisplay(false);
+        if (mobileMenuOpen) setMobileMenuOpen(false);
+        if (activeDropdown !== null) {
+          setActiveDropdown(null);
+          setActiveServiceSubCategory(null);
+          setHoveredServiceItemName(null);
+        }
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [menuDisplay, mobileMenuOpen, activeDropdown]);
+
+  const processCategories = (data) => {
+    const unique = [...new Set(data.map(item => item.serviceType))];
+    const objs = unique.map(type => {
+      const typeCategories = data.filter(cat => cat.serviceType === type);
+      return { serviceType: type, queryCategoryValues: typeCategories.map(cat => cat.categoryValue) };
+    });
+    setServiceTypes(objs);
+  };
+
+  const handleLogout = async () => {
+    try {
+      const guestSlides = StorageService.getGuestSlides();
+      if (guestSlides?.length) {
+        try {
+          sessionStorage.setItem('sessionGuestSlides', JSON.stringify(guestSlides));
+          localStorage.setItem('preservedGuestSlides', JSON.stringify(guestSlides));
+          localStorage.setItem('guestSlides', JSON.stringify(guestSlides));
+          localStorage.setItem('lastLogoutTimestamp', Date.now().toString());
+        } catch (e) { console.error('Failed to backup slides:', e); }
+      }
+      if (isOnline) {
+        const response = await fetch(SummaryApi.logout_user.url, {
+          method: SummaryApi.logout_user.method,
+          credentials: 'include'
+        });
+        const data = await response.json();
+        if (data.success) toast.success(data.message);
+      }
+      CookieManager.clearAll();
+      StorageService.clearUserData();
+
+      const preserved = localStorage.getItem('preservedGuestSlides');
+      const sessionBackup = sessionStorage.getItem('sessionGuestSlides');
+      if (!localStorage.getItem('guestSlides')) {
+        if (preserved) localStorage.setItem('guestSlides', preserved);
+        else if (sessionBackup) localStorage.setItem('guestSlides', sessionBackup);
+      }
+
+      dispatch(logout());
+      setMenuDisplay(false);
+      setSearch('');
+      navigate("/");
+    } catch (e) {
+      console.error("Error during logout:", e);
+      toast.error("Logout failed. Please try again.");
+    }
+  };
+
+  const handleSearch = (e) => {
+    const { value } = e.target
+    setSearch(value)
+    if (value) navigate(`/search?q=${value}`)
+    else navigate("/search")
+  }
+
+  // =========================
+  // MENU ITEMS
+  // =========================
+  const menuItems = [
+    {
+      name: 'Home',
+      href: '/',
+      icon: <Home className="w-4 h-4" />
     },
     {
-      id: 2,
-      name: 'Priya Sharma',
-      email: 'priya.sharma@email.com',
-      phone: '+91 87654 32109',
-      status: 'approved',
-      submittedAt: '2025-08-14T14:20:00Z',
-      documents: {
-        idDocument: {
-          type: 'Pan Card',
-          url: '/api/placeholder/400/300',
-          status: 'approved'
+      name: 'Services',
+      dropdown: [
+        {
+          category: 'Development Services',
+          items: [
+            {
+              name: 'Website Development',
+              href: '/product-category?category=website-development',
+              desc: 'Custom Website Plans for Your Business',
+              subCategories: [
+                { name: 'College Website', href: '/product-category?category=college-website' },
+                { name: 'Educational Website', href: '/product-category?category=educational-website' },
+                { name: 'Local Service Website', href: '/product-category?category=local-service-website' },
+                { name: 'Portfolio Website', href: '/product-category?category=portfolio-website' },
+                { name: 'Restaurant Website', href: '/product-category?category=restaurant-website' }
+              ]
+            },
+            {
+              name: 'Mobile App Development',
+              href: '/product-category?category=mobile-app-development',
+              desc: 'iOS & Android App Development',
+              subCategories: [
+                { name: 'iOS App Development', href: '/product-category?category=ios-app-development' },
+                { name: 'Android App Development', href: '/product-category?category=android-app-development' },
+                { name: 'Hybrid App Development', href: '/product-category?category=hybrid-app-development' },
+                { name: 'Custom Mobile Solutions', href: '/product-category?category=custom-mobile-solutions' }
+              ]
+            },
+            {
+              name: 'Cloud Software Development',
+              href: '/product-category?category=cloud-software-development',
+              desc: 'Software to Automate Your Business',
+              subCategories: [
+                { name: 'SaaS Development', href: '/product-category?category=saas-development' },
+                { name: 'CRM Solutions', href: '/product-category?category=crm-solutions' },
+                { name: 'ERP Systems', href: '/product-category?category=erp-systems' },
+                { name: 'Cloud Migration', href: '/product-category?category=cloud-migration' }
+              ]
+            },
+            {
+              name: 'Feature Upgrades',
+              href: '/product-category?category=feature-upgrades',
+              desc: 'Add Features to Existing Projects',
+              subCategories: [
+                { name: 'Performance Optimization', href: '/product-category?category=performance-optimization' },
+                { name: 'Security Enhancements', href: '/product-category?category=security-enhancements' },
+                { name: 'UI/UX Improvements', href: '/product-category?category=ui-ux-improvements' },
+                { name: 'New Feature Integration', href: '/product-category?category=new-feature-integration' }
+              ]
+            }
+          ]
         },
-        addressProof: {
-          type: 'Bank Statement',
-          url: '/api/placeholder/400/300',
-          status: 'approved'
-        },
-        selfie: {
-          url: '/api/placeholder/300/400',
-          status: 'approved'
-        }
-      }
+      ]
     },
     {
-      id: 3,
-      name: 'Amit Patel',
-      email: 'amit.patel@email.com',
-      phone: '+91 76543 21098',
-      status: 'rejected',
-      submittedAt: '2025-08-13T09:15:00Z',
-      rejectionReasons: ['Document unclear', 'Address proof expired'],
-      documents: {
-        idDocument: {
-          type: 'Driving License',
-          url: '/api/placeholder/400/300',
-          status: 'rejected'
+      name: 'Solutions',
+      dropdown: [
+        {
+          category: 'Software Solutions',
+          items: [
+            { name: 'Customer Relation Management', href: '/solutions?type=crm' },
+            { name: 'Complaint Management', href: '/solutions?type=complaint-management' },
+            { name: 'Laptop/Mobile Repair Registration', href: '/solutions?type=laptop-mobile-repair-registration' },
+            { name: 'Partner and Service Management', href: '/solutions?type=partner-service-management' }
+          ]
         },
-        addressProof: {
-          type: 'Rent Agreement',
-          url: '/api/placeholder/400/300',
-          status: 'rejected'
-        },
-        selfie: {
-          url: '/api/placeholder/300/400',
-          status: 'approved'
+        {
+          category: 'IT Solutions',
+          items: [
+            { name: 'Security Alarm & Theft Prevention', href: '/solutions?industry=security-alarm-theft-prevention' },
+            { name: 'Parking Management System', href: '/solutions?industry=parking-management-system' },
+            { name: 'Automatic Main Gates', href: '/solutions?industry=automatic-main-gates' },
+            { name: 'Fire Hydrant & Alarms', href: '/solutions?industry=fire-hydrant-alarms' }
+          ]
         }
-      }
+      ]
+    },
+    {
+      name: 'Resources',
+      dropdown: [
+        {
+          category: 'Learn & Support',
+          items: [
+            { name: 'Blog', href: '/blog' },
+            { name: 'Documentation', href: '/docs' },
+            { name: 'Tutorials', href: '/tutorials' },
+            { name: 'FAQ', href: '/faq' }
+          ]
+        }
+      ]
+    },
+    {
+      name: 'Company',
+      dropdown: [
+        {
+          category: 'About',
+          items: [
+            { name: 'About Us', href: '/about' },
+            { name: 'Our Team', href: '/team' }
+          ]
+        },
+        {
+          category: 'Legal',
+          items: [
+            { name: 'Terms & Conditions', href: '/terms' },
+            { name: 'Privacy Policy', href: '/privacy' },
+            { name: 'Cookie Policy', href: '/cookies' }
+          ]
+        }
+      ]
+    },
+    {
+      name: 'Contact',
+      href: '/contact'
     }
-  ]);
+  ];
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
-      case 'approved': return 'text-green-600 bg-green-100';
-      case 'rejected': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+  // Hover handlers
+  const handleMouseEnter = (index) => {
+    if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
+    setActiveDropdown(index);
+
+    // Initialize Services right-pane with first service by default
+    if (menuItems[index].name === 'Services') {
+      const firstServiceItem = menuItems[index].dropdown[0]?.items[0];
+      setActiveServiceSubCategory(firstServiceItem?.subCategories || null);
+      setHoveredServiceItemName(firstServiceItem?.name || null);
+    } else {
+      setActiveServiceSubCategory(null);
+      setHoveredServiceItemName(null);
+    }
+
+    if (menuItems[index].name === 'Solutions' || menuItems[index].name === 'Company') {
+      setActiveCategoryByMenu(prev => ({ ...prev, [index]: 0 }));
     }
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'pending': return <Clock className="w-4 h-4" />;
-      case 'approved': return <Check className="w-4 h-4" />;
-      case 'rejected': return <X className="w-4 h-4" />;
-      default: return <AlertTriangle className="w-4 h-4" />;
+  const handleMouseLeave = () => {
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+      setActiveServiceSubCategory(null);
+      setHoveredServiceItemName(null);
+    }, 200);
+  };
+
+  const handleServiceItemMouseEnter = (serviceItem) => {
+    if (serviceItem.subCategories) {
+      setActiveServiceSubCategory(serviceItem.subCategories);
+      setHoveredServiceItemName(serviceItem.name);
+    } else {
+      setActiveServiceSubCategory(null);
+      setHoveredServiceItemName(null);
     }
   };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const handleApprove = (userId) => {
-    setUsers(users.map(user => 
-      user.id === userId 
-        ? { ...user, status: 'approved' }
-        : user
-    ));
-    setSelectedUser(null);
+  const handleMobileMenuItemClick = (index, hasDropdown) => {
+    if (hasDropdown) setActiveDropdown(activeDropdown === index ? null : index);
+    else {
+      setMobileMenuOpen(false);
+      setActiveDropdown(null);
+    }
   };
 
-  const handleReject = () => {
-    const reasons = [];
-    if (rejectReason.document) reasons.push('ID Document issue');
-    if (rejectReason.address) reasons.push('Address proof issue');
-    if (rejectReason.selfie) reasons.push('Selfie issue');
-    if (rejectReason.customReason) reasons.push(rejectReason.customReason);
-
-    setUsers(users.map(user => 
-      user.id === selectedUser.id 
-        ? { ...user, status: 'rejected', rejectionReasons: reasons }
-        : user
-    ));
-    
-    setShowRejectModal(false);
-    setSelectedUser(null);
-    setRejectReason({ document: false, address: false, selfie: false, customReason: '' });
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString('en-IN');
+  const setActiveLeftPane = (menuIndex, catIndex) => {
+    setActiveCategoryByMenu(prev => ({ ...prev, [menuIndex]: catIndex }));
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-4">
-            <h1 className="text-2xl font-bold text-gray-900">KYC Admin Panel</h1>
-            <p className="text-gray-600">Review and manage user KYC submissions</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* User List Panel */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow">
-              <div className="p-6 border-b">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">User Submissions</h2>
-                
-                {/* Search and Filter */}
-                <div className="space-y-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search by name or email..."
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  
-                  <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                  >
-                    <option value="all">All Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* User List */}
-              <div className="max-h-96 overflow-y-auto">
-                {filteredUsers.map((user) => (
-                  <div
-                    key={user.id}
-                    className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${selectedUser?.id === user.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}`}
-                    onClick={() => setSelectedUser(user)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium text-gray-900">{user.name}</h3>
-                        <p className="text-sm text-gray-600">{user.email}</p>
-                        <p className="text-xs text-gray-500">{formatDate(user.submittedAt)}</p>
-                      </div>
-                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
-                        {getStatusIcon(user.status)}
-                        <span className="ml-1 capitalize">{user.status}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Review Panel */}
-          <div className="lg:col-span-2">
-            {selectedUser ? (
-              <div className="bg-white rounded-lg shadow">
-                <div className="p-6 border-b">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900">{selectedUser.name}</h2>
-                      <p className="text-gray-600">{selectedUser.email}</p>
-                      <p className="text-sm text-gray-500">Phone: {selectedUser.phone}</p>
-                    </div>
-                    <div className={`inline-flex items-center px-3 py-2 rounded-full text-sm font-medium ${getStatusColor(selectedUser.status)}`}>
-                      {getStatusIcon(selectedUser.status)}
-                      <span className="ml-2 capitalize">{selectedUser.status}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Submitted Documents</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* ID Document */}
-                    <div className="border rounded-lg p-4">
-                      <div className="flex items-center mb-2">
-                        <FileText className="w-5 h-5 text-blue-600 mr-2" />
-                        <h4 className="font-medium text-gray-900">ID Document</h4>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">{selectedUser.documents.idDocument.type}</p>
-                      <div className="bg-gray-100 rounded-md p-3 mb-3">
-                        <img 
-                          src={selectedUser.documents.idDocument.url} 
-                          alt="ID Document"
-                          className="w-full h-32 object-cover rounded"
-                        />
-                      </div>
-                      <div className={`inline-flex items-center px-2 py-1 rounded text-xs ${getStatusColor(selectedUser.documents.idDocument.status)}`}>
-                        {getStatusIcon(selectedUser.documents.idDocument.status)}
-                        <span className="ml-1">{selectedUser.documents.idDocument.status}</span>
-                      </div>
-                    </div>
-
-                    {/* Address Proof */}
-                    <div className="border rounded-lg p-4">
-                      <div className="flex items-center mb-2">
-                        <MapPin className="w-5 h-5 text-green-600 mr-2" />
-                        <h4 className="font-medium text-gray-900">Address Proof</h4>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">{selectedUser.documents.addressProof.type}</p>
-                      <div className="bg-gray-100 rounded-md p-3 mb-3">
-                        <img 
-                          src={selectedUser.documents.addressProof.url} 
-                          alt="Address Proof"
-                          className="w-full h-32 object-cover rounded"
-                        />
-                      </div>
-                      <div className={`inline-flex items-center px-2 py-1 rounded text-xs ${getStatusColor(selectedUser.documents.addressProof.status)}`}>
-                        {getStatusIcon(selectedUser.documents.addressProof.status)}
-                        <span className="ml-1">{selectedUser.documents.addressProof.status}</span>
-                      </div>
-                    </div>
-
-                    {/* Selfie */}
-                    <div className="border rounded-lg p-4 md:col-span-2">
-                      <div className="flex items-center mb-2">
-                        <Camera className="w-5 h-5 text-purple-600 mr-2" />
-                        <h4 className="font-medium text-gray-900">Selfie Verification</h4>
-                      </div>
-                      <div className="flex justify-center mb-3">
-                        <div className="bg-gray-100 rounded-md p-3">
-                          <img 
-                            src={selectedUser.documents.selfie.url} 
-                            alt="User Selfie"
-                            className="w-32 h-40 object-cover rounded"
-                          />
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className={`inline-flex items-center px-2 py-1 rounded text-xs ${getStatusColor(selectedUser.documents.selfie.status)}`}>
-                          {getStatusIcon(selectedUser.documents.selfie.status)}
-                          <span className="ml-1">{selectedUser.documents.selfie.status}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Rejection Reasons */}
-                  {selectedUser.status === 'rejected' && selectedUser.rejectionReasons && (
-                    <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                      <h4 className="font-medium text-red-900 mb-2">Rejection Reasons:</h4>
-                      <ul className="text-sm text-red-700">
-                        {selectedUser.rejectionReasons.map((reason, index) => (
-                          <li key={index} className="flex items-center">
-                            <X className="w-3 h-3 mr-2" />
-                            {reason}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  {selectedUser.status === 'pending' && (
-                    <div className="mt-6 flex space-x-3">
-                      <button
-                        onClick={() => handleApprove(selectedUser.id)}
-                        className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
-                      >
-                        <Check className="w-4 h-4 inline mr-2" />
-                        Approve KYC
-                      </button>
-                      <button
-                        onClick={() => setShowRejectModal(true)}
-                        className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
-                      >
-                        <X className="w-4 h-4 inline mr-2" />
-                        Reject & Request Resubmission
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg shadow h-96 flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <User className="w-12 h-12 mx-auto mb-4" />
-                  <p>Select a user to review their KYC submission</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Rejection Modal */}
-      {showRejectModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Specify Rejection Reasons</h3>
-            
-            <div className="space-y-3 mb-4">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={rejectReason.document}
-                  onChange={(e) => setRejectReason({...rejectReason, document: e.target.checked})}
-                  className="mr-3"
-                />
-                ID Document Issue
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={rejectReason.address}
-                  onChange={(e) => setRejectReason({...rejectReason, address: e.target.checked})}
-                  className="mr-3"
-                />
-                Address Proof Issue
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={rejectReason.selfie}
-                  onChange={(e) => setRejectReason({...rejectReason, selfie: e.target.checked})}
-                  className="mr-3"
-                />
-                Selfie Issue
-              </label>
-            </div>
-
-            <textarea
-              placeholder="Additional comments (optional)"
-              value={rejectReason.customReason}
-              onChange={(e) => setRejectReason({...rejectReason, customReason: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent mb-4"
-              rows={3}
-            />
-
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setShowRejectModal(false)}
-                className="flex-1 border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleReject}
-                className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
-              >
-                Send Rejection
-              </button>
-            </div>
-          </div>
+    <>
+      {isRoleSwitching && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <TriangleMazeLoader />
         </div>
       )}
-    </div>
-  );
-};
 
-export default KYCAdminPanel;
+      {/* Desktop Header */}
+      <header className='hidden lg:block bg-white shadow-sm sticky top-0 z-50'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+          <div className="flex justify-between items-center h-16">
+            <Link to={"/"}>
+              <div className="flex items-center">
+                <div className="bg-gradient-to-br from-cyan-500 to-cyan-700 text-white w-10 h-10 rounded-xl flex items-center justify-center font-bold">
+                  M
+                </div>
+                <span className="ml-3 text-xl font-bold text-gray-900">MeraSoftware</span>
+              </div>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex space-x-8">
+              {menuItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="relative group main-nav-dropdown"
+                  onMouseEnter={() => handleMouseEnter(index)}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  {item.href ? (
+                    <Link to={item.href} className="text-gray-700 hover:text-emerald-600 flex items-center">
+                      {item.icon && <span className="mr-1">{item.icon}</span>}
+                      {item.name}
+                    </Link>
+                  ) : (
+                    <button className="text-gray-700 hover:text-emerald-600 flex items-center focus:outline-none">
+                      {item.name}
+                      <ChevronRight className={`ml-1 w-4 h-4 transform ${activeDropdown === index ? 'rotate-90' : ''} transition-transform`} />
+                    </button>
+                  )}
+
+                  {item.dropdown && activeDropdown === index && (
+                    <>
+                      {/* SERVICES - Updated to make main items clickable + indicator */}
+                      {item.name === 'Services' ? (
+                        <div className="absolute left-0 mt-3 bg-white rounded-lg shadow-xl ring-1 ring-gray-100 p-6 z-50">
+                          <div className="flex min-w-[640px]">
+                            {/* Left Pane (Main Service Categories and their items) */}
+                            <div className="w-56 pr-8 border-r border-gray-100">
+                              {item.dropdown.map((mainCategory, mainCatIndex) => {
+                                return (
+                                  <div key={mainCatIndex}>
+                                    <h4 className="text-sm font-semibold text-gray-500 uppercase mb-3 tracking-wide">{mainCategory.category}</h4>
+                                    <ul className="space-y-1">
+                                      {mainCategory.items.map((serviceItem, serviceItemIndex) => {
+                                        const isActiveServiceItem =
+                                          activeServiceSubCategory &&
+                                          serviceItem.subCategories === activeServiceSubCategory;
+
+                                        return (
+                                          <li key={serviceItemIndex}>
+                                            <Link
+                                              to={serviceItem.href}
+                                              onMouseEnter={() => handleServiceItemMouseEnter(serviceItem)}
+                                              className={`flex justify-between items-center text-sm font-medium py-1 ${
+                                                isActiveServiceItem ? 'text-emerald-700' : 'text-gray-800 hover:text-emerald-600'
+                                              }`}
+                                            >
+                                              {serviceItem.name}
+                                              {serviceItem.subCategories && (
+                                                <ChevronRight className="ml-2 w-4 h-4 text-gray-400" />
+                                              )}
+                                            </Link>
+                                          </li>
+                                        );
+                                      })}
+                                    </ul>
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                            {/* Right Pane (Sub-Categories of the hovered Service Item) */}
+                            <div className="flex-1 pl-8">
+                              {activeServiceSubCategory ? (
+                                <>
+                                  <h4 className="text-sm font-semibold text-gray-500 uppercase mb-3 tracking-wide">
+                                    {hoveredServiceItemName || 'Sub-Categories'}
+                                  </h4>
+                                  <ul className="space-y-2">
+                                    {activeServiceSubCategory.map((subCat, subCatIndex) => (
+                                      <li key={subCatIndex}>
+                                        <Link
+                                          to={subCat.href}
+                                          className="block text-gray-800 hover:text-emerald-600 text-sm font-medium whitespace-nowrap"
+                                        >
+                                          {subCat.name}
+                                        </Link>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </>
+                              ) : (
+                                <>
+                                  <h4 className="text-sm font-semibold text-gray-500 uppercase mb-3 tracking-wide">
+                                    {hoveredServiceItemName || 'Sub-Categories'}
+                                  </h4>
+                                  <ul className="space-y-2">
+                                    {item.dropdown[0]?.items[0]?.subCategories?.map((subCat, subCatIndex) => (
+                                      <li key={subCatIndex}>
+                                        <Link
+                                          to={subCat.href}
+                                          className="block text-gray-800 hover:text-emerald-600 text-sm font-medium whitespace-nowrap"
+                                        >
+                                          {subCat.name}
+                                        </Link>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {/* SOLUTIONS & COMPANY — styled to match Services */}
+                      {(item.name === 'Solutions' || item.name === 'Company') ? (
+                        <div className="absolute left-0 mt-3 bg-white rounded-lg shadow-xl ring-1 ring-gray-100 p-6 z-50">
+                          <div className="flex min-w-[640px]">
+                            {/* Left Pane (categories) */}
+                            <div className="w-56 pr-8 border-r border-gray-100">
+                              <h4 className="text-sm font-semibold text-gray-500 uppercase mb-3 tracking-wide">Categories</h4>
+                              <ul className="space-y-1">
+                                {item.dropdown.map((cat, catIndex) => {
+                                  const isActive = (activeCategoryByMenu[index] ?? 0) === catIndex;
+                                  return (
+                                    <li key={catIndex}>
+                                      <button
+                                        onMouseEnter={() => setActiveLeftPane(index, catIndex)}
+                                        className={`w-full text-left text-sm font-medium py-1 ${
+                                          isActive ? 'text-emerald-700' : 'text-gray-800 hover:text-emerald-600'
+                                        }`}
+                                      >
+                                        {cat.category}
+                                      </button>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            </div>
+
+                            {/* Right Pane (items) */}
+                            <div className="flex-1 pl-8">
+                              {(() => {
+                                const activeCatIndex = activeCategoryByMenu[index] ?? 0;
+                                const activeCat = item.dropdown[activeCatIndex] || item.dropdown[0];
+                                return (
+                                  <>
+                                    <h4 className="text-sm font-semibold text-gray-500 uppercase mb-3 tracking-wide">{activeCat.category}</h4>
+                                    <ul className="space-y-2">
+                                      {activeCat.items.map((subItem, subIndex) => (
+                                        <li key={subIndex}>
+                                          <Link
+                                            to={subItem.href}
+                                            className="block text-gray-800 hover:text-emerald-600 text-sm font-medium whitespace-nowrap"
+                                          >
+                                            {subItem.name}
+                                          </Link>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </>
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {/* RESOURCES — simple card */}
+                      {item.name === 'Resources' ? (
+                        <div className="absolute left-0 mt-3 w-max bg-white rounded-lg shadow-xl ring-1 ring-gray-100 p-6 grid grid-cols-1 gap-x-8 gap-y-4 z-50">
+                          {item.dropdown.map((category, catIndex) => (
+                            <div key={catIndex}>
+                              <h4 className="text-sm font-semibold text-gray-500 uppercase mb-3 tracking-wide">{category.category}</h4>
+                              <ul className="space-y-2">
+                                {category.items.map((subItem, subIndex) => (
+                                  <li key={subIndex}>
+                                    <Link to={subItem.href} className="block text-gray-800 hover:text-emerald-600 text-sm font-medium">
+                                      {subItem.name}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </>
+                  )}
+                </div>
+              ))}
+            </nav>
+
+            {/* Right Section */}
+            <div className="flex items-center space-x-3">
+              {isAuthenticated ? (
+                <>
+                  <Link to="/dashboard" className="bg-cyan-600 text-white border border-cyan-600 px-4 py-2 rounded-lg hover:bg-cyan-800 transition-colors flex gap-2">
+                    <GoArrowSwitch className='mt-1 h-5 text-lg' />
+                    Dashboard
+                  </Link>
+
+                  <div className='relative flex justify-center'>
+                    <div className='text-3xl cursor-pointer relative flex justify-center' onClick={() => setMenuDisplay(prev => !prev)}>
+                      {
+                        user?.profilePic ? (
+                          <img src={user?.profilePic} className='w-10 h-10 rounded-full object-cover' alt={user?.name} />
+                        ) : (
+                          <FaRegCircleUser className="w-10 h-10 text-gray-700" />
+                        )
+                      }
+                    </div>
+
+                    {menuDisplay && (
+                      <div className='absolute bg-white bottom-0 w-44 top-11 h-fit p-2 shadow-lg rounded' ref={userMenuRef}>
+                        <nav>
+                          {user?.role === ROLE.ADMIN && (
+                            <Link to={"/admin-panel/all-products"} className='whitespace-nowrap block hover:bg-slate-100 p-2' onClick={() => setMenuDisplay(prev => !prev)}>Admin Panel</Link>
+                          )}
+                          {user?.role === ROLE.MANAGER && (
+                            <Link to={"/manager-panel/dashboard"} className='whitespace-nowrap block hover:bg-slate-100 p-2' onClick={() => setMenuDisplay(prev => !prev)}>Manager Panel</Link>
+                          )}
+                          {user?.role === ROLE.PARTNER && (
+                            <Link to={"/partner-panel/dashboard"} className='whitespace-nowrap block hover:bg-slate-100 p-2' onClick={() => setMenuDisplay(prev => !prev)}>Partner Panel</Link>
+                          )}
+                          {user?.role === ROLE.DEVELOPER && (
+                            <Link to={"/developer-panel"} className='whitespace-nowrap block hover:bg-slate-100 p-2' onClick={() => setMenuDisplay(prev => !prev)}>Developer Panel</Link>
+                          )}
+                          <Link to={'/order'} className='whitespace-nowrap block hover:bg-slate-100 p-2' onClick={() => setMenuDisplay(prev => !prev)}>Settings</Link>
+                          <div className='p-2 hover:bg-slate-100 flex items-center gap-2'>
+                            <IoWalletOutline />
+                            <span>Balance: {displayCurrency(context.walletBalance)}</span>
+                          </div>
+                          <button onClick={handleLogout} className='w-full text-left hover:bg-slate-100 p-2'>Logout</button>
+                        </nav>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Link to="/staff-login" className="bg-white text-cyan-600 border border-cyan-600 px-4 py-2 rounded-lg hover:bg-cyan-50 transition-colors">
+                    Staff Login
+                  </Link>
+                  <Link to="/login" className="bg-cyan-600 text-white px-6 py-2 rounded-lg hover:bg-cyan-700 transition-colors">
+                    Login
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile Header */}
+      <header className="lg:hidden bg-white shadow-sm px-4 py-3 sticky top-0 z-50">
+        <div className="flex items-center justify-between">
+          <Link to={"/"}>
+            <div className="flex items-center">
+              <div className="w-8 h-8 flex items-center justify-center bg-blue-600 text-white font-bold rounded-md mr-2">M</div>
+              <span className="font-bold text-lg">MeraSoftware</span>
+            </div>
+          </Link>
+
+        <div className="flex items-center space-x-3">
+            <NotificationBell />
+            {isAuthenticated ? (
+              <div className='relative flex justify-center'>
+                <div className='text-3xl cursor-pointer relative flex justify-center' onClick={() => setMenuDisplay(prev => !prev)}>
+                  {user?.profilePic ? (
+                    <img src={user?.profilePic} className='w-8 h-8 rounded-full object-cover' alt={user?.name} />
+                  ) : (
+                    <FaRegCircleUser className="w-8 h-8 text-gray-700" />
+                  )}
+                </div>
+
+                {menuDisplay && (
+                  <div className='absolute bg-white bottom-0 w-44 top-11 h-fit p-2 shadow-lg rounded right-0' ref={userMenuRef}>
+                    <nav>
+                      {user?.role === ROLE.ADMIN && (
+                        <Link to={"/admin-panel/all-products"} className='whitespace-nowrap block hover:bg-slate-100 p-2' onClick={() => setMenuDisplay(prev => !prev)}>Admin Panel</Link>
+                      )}
+                      {user?.role === ROLE.MANAGER && (
+                        <Link to={"/manager-panel/dashboard"} className='whitespace-nowrap block hover:bg-slate-100 p-2' onClick={() => setMenuDisplay(prev => !prev)}>Manager Panel</Link>
+                      )}
+                      {user?.role === ROLE.PARTNER && (
+                        <Link to={"/partner-panel/dashboard"} className='whitespace-nowrap block hover:bg-slate-100 p-2' onClick={() => setMenuDisplay(prev => !prev)}>Partner Panel</Link>
+                      )}
+                      {user?.role === ROLE.DEVELOPER && (
+                        <Link to={"/developer-panel"} className='whitespace-nowrap block hover:bg-slate-100 p-2' onClick={() => setMenuDisplay(prev => !prev)}>Developer Panel</Link>
+                      )}
+                      <Link to={'/order'} className='whitespace-nowrap block hover:bg-slate-100 p-2' onClick={() => setMenuDisplay(prev => !prev)}>Settings</Link>
+                      <div className='p-2 hover:bg-slate-100 flex items-center gap-2'>
+                        <IoWalletOutline />
+                        <span>Balance: {displayCurrency(context.walletBalance)}</span>
+                      </div>
+                      <button onClick={handleLogout} className='w-full text-left hover:bg-slate-100 p-2'>Logout</button>
+                    </nav>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link to="/login" className="bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-cyan-700 transition-colors">Login</Link>
+            )}
+
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-gray-700 focus:outline-none">
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Search Bar */}
+        <div className="mt-3 relative">
+          <input
+            type="text"
+            placeholder="Search for services..."
+            className="w-full py-2 px-4 pr-10 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            onChange={handleSearch}
+            value={search}
+          />
+          <div className="absolute right-3 top-2.5 text-gray-400">
+            <GrSearch size={16} />
+          </div>
+        </div>
+
+        {/* Mobile Navigation Menu */}
+        {mobileMenuOpen && (
+          <div className="bg-white shadow-lg py-4 px-4 sm:px-6 mt-3">
+            <nav className="flex flex-col space-y-2">
+              {menuItems.map((item, index) => (
+                <div key={index}>
+                  {item.href ? (
+                    <Link to={item.href} className="block text-gray-700 hover:text-emerald-600 py-2 px-3 rounded-lg flex items-center" onClick={() => setMobileMenuOpen(false)}>
+                      {item.icon && <span className="mr-2">{item.icon}</span>}
+                      {item.name}
+                    </Link>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => handleMobileMenuItemClick(index, true)}
+                        className="w-full text-left text-gray-700 hover:text-emerald-600 py-2 px-3 rounded-lg flex items-center justify-between"
+                      >
+                        {item.name}
+                        <ChevronRight className={`w-4 h-4 transform ${activeDropdown === index ? 'rotate-90' : ''} transition-transform`} />
+                      </button>
+                      {activeDropdown === index && (
+                        <div className="ml-4 mt-2 space-y-2">
+                          {/* Mobile Services Dropdown - Simplified for mobile */}
+                          {item.name === 'Services' ? (
+                            item.dropdown.map((mainCategory, mainCatIndex) => (
+                              <div key={mainCatIndex}>
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase mb-1">{mainCategory.category}</h4>
+                                <ul className="space-y-1">
+                                  {mainCategory.items.map((serviceItem, serviceItemIndex) => (
+                                    <li key={serviceItemIndex}>
+                                      <Link to={serviceItem.href} className="block text-gray-800 hover:text-emerald-600 text-sm py-1 px-2 rounded-md" onClick={() => setMobileMenuOpen(false)}>
+                                        {serviceItem.name}
+                                      </Link>
+                                      {serviceItem.subCategories && (
+                                        <ul className="ml-4 mt-1 space-y-0.5">
+                                          {serviceItem.subCategories.map((subCat, subCatIndex) => (
+                                            <li key={subCatIndex}>
+                                              <Link to={subCat.href} className="block text-gray-600 hover:text-emerald-500 text-xs py-0.5 px-1 rounded-md" onClick={() => setMobileMenuOpen(false)}>
+                                                {subCat.name}
+                                              </Link>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      )}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))
+                          ) : (
+                            item.dropdown.map((category, catIndex) => (
+                              <div key={catIndex}>
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase mb-1">{category.category}</h4>
+                                <ul className="space-y-1">
+                                  {category.items.map((subItem, subIndex) => (
+                                    <li key={subIndex}>
+                                      <Link to={subItem.href} className="block text-gray-800 hover:text-emerald-600 text-sm py-1 px-2 rounded-md" onClick={() => setMobileMenuOpen(false)}>
+                                        {subItem.name}
+                                      </Link>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              ))}
+              {isAuthenticated && (
+                <button onClick={handleLogout} className='w-full text-left text-gray-700 hover:text-emerald-600 py-2 px-3 rounded-lg flex items-center'>
+                  Logout
+                </button>
+              )}
+            </nav>
+          </div>
+        )}
+      </header>
+
+      <LoginPopup isOpen={showLoginPopup} onClose={() => setShowLoginPopup(false)} />
+    </>
+  )
+}
+
+export default Header;

@@ -1,3 +1,4 @@
+// src/pages/Blog.js
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { POSTS } from "../data/posts";
@@ -79,6 +80,49 @@ function EmptyState({ query }) {
   );
 }
 
+/* ---------- Content helpers for Featured ---------- */
+const FALLBACK_TAKEAWAYS = [
+  "Compare UI quality, performance, and SEO basics before shortlisting.",
+  "Prefer transparent pricing and clear after-sales commitments.",
+  "Check real portfolio depth, not just homepage visuals.",
+];
+
+const FALLBACK_CHECKLIST = [
+  "Mobile speed ≥ 85 (Lighthouse) & clean code.",
+  "Clear scope, timelines, and change policy.",
+  "Post-launch support (bug fixes, security updates).",
+];
+
+function deriveTakeaways(post) {
+  // If you later add post.keyPoints in posts.js, we’ll use it automatically.
+  if (post?.keyPoints && Array.isArray(post.keyPoints) && post.keyPoints.length) {
+    return post.keyPoints.slice(0, 3);
+  }
+  // Light category-based flavour
+  if (post?.category?.toLowerCase().includes("buyer")) {
+    return [
+      "Define must-have features vs. nice-to-have to avoid scope creep.",
+      "Shortlist vendors who ship custom code and provide ownership.",
+      "Use a written checklist to compare options fairly.",
+    ];
+  }
+  return FALLBACK_TAKEAWAYS;
+}
+
+function deriveChecklist(post) {
+  if (post?.checklist && Array.isArray(post.checklist) && post.checklist.length) {
+    return post.checklist.slice(0, 3);
+  }
+  if (post?.category?.toLowerCase().includes("web")) {
+    return [
+      "Responsive across devices & browsers.",
+      "On-page SEO (meta, schema, clean URLs).",
+      "Security basics (HTTPS, updates, backups).",
+    ];
+  }
+  return FALLBACK_CHECKLIST;
+}
+
 /* ---------- Main Page ---------- */
 function Blog() {
   const [query, setQuery] = useState("");
@@ -104,6 +148,8 @@ function Blog() {
   }, [query, category, sort]);
 
   const featured = filtered[0];
+  const takeaways = featured ? deriveTakeaways(featured) : [];
+  const checklist = featured ? deriveChecklist(featured) : [];
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -166,14 +212,16 @@ function Blog() {
         </div>
       </div>
 
-      {/* Featured */}
+      {/* Featured — ENRICHED CONTENT */}
       {featured && (
         <section className="mx-auto max-w-6xl px-4 py-8">
           <div className="grid items-stretch gap-6 lg:grid-cols-[1.15fr_1fr]">
-            <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
+            {/* Left: Tall, self-contained featured card with extra content */}
+            <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200 h-full flex flex-col">
+              {/* Image + title overlay */}
               <div className="relative">
-                <img src={featured.image} alt="" className="h-64 w-full object-cover sm:h-80" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                <img src={featured.image} alt="" className="h-72 w-full object-cover sm:h-80" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
                   <span className="mb-2 inline-block rounded bg-white/90 px-2.5 py-1 text-xs font-medium text-teal-800 ring-1 ring-teal-200">
                     {featured.category}
@@ -183,12 +231,75 @@ function Blog() {
                   </h2>
                 </div>
               </div>
-              <div className="flex items-center justify-between px-5 pb-5 pt-3 text-sm text-slate-600 sm:px-6">
-                <span>Updated: {formatDate(featured.date)}</span>
-                <span>{featured.readingTime} min read</span>
+
+              {/* NEW: rich content block */}
+              <div className="px-5 py-5 sm:px-6 sm:py-6 space-y-4">
+                <p className="text-slate-700">
+                  {featured.excerpt || "Discover who’s building the best-performing, most reliable software websites in Amritsar—and how to choose objectively."}
+                </p>
+
+                {/* Key takeaways */}
+                <div>
+                  <h4 className="mb-2 text-sm font-semibold text-slate-900">Key takeaways</h4>
+                  <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
+                    {takeaways.map((t, i) => (
+                      <li key={i}>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Quick checklist */}
+                {/* <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <h4 className="mb-2 text-sm font-semibold text-slate-900">Quick checklist</h4>
+                  <ul className="space-y-1 text-sm text-slate-700">
+                    {checklist.map((c, i) => (
+                      <li key={i}>✅ {c}</li>
+                    ))}
+                  </ul>
+                </div> */}
+
+                {/* Quick facts */}
+                {/* <div className="grid grid-cols-2 gap-3 text-xs text-slate-600 sm:grid-cols-3">
+                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                    <div className="font-semibold text-slate-800">Updated</div>
+                    <div>{formatDate(featured.date)}</div>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                    <div className="font-semibold text-slate-800">Reading time</div>
+                    <div>{featured.readingTime} min</div>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                    <div className="font-semibold text-slate-800">Category</div>
+                    <div>{featured.category}</div>
+                  </div>
+                </div> */}
+
+                {/* Tags */}
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">
+                    Roundup
+                  </span>
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
+                    Web Design
+                  </span>
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
+                    Amritsar
+                  </span>
+                </div>
+              </div>
+
+              {/* Meta + CTA pinned to bottom */}
+              <div className="mt-auto flex items-center justify-between border-t border-slate-200 px-5 pb-5 pt-3 text-sm text-slate-600 sm:px-6">
+                <span>By {featured.author} • {featured.readingTime} min read</span>
+                <ArticleLink to={`/blog/${featured.slug}`}>
+                  <span className="rounded-lg bg-teal-600 px-3 py-2 font-semibold text-white hover:bg-teal-700">
+                    Read article →
+                  </span>
+                </ArticleLink>
               </div>
             </div>
 
+            {/* Right: Two standard cards */}
             <div className="grid gap-5">
               {filtered.slice(1, 3).map((post) => (
                 <ArticleCard key={post.id} post={post} />
