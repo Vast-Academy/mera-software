@@ -1,386 +1,301 @@
-import React from 'react';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import React from "react";
+import {
+  ShieldCheck,
+  Users,
+  Briefcase,
+  PhoneCall,
+  Mail,
+  ArrowRight,
+  Quote,
+  Crown,
+  MonitorSmartphone,
+  Code2,
+  Megaphone,
+  Star,
+} from "lucide-react";
 
-const DeliveryPolicyPage = () => {
-  // Reference to the content for PDF export
-  const contentRef = React.useRef(null);
-  
-  // Function to generate and download PDF
-  const downloadPDF = async () => {
-    const content = contentRef.current;
-    if (!content) return;
-    
-    try {
-      // Show loading state
-      const button = document.getElementById('download-btn');
-      const originalText = button.textContent;
-      button.textContent = 'Generating PDF...';
-      button.disabled = true;
-      
-      // Use html2canvas to capture the content
-      const canvas = await html2canvas(content, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        letterRendering: true,
-      });
-      
-      // Calculate dimensions for A4 format
-      const imgWidth = 210;
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-      
-      // Create PDF document
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
-      
-      // Handle multiple pages if needed
-      if (imgHeight > pdf.internal.pageSize.height) {
-        let heightLeft = imgHeight;
-        let position = 0;
-        const pageHeight = pdf.internal.pageSize.height;
-        
-        while (heightLeft > 0) {
-          position = heightLeft - imgHeight;
-          pdf.addPage();
-          pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
-          heightLeft -= pageHeight;
-        }
-      }
-      
-      // Save the PDF
-      pdf.save('Delivery_Policy.pdf');
-      
-      // Reset button state
-      button.textContent = originalText;
-      button.disabled = false;
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
-      
-      // Reset button on error
-      const button = document.getElementById('download-btn');
-      if (button) {
-        button.textContent = 'Download PDF Copy';
-        button.disabled = false;
-      }
-    }
-  };
+// NOTE: TailwindCSS required. Structure unchanged; only content + images updated.
 
-  return (
-    <div className="min-h-screen">
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        {/* Main content container with reference for PDF export */}
-        <div ref={contentRef} className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
-          {/* Header */}
-          <div className="bg-green-700 py-6 px-8">
-            <h1 className="text-3xl font-bold text-white">Delivery Policy</h1>
-            <p className="mt-2 text-green-100">Last updated: March 14, 2025</p>
-          </div>
-          
-          {/* Introduction */}
-          <div className="py-8 px-8">
-            <div className="text-gray-600 leading-relaxed mb-8">
-              <p>
-                We follow a structured and transparent process for delivering software, websites, and mobile applications to ensure a smooth experience for our clients. Below are the key aspects of our delivery policy:
-              </p>
-            </div>
-            
-            {/* Section 1 */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-800 mr-3">1</span>
-                Project Completion and Deployment
-              </h2>
-              <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
-                <p>
-                  Before handing over the project, we ensure that the software is 100% complete and fully tested. The final deployment is done as per the agreed terms, ensuring the system is functional and ready for use. The deployment may include:
-                </p>
-                <ul className="mt-3 space-y-2">
-                  <li className="flex items-start">
-                    <div className="flex-shrink-0 w-5 h-5 mt-1">
-                      <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <span className="ml-2">Hosting the website or application on the client's preferred server.</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="flex-shrink-0 w-5 h-5 mt-1">
-                      <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <span className="ml-2">Configuring the necessary settings to ensure optimal performance.</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="flex-shrink-0 w-5 h-5 mt-1">
-                      <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <span className="ml-2">Providing live access to the system for the client.</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            
-            {/* Section 2 */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-800 mr-3">2</span>
-                Handover of Credentials and Assets
-              </h2>
-              <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
-                <p>
-                  Once the project is successfully deployed, we provide the client with all essential credentials and assets, including:
-                </p>
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-5 gap-3">
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex flex-col items-center">
-                    <svg className="w-8 h-8 text-green-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                    </svg>
-                    <span className="text-sm text-center font-medium">Source Code</span>
-                  </div>
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex flex-col items-center">
-                    <svg className="w-8 h-8 text-green-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                    </svg>
-                    <span className="text-sm text-center font-medium">Server Logins</span>
-                  </div>
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex flex-col items-center">
-                    <svg className="w-8 h-8 text-green-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                    </svg>
-                    <span className="text-sm text-center font-medium">Domain Details</span>
-                  </div>
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex flex-col items-center">
-                    <svg className="w-8 h-8 text-green-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-                    </svg>
-                    <span className="text-sm text-center font-medium">Database Access</span>
-                  </div>
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex flex-col items-center">
-                    <svg className="w-8 h-8 text-green-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span className="text-sm text-center font-medium">Documentation</span>
-                  </div>
-                </div>
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-100">
-                  <p className="text-green-800">
-                    <strong>Note:</strong> If the project uses shared storage, we do not provide access to shared storage due to security and privacy reasons. If the client uses their own storage, third-party service, or hosting provider, we will handover all data to them accordingly. Otherwise, all other project-related assets will be handed over as per the agreement. At this stage, the client gets full ownership of the delivered product.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Section 3 */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-800 mr-3">3</span>
-                Post-Delivery Modifications and Updates
-              </h2>
-              <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
-                <p>
-                  After the project is delivered, if the client wants any updates, feature additions, or modifications in the future, we proceed based on the new requirements. Key points regarding future modifications:
-                </p>
-                <div className="mt-4 space-y-3">
-                  <div className="flex">
-                    <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-800 font-medium text-sm">
-                      1
-                    </div>
-                    <p className="ml-3">We only work on new modifications based on the data provided by the client at that time.</p>
-                  </div>
-                  <div className="flex">
-                    <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-800 font-medium text-sm">
-                      2
-                    </div>
-                    <p className="ml-3">We do not store or retain any user data after project handover.</p>
-                  </div>
-                  <div className="flex">
-                    <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-800 font-medium text-sm">
-                      3
-                    </div>
-                    <p className="ml-3">Clients are free to get modifications done from us or any other service provider of their choice.</p>
-                  </div>
-                  <div className="flex">
-                    <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-800 font-medium text-sm">
-                      4
-                    </div>
-                    <p className="ml-3">There is no binding agreement forcing the client to work only with us after delivery.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Section 4 */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-800 mr-3">4</span>
-                Client's Independence and Freedom
-              </h2>
-              <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
-                <p>
-                  Our delivery policy ensures that the client has complete freedom to manage their project after deployment. They are not restricted to work with us for future updates, and we provide all necessary access to help them maintain their software independently.
-                </p>
-                <div className="mt-4 flex items-center justify-center">
-                  <div className="py-6 px-6 bg-gray-50 rounded-xl max-w-lg">
-                    <div className="flex items-center justify-center mb-4">
-                      <svg className="w-12 h-12 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
-                      </svg>
-                    </div>
-                    <p className="text-center text-gray-700 font-medium">
-                      By following this structured delivery process, we ensure complete transparency and client satisfaction.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* New Section 5 - Software Usage Rights */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-800 mr-3">5</span>
-                Software Usage Rights
-              </h2>
-              <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
-                <p>
-                  After delivering the software to the client, they have full rights to use and sell the software according to the terms defined in the contract. The client becomes the owner of the specific software functionality they have received.
-                </p>
-                <div className="mt-4 space-y-3">
-                  <div className="flex">
-                    <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-800 font-medium text-sm">
-                      1
-                    </div>
-                    <p className="ml-3">Clients can use the delivered software to automate their business processes as intended.</p>
-                  </div>
-                  <div className="flex">
-                    <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-800 font-medium text-sm">
-                      2
-                    </div>
-                    <p className="ml-3">Clients have the right to sell the software to any third party if they wish to do so.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* New Section 6 - Intellectual Property */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-800 mr-3">6</span>
-                Intellectual Property and System Implementation
-              </h2>
-              <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
-                <p>
-                  Our development approach focuses on creating automated systems that make users' tasks easier and more efficient. While we deliver full functionality to our clients, certain aspects of our development methodology remain our intellectual property.
-                </p>
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-100">
-                  <p className="text-green-800">
-                    <strong>Important:</strong> The system understanding, techniques, and implementation methodologies used in our software development process remain our intellectual property. When we provide source code to a client, it does not mean we have transferred our understanding of the work systems or the copyrights to the implementation techniques.
-                  </p>
-                </div>
-                <div className="mt-4 space-y-3">
-                  <div className="flex">
-                    <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-800 font-medium text-sm">
-                      1
-                    </div>
-                    <p className="ml-3">The client only owns the specific functionality of their software that was delivered to them.</p>
-                  </div>
-                  <div className="flex">
-                    <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-800 font-medium text-sm">
-                      2
-                    </div>
-                    <p className="ml-3">The client cannot challenge us for using similar systems or methodologies in our other software or SaaS products.</p>
-                  </div>
-                  <div className="flex">
-                    <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-800 font-medium text-sm">
-                      3
-                    </div>
-                    <p className="ml-3">The software is developed keeping in mind the client's requirements with a focus on automation and efficiency.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* New Section 7 - System Reuse and Intellectual Property Rights */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-800 mr-3">7</span>
-                System Reuse and Intellectual Property Rights
-              </h2>
-              <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
-                <p>
-                  We believe in clarifying the distinction between the delivered software and our underlying methodologies to ensure transparency in our business relationships.
-                </p>
-                
-                <div className="mt-4 space-y-3">
-                  <div className="flex">
-                    <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-800 font-medium text-sm">
-                      1
-                    </div>
-                    <p className="ml-3"><strong>System vs. Implementation Clarification:</strong> While we provide source code and credentials to the client, the system design, architecture, and implementation methodology remain our intellectual property.</p>
-                  </div>
-                  <div className="flex">
-                    <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-800 font-medium text-sm">
-                      2
-                    </div>
-                    <p className="ml-3"><strong>Pre-existing Work:</strong> Systems and methodologies developed by us prior to or during the project are considered our pre-existing work, over which we retain full rights.</p>
-                  </div>
-                  <div className="flex">
-                    <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-800 font-medium text-sm">
-                      3
-                    </div>
-                    <p className="ml-3"><strong>Right to Create Similar Products:</strong> We explicitly retain the right to create software or SaaS products with similar functionality, using the same architecture, workflow, or system design.</p>
-                  </div>
-                  <div className="flex">
-                    <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-800 font-medium text-sm">
-                      4
-                    </div>
-                    <p className="ml-3"><strong>Fairness Clause:</strong> The software delivered to the client is limited to that specific implementation and does not extend to the underlying system design or methodology.</p>
-                  </div>
-                  <div className="flex">
-                    <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-800 font-medium text-sm">
-                      5
-                    </div>
-                    <p className="ml-3"><strong>Right to Reuse:</strong> We may reuse system components, portions of code, or system architecture in future projects. This includes the right to develop and launch similar SaaS products even after delivering a custom software solution to a client.</p>
-                  </div>
-                </div>
-                
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-100">
-                  <p className="text-green-800">
-                    <strong>Declaration:</strong> Even when we have delivered all credentials and source code to the client, and we no longer possess any of their data, the client cannot challenge our right to use the same base working or system architecture in our own SaaS products or other client projects. Our understanding of the system and implementation methods remains our exclusive intellectual property.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Last updated date */}
-            <div className="mt-10 pt-6 border-t border-gray-200">
-              <div className="text-gray-500 text-sm">
-                Last updated: March 14, 2025
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* PDF Download button outside the main content */}
-        <div className="flex justify-center">
-          <button 
-            id="download-btn"
-            onClick={downloadPDF}
-            className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Download PDF Copy
-          </button>
-        </div>
+const people = [
+  {
+    name: "Sandeep Singh",
+    title: "Director",
+    image: "/images/team/sandeep-singh-director.png", // ensure exists
+    tags: ["Responsible", "Serious", "Client-first"],
+    focus: "Planning, UX/UI, delivery oversight",
+  },
+  {
+    name: "Jasmeet Kaur",
+    title: "Full-Stack Developer",
+    image: "/images/team/jasmeet-kaur-laptop.png", // ensure exists
+    tags: ["Clean Code", "Reliable", "Secure"],
+    focus: "Web apps, integrations, automation",
+  },
+  {
+    name: "Sanmeet",
+    title: "Digital Marketing & SEO",
+    image: "/images/team/sanmeet-blazer.jpeg", // ensure exists
+    tags: ["ROI Focus", "Data-Driven", "Growth"],
+    focus: "SEO, GBP, performance marketing",
+  },
+];
+
+// UPDATED: role headings + descriptions tailored for Mera Software
+const restOfTeam = [
+  {
+    name: "Deployment & Integration",
+    desc:
+      "Tailored setup for your workflows, secure data migration, and smooth handover with team training.",
+    image: "/images/team/deployment-integration.png",
+  },
+  {
+    name: "Client Success & Support",
+    desc:
+      "Real after-sales care: updates, bug fixes, SLA tracking, and quick resolutions—so you’re never stuck.",
+    image: "/images/team/client-success-support.png",
+  },
+  {
+    name: "Quality & Reliability",
+    desc:
+      "Manual + automated testing for performance, security, and long-term uptime you can trust.",
+    image: "/images/team/quality-reliability.png",
+  },
+];
+
+
+const Badge = ({ children }) => (
+  <span className="px-2 py-0.5 text-xs rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">
+    {children}
+  </span>
+);
+
+const Section = ({ title, subtitle, icon: Icon, children }) => (
+  <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="flex items-center gap-3 mb-6">
+      {Icon && (
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-700">
+          <Icon className="h-5 w-5" />
+        </span>
+      )}
+      <div>
+        <h2 className="text-2xl md:text-3xl font-semibold text-gray-900">{title}</h2>
+        {subtitle && <p className="text-gray-600 mt-1 max-w-3xl">{subtitle}</p>}
       </div>
     </div>
-  );
-};
+    {children}
+  </section>
+);
 
-export default DeliveryPolicyPage;
+export default function OurTeamPage() {
+  return (
+    <div className="min-h-screen bg-gray-50 text-gray-900">
+      {/* ============== HERO ============== */}
+      <header className="relative overflow-hidden">
+        {/* Brand gradient tint (lighter so photo shows through) */}
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-600 via-cyan-500 to-emerald-400 opacity-60" />
+
+        {/* Lightened background photo */}
+        <img
+          src="/images/team/team-hero.png"
+          alt="Software team collaboration"
+          className="
+            absolute inset-0 w-full h-full object-cover
+            object-center md:object-[center_35%] opacity-35
+          "
+          fetchpriority="high"
+          decoding="async"
+        />
+
+        {/* Soft contrast overlay for legibility (stronger on mobile) */}
+        <div className="absolute inset-0 bg-black/30 md:bg-black/20" aria-hidden="true" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-28">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur px-3 py-1 rounded-full text-white text-sm">
+              <ShieldCheck className="h-4 w-4" /> Trusted team focused on after-sales
+            </div>
+            <h1 className="mt-4 text-3xl md:text-5xl font-bold text-white leading-tight drop-shadow-[0_1px_1px_rgba(0,0,0,0.35)]">
+              Meet the Team Behind{" "}
+              <span className="whitespace-nowrap underline decoration-white/50">
+                MeraSoftware
+              </span>
+            </h1>
+            <p className="mt-3 text-white/90 text-base md:text-lg">
+              We build exclusive, coding-based software—then stand with you after launch with
+              real support and quick updates.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      {/* ============== DIRECTOR SPOTLIGHT & MESSAGE ============== */}
+      <Section
+        title="Director’s Message"
+        subtitle="Our promise is simple: real after-sales support. We don’t just deliver and disappear—when you need updates or changes, we stay reachable and accountable."
+        icon={Crown}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="flex items-start gap-4">
+              <img
+                src={people[0].image}
+                alt={people[0].name}
+                className="h-20 w-20 rounded-2xl object-cover"
+              />
+              <div>
+                <h3 className="text-xl font-semibold">{people[0].name}</h3>
+                <p className="text-sm text-gray-600">{people[0].title}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {people[0].tags.map((t) => (
+                    <Badge key={t}>{t}</Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="mt-5 relative">
+              <Quote className="absolute -left-2 -top-2 h-6 w-6 text-cyan-400" />
+              <p className="pl-6 text-gray-700 leading-relaxed">
+                “We treat every project with long-term responsibility. Once your system goes
+                live, the real work starts—so we’ve built support, maintenance, and quick update
+                workflows to keep your business moving.”
+              </p>
+            </div>
+            <div className="mt-5 flex flex-col sm:flex-row gap-3">
+              <a
+                href="#contact"
+                className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-cyan-600 text-white hover:bg-cyan-700"
+              >
+                <PhoneCall className="h-4 w-4 mr-2" /> Talk to the Director
+              </a>
+              <a
+                href="/contact-us"
+                className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-white text-cyan-700 border border-cyan-200 hover:bg-cyan-50"
+              >
+                <Mail className="h-4 w-4 mr-2" /> Contact Us
+              </a>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-white to-cyan-50 rounded-2xl border border-cyan-100 p-6">
+            <h4 className="font-semibold text-gray-900 mb-2">Our Commitment</h4>
+            <ul className="space-y-3 text-sm text-gray-700">
+              <li className="flex items-start gap-2">
+                <ShieldCheck className="h-4 w-4 mt-0.5" />
+                After-sales support with SLAs
+              </li>
+              <li className="flex items-start gap-2">
+                <Users className="h-4 w-4 mt-0.5" />
+                Dedicated success manager
+              </li>
+              <li className="flex items-start gap-2">
+                <Star className="h-4 w-4 mt-0.5" />
+                Proactive updates &amp; health checks
+              </li>
+              <li className="flex items-start gap-2">
+                <ArrowRight className="h-4 w-4 mt-0.5" />
+                Clear escalation paths
+              </li>
+            </ul>
+          </div>
+        </div>
+      </Section>
+
+      {/* ============== CORE LEADERSHIP ============== */}
+      <Section
+        title="Core Leadership"
+        subtitle="Serious professionals who own outcomes and stay accountable."
+        icon={Users}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {people.map((p, idx) => (
+            <article
+              key={p.name}
+              className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"
+            >
+              {/* Uniform photo area — same size & crop for all */}
+              <div className="h-72 w-full overflow-hidden bg-gray-50">
+                <img
+                  src={p.image}
+                  alt={p.name}
+                  className="h-full w-full object-cover object-center"
+                />
+              </div>
+
+              <div className="p-5">
+                <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                  {idx === 0 && <MonitorSmartphone className="h-4 w-4" />}
+                  {idx === 1 && <Code2 className="h-4 w-4" />}
+                  {idx === 2 && <Megaphone className="h-4 w-4" />}
+                  <span>{p.title}</span>
+                </div>
+                <h3 className="text-lg font-semibold">{p.name}</h3>
+                <p className="mt-1 text-sm text-gray-600">Focus: {p.focus}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {p.tags.map((t) => (
+                    <Badge key={t}>{t}</Badge>
+                  ))}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </Section>
+
+      {/* ============== THE REST OF OUR TEAM ============== */}
+      <Section
+        title="The Team Behind the Scenes"
+        subtitle="A disciplined crew that keeps delivery smooth and support responsive—built for Mera Software clients."
+        icon={Briefcase}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {restOfTeam.map((t) => (
+            <div
+              key={t.name}
+              className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"
+            >
+              <img src={t.image} alt={t.name} className="h-44 w-full object-cover" />
+              <div className="p-5">
+                <h4 className="font-semibold">{t.name}</h4>
+                <p className="text-sm text-gray-600 mt-1">{t.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ============== CTA ============== */}
+      <Section
+        title="Ready to work with a responsible, serious team?"
+        subtitle="Let’s align on your goals and set up a success plan with clear post-launch support."
+      >
+        <div
+          id="contact"
+          className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col md:flex-row items-center justify-between gap-4"
+        >
+          <div>
+            <p className="text-gray-800 font-medium">Book a discovery call</p>
+            <p className="text-sm text-gray-600">We’ll map scope, timeline, and support cadence.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <a
+              href="tel:+919988525252"
+              className="inline-flex items-center px-4 py-2 rounded-xl bg-cyan-600 text-white hover:bg-cyan-700"
+            >
+              <PhoneCall className="h-4 w-4 mr-2" /> +91 99885 25252
+            </a>
+            <a
+              href="/contact-us"
+              className="inline-flex items-center px-4 py-2 rounded-xl bg-white text-cyan-700 border border-cyan-200 hover:bg-cyan-50"
+            >
+              <Mail className="h-4 w-4 mr-2" /> Contact Us
+            </a>
+          </div>
+        </div>
+      </Section>
+
+      <footer className="py-10 text-center text-sm text-gray-500">
+        © {new Date().getFullYear()} MeraSoftware. All rights reserved.
+      </footer>
+    </div>
+  );
+}

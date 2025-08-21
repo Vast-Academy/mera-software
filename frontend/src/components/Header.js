@@ -244,19 +244,19 @@ const Header = () => {
         {
           category: 'Software Solutions',
           items: [
-            { name: 'Customer Relation Management', href: '/customer-relation-management' },
-            { name: 'Complaint Management', href: '/complaint-management' },
-            { name: 'Laptop/Mobile Repair Registration', href: '/laptop-mobile-repair-registration' },
-            { name: 'Partner and Service Management', href: '/partner-service-management' }
+            { name: 'Small Business', href: '/solutions?type=small-business' },
+            { name: 'Enterprise', href: '/solutions?type=enterprise' },
+            { name: 'Startups', href: '/solutions?type=startups' },
+            { name: 'Non-Profit', href: '/solutions?type=non-profit' }
           ]
         },
         {
           category: 'IT Solutions',
           items: [
-            { name: 'Security Alarm & Theft Prevention', href: '/solutions?industry=security-alarm-theft-prevention' },
-            { name: 'Parking Management System', href: '/solutions?industry=parking-management-system' },
-            { name: 'Automatic Main Gates', href: '/solutions?industry=automatic-main-gates' },
-            { name: 'Fire Hydrant & Alarms', href: '/solutions?industry=fire-hydrant-alarms' }
+            { name: 'Education', href: '/solutions?industry=education' },
+            { name: 'Healthcare', href: '/solutions?industry=healthcare' },
+            { name: 'Retail', href: '/solutions?industry=retail' },
+            { name: 'Real Estate', href: '/solutions?industry=real-estate' }
           ]
         }
       ]
@@ -281,8 +281,10 @@ const Header = () => {
         {
           category: 'About',
           items: [
-            { name: 'About Us', href: '/about-us' },
-            { name: 'Our Team', href: '/our-team' }
+            { name: 'About Us', href: '/about' },
+            { name: 'Our Team', href: '/team' },
+            { name: 'Careers', href: '/careers' },
+            { name: 'Press & Media', href: '/press' }
           ]
         },
         {
