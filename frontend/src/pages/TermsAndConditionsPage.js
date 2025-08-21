@@ -1,434 +1,438 @@
-// /Practice.js
-import React from "react";
-import {
-  Check,
-  Rocket,
-  ShieldCheck,
-  Sparkles,
-  Code2,
-  FolderGit2,
-  Globe2,
-  MonitorSmartphone,
-  Handshake,
-  Layers,
-  Wrench,
-  Database,
-  Lock,
-  ArrowRight,
-  CheckCircle2,
-  XCircle,
-} from "lucide-react";
-import { motion } from "framer-motion";
+import React from 'react';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
-/** TailwindCSS required in your project */
+const TermsAndConditionsPage = () => {
+  // Reference to the content we want to download as PDF
+  const contentRef = React.useRef(null);
+  
+  // Function to generate and download PDF
+  const downloadPDF = async () => {
+    const content = contentRef.current;
+    if (!content) return;
+    
+    try {
+      // Show a loading state or notification to the user
+      const button = document.getElementById('download-btn');
+      const originalText = button.textContent;
+      button.textContent = 'Generating PDF...';
+      button.disabled = true;
+      
+      // Use html2canvas to capture the content as an image
+      const canvas = await html2canvas(content, {
+        scale: 2, // Higher scale for better quality
+        useCORS: true,
+        logging: false,
+        letterRendering: true,
+      });
+      
+      // Calculate dimensions for the PDF (A4 format)
+      const imgWidth = 210; // A4 width in mm
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+      
+      // Create PDF document
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      // Add the image to the PDF
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
+      
+      // If content is longer than one page, handle multiple pages
+      let position = 0;
+      const pageHeight = pdf.internal.pageSize.height;
+      
+      if (imgHeight > pageHeight) {
+        let heightLeft = imgHeight;
+        
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+      }
+      
+      // Save the PDF
+      pdf.save('Terms_and_Conditions.pdf');
+      
+      // Reset button state
+      button.textContent = originalText;
+      button.disabled = false;
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+      
+      // Reset button state in case of error
+      const button = document.getElementById('download-btn');
+      if (button) {
+        button.textContent = 'Download PDF Copy';
+        button.disabled = false;
+      }
+    }
+  };
 
-const Accent = () => (
-  <span
-    className="inline-block h-6 w-1.5 rounded-full bg-gradient-to-b from-cyan-500 to-blue-600"
-    aria-hidden="true"
-  />
-);
-
-const Pill = ({ children }) => (
-  <span className="inline-flex items-center gap-2 text-sm bg-white border border-gray-200 rounded-full px-3 py-1 shadow-sm">
-    <Check className="w-4 h-4 text-green-600" /> {children}
-  </span>
-);
-
-const Stat = ({ icon: Icon, label, value }) => (
-  <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
-    <div className="flex items-center gap-3">
-      <div className="p-2 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-gray-100">
-        <Icon className="w-5 h-5 text-blue-700" />
-      </div>
-      <div>
-        <div className="text-sm text-gray-500">{label}</div>
-        <div className="text-xl font-semibold text-gray-900">{value}</div>
-      </div>
-    </div>
-  </div>
-);
-
-const SplitBlock = ({ title, desc, bullets = [], img, reverse = false }) => (
-  <section className="py-12 md:py-16 bg-white">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div
-        className={`grid lg:grid-cols-2 gap-10 items-center ${
-          reverse ? "lg:[&>div:first-child]:order-2" : ""
-        }`}
-      >
-        {/* Image */}
-        <div className="relative">
-          <div className="aspect-[16/10] w-full overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
-            <img
-              src={img}
-              alt={title}
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-          </div>
-        </div>
-
-        {/* Text */}
-        <div>
-          <div className="mb-4 flex items-center gap-2">
-            <Accent />
-            <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
-              {title}
-            </h3>
-          </div>
-          <p className="text-gray-600 md:text-[15.5px] leading-relaxed">
-            {desc}
-          </p>
-          {bullets.length > 0 && (
-            <div className="mt-5 grid sm:grid-cols-2 gap-2">
-              {bullets.map((b) => (
-                <Pill key={b}>{b}</Pill>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  </section>
-);
-
-/* Ultra-clean comparison row */
-const CompareRow = ({ aspect, good, bad }) => (
-  <li className="rounded-xl bg-white ring-1 ring-gray-100 p-5 md:p-6">
-    <div className="flex items-center gap-2">
-      <h4 className="text-base md:text-lg font-semibold text-gray-900">
-        {aspect}
-      </h4>
-    </div>
-    <div className="mt-3 grid md:grid-cols-2 gap-4">
-      {/* Good (Coding-based) */}
-      <div>
-        <div className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-700">
-          <CheckCircle2 className="w-4 h-4" /> Coding-based
-        </div>
-        <p className="mt-1.5 text-[15px] text-gray-700 leading-relaxed">{good}</p>
-      </div>
-      {/* Bad (No-code/Builders) */}
-      <div>
-        <div className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-700">
-          <XCircle className="w-4 h-4" /> No-code / Builders
-        </div>
-        <p className="mt-1.5 text-[15px] text-gray-700 leading-relaxed">{bad}</p>
-      </div>
-    </div>
-  </li>
-);
-
-export default function Practice() {
   return (
-    <div className="bg-gradient-to-b from-white via-gray-50 to-white">
-      {/* HERO */}
-      <header className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(45rem_20rem_at_50%_-10%,rgba(59,130,246,0.10),transparent)]" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 md:pt-16 pb-12">
-          <div className="grid lg:grid-cols-2 gap-10 items-center">
-            <div>
-              <motion.h1
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="text-3xl md:text-5xl font-extrabold tracking-tight text-gray-900"
-              >
-                100% Coding-Based Websites — Clean, Fast & Fully Yours
-              </motion.h1>
-              <p className="mt-4 text-gray-600 md:text-lg max-w-2xl">
-                We build professional websites with pure code — no builders, no
-                bloat. You get complete ownership, long-term reliability, and a
-                design system tailored to your brand.
-              </p>
-
-              <div className="mt-6 flex flex-wrap gap-2">
-                <Pill>Full source code handover</Pill>
-                <Pill>High Lighthouse scores</Pill>
-                <Pill>Semantic SEO structure</Pill>
-                <Pill>Exclusive, custom solution</Pill>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <Stat icon={Code2} label="Stack" value="Pure Code" />
-              <Stat icon={ShieldCheck} label="Security" value="Lean Surface" />
-              <Stat icon={Rocket} label="Performance" value="90+ Target" />
-              <Stat icon={FolderGit2} label="Source" value="Git-Ready" />
-            </div>
+    <div className="min-h-screen">
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        {/* Main content container with reference for PDF export */}
+        <div ref={contentRef} className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+          {/* Header */}
+          <div className="bg-indigo-700 py-6 px-8">
+            <h1 className="text-3xl font-bold text-white">Terms and Conditions</h1>
+            <p className="mt-2 text-indigo-100">Please read these terms carefully before using our services</p>
           </div>
-        </div>
-      </header>
-
-      {/* WHY CODING-FIRST */}
-      <SplitBlock
-        title="Why coding-first beats templates"
-        desc="Template/CMS tools are quick to start, but heavy plugins and fixed layouts limit performance, security, and brand precision. A coding-first approach delivers tight control, predictable SEO, and a UI that fits your content perfectly."
-        img="https://images.unsplash.com/photo-1526378722484-bd91ca387e72?q=80&w=1600&auto=format&fit=crop"
-        bullets={[
-          "Predictable SEO & clean HTML",
-          "No vendor lock-in",
-          "Pixel-perfect components",
-          "Auditable, portable code",
-        ]}
-      />
-
-      {/* OUR PROCESS */}
-      <SplitBlock
-        reverse
-        title="Simple, transparent process"
-        desc="We start with discovery, align on scope, and share a clickable prototype. Then we build in clean, reviewable sprints with documentation. You approve each step from your client space."
-        img="https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=1600&auto=format&fit=crop"
-        bullets={[
-          "Discovery & scope freeze",
-          "Prototype & feedback",
-          "Documented build",
-          "Approval-based delivery",
-        ]}
-      />
-
-      {/* EXCLUSIVE SOLUTION */}
-      <SplitBlock
-        title="Exclusive solution for every customer"
-        desc="No one-size-fits-all. We gather your exact requirements, propose the most suitable stack, and craft components that match your flows. Your site looks original and remains easy to extend later."
-        img="https://images.unsplash.com/photo-1520975916090-3105956dac38?q=80&w=1600&auto=format&fit=crop"
-        bullets={[
-          "Requirement-first planning",
-          "Tailored architecture",
-          "Reusable UI library",
-          "Future-ready structure",
-        ]}
-      />
-
-      {/* FEATURES GRID */}
-      <section className="py-12 md:py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 md:mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
-              <Accent />
-              Core advantages
-            </h2>
-            <p className="mt-2 text-gray-600 max-w-3xl">
-              What you gain with a clean, code-driven build.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                icon: Rocket,
-                title: "Speed",
-                text: "Minimal scripts, optimized assets, better Core Web Vitals.",
-              },
-              {
-                icon: Globe2,
-                title: "SEO foundation",
-                text: "Semantic HTML, structured content, and crawlable routes.",
-              },
-              {
-                icon: ShieldCheck,
-                title: "Security",
-                text: "Small dependency surface; updates are intentional.",
-              },
-              {
-                icon: MonitorSmartphone,
-                title: "Responsive UI",
-                text: "Component-first design ensures consistency across devices.",
-              },
-              {
-                icon: FolderGit2,
-                title: "Version control",
-                text: "Git-ready repo with clear commits and review workflow.",
-              },
-              {
-                icon: Sparkles,
-                title: "Bespoke design",
-                text: "No template look-alikes — precise to your brand.",
-              },
-            ].map(({ icon: Icon, title, text }) => (
-              <div
-                key={title}
-                className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-xl bg-blue-50 border border-blue-100">
-                    <Icon className="w-5 h-5 text-blue-700" />
+          
+          {/* Content */}
+          <div className="py-8 px-8">
+            <div className="space-y-10">
+              {/* Section 1 */}
+              <section>
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 mr-3">1</span>
+                  Payment Terms
+                </h2>
+                <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
+                  <p>We offer two payment options:</p>
+                  <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                      <h3 className="font-medium text-indigo-800">Full Payment (Advance)</h3>
+                      <p className="mt-2 text-sm">Customer pays 100% of the amount in advance before starting the project.</p>
+                    </div>
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                      <h3 className="font-medium text-indigo-800">Partial Payment (Three Installments)</h3>
+                      <ul className="mt-2 text-sm space-y-1">
+                        <li>• 30% in advance before project begins</li>
+                        <li>• 30% at 50% project completion</li>
+                        <li>• 40% at 90% project completion</li>
+                      </ul>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{title}</h4>
-                    <p className="text-gray-600 text-sm md:text-[15px] leading-relaxed">
-                      {text}
-                    </p>
+                  <p className="mt-3">Our automated system updates the progress according to the payment received, ensuring transparency for the client.</p>
+                </div>
+              </section>
+
+              {/* Section 2 */}
+              <section>
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 mr-3">2</span>
+                  Pricing Note
+                </h2>
+                <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
+                  <p>The pricing structure is based on the complexity of the project:</p>
+                  <ul className="mt-3 space-y-2">
+                    <li className="flex">
+                      <div className="flex-shrink-0 w-5 h-5 mt-1">
+                        <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <span className="ml-2">Basic functionalities do not affect the pricing</span>
+                    </li>
+                    <li className="flex">
+                      <div className="flex-shrink-0 w-5 h-5 mt-1">
+                        <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <span className="ml-2">Complex customizations will adjust the pricing accordingly</span>
+                    </li>
+                    <li className="flex">
+                      <div className="flex-shrink-0 w-5 h-5 mt-1">
+                        <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <span className="ml-2">Optional features can be added to customized plans with adjusted pricing</span>
+                    </li>
+                  </ul>
+                  <p className="mt-3">Non-standard features will be discussed separately regarding additional costs and integration feasibility.</p>
+                </div>
+              </section>
+
+              {/* Section 3 */}
+              <section>
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 mr-3">3</span>
+                  Project Initiation & Agreement
+                </h2>
+                <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
+                  <p>Every project starts only after:</p>
+                  <ul className="mt-3 space-y-1">
+                    <li className="flex items-start">
+                      <div className="flex-shrink-0 w-5 h-5 mt-1">
+                        <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <span className="ml-2">Completing proper documentation</span>
+                    </li>
+                    <li className="flex items-start">
+                      <div className="flex-shrink-0 w-5 h-5 mt-1">
+                        <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <span className="ml-2">Conducting necessary meetings</span>
+                    </li>
+                    <li className="flex items-start">
+                      <div className="flex-shrink-0 w-5 h-5 mt-1">
+                        <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <span className="ml-2">Receiving customer approval</span>
+                    </li>
+                  </ul>
+                  <p className="mt-3">Since projects start only after full customer approval, refunds cannot be claimed based on misunderstandings or errors from the customer's side.</p>
+                </div>
+              </section>
+
+              {/* Section 4 */}
+              <section>
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 mr-3">4</span>
+                  Project Changes & Modifications
+                </h2>
+                <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
+                  <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded">
+                    <p className="text-amber-700">Once development has started, no further changes will be accepted in the initial project scope.</p>
+                  </div>
+                  <p className="mt-4">If modifications are desired:</p>
+                  <ol className="mt-2 space-y-2 list-decimal pl-5">
+                    <li>The project must first be completed as per the agreed documentation</li>
+                    <li>Changes or additional features will be considered as separate customization requests</li>
+                    <li>Modifications will be handled after the initial project completion</li>
+                  </ol>
+                </div>
+              </section>
+
+              {/* Section 5 */}
+              <section>
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 mr-3">5</span>
+                  Project Completion Time
+                </h2>
+                <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
+                  <p>Before beginning the project, we provide an estimated completion time in writing.</p>
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-gray-700 italic">We will not be liable for exceeding the estimated timeline if there are delays in receiving required data or payments from the customer.</p>
+                  </div>
+                  <p className="mt-3">Customers must ensure timely cooperation in providing necessary details and payments to avoid any delays.</p>
+                </div>
+              </section>
+
+              {/* Section 6 */}
+              <section>
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 mr-3">6</span>
+                  Cancellation & Refund Policy
+                </h2>
+                <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <h3 className="font-medium text-gray-800">Partial Payment System</h3>
+                      <p className="mt-2 text-sm">No refunds will be issued for payments already made if a customer decides to cancel the project.</p>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <h3 className="font-medium text-gray-800">Full Payment System</h3>
+                      <p className="mt-2 text-sm">Refund will be provided after deducting the cost of completed work, based on mutual discussion and agreement.</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+              </section>
 
-      {/* OWNERSHIP / HANDOVER */}
-      <SplitBlock
-        reverse
-        title="You keep full control"
-        desc="All assets, hosting and repositories remain in your accounts. We hand over the entire source code with environment & build docs, so you can migrate or collaborate with anyone later."
-        img="https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1600&auto=format&fit=crop"
-        bullets={[
-          "Complete source + assets",
-          "Env & build documentation",
-          "Transparent handover",
-        ]}
-      />
+              {/* Section 7 */}
+              <section>
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 mr-3">7</span>
+                  Dispute Resolution
+                </h2>
+                <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
+                  <p>Any disputes arising between the customer and our company will be addressed through:</p>
+                  <ol className="mt-2 space-y-1 list-decimal pl-5">
+                    <li>Discussion and mutual understanding initially</li>
+                    <li>Legal means as per applicable laws if a resolution is not reached</li>
+                  </ol>
+                </div>
+              </section>
 
-      {/* TECH SNAPSHOT / WHAT YOU GET */}
-      <section className="py-12 md:py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
-              <Accent />
-              What you get
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                icon: Layers,
-                title: "Clean architecture",
-                text: "Organized folders, reusable components, clear naming.",
-              },
-              {
-                icon: Wrench,
-                title: "Maintainability",
-                text: "Predictable structure for quick fixes and new features.",
-              },
-              {
-                icon: Database,
-                title: "Scalability",
-                text: "Ready for growth without rewrites or platform limits.",
-              },
-              {
-                icon: Lock,
-                title: "Reliability",
-                text: "Lean stack reduces risk from third-party plugin breaks.",
-              },
-            ].map(({ icon: Icon, title, text }) => (
-              <div
-                key={title}
-                className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-xl bg-blue-50 border border-blue-100">
-                    <Icon className="w-5 h-5 text-blue-700" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{title}</h4>
-                    <p className="text-gray-600 text-sm md:text-[15px] leading-relaxed">
-                      {text}
-                    </p>
+              {/* Section 8 */}
+              <section>
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 mr-3">8</span>
+                  Acknowledgement
+                </h2>
+                <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
+                  <p>By starting a project with us, the customer acknowledges that they have read, understood, and agreed to all the terms mentioned in our documentation.</p>
+                  <div className="mt-4 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                    <p className="text-indigo-800 font-medium">Important</p>
+                    <p className="mt-1 text-indigo-700 text-sm">Customers must sign the agreement before we proceed with any work, ensuring clarity and mutual consent.</p>
                   </div>
                 </div>
+              </section>
+              
+              {/* Section 9 - New Tax Deduction section */}
+              <section>
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 mr-3">9</span>
+                  Tax Deduction at Source (TDS) & Payment Compliance
+                </h2>
+                <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
+                  <p>At Mera Software, we operate under two categories as per the Income Tax Act: Technical Services (Section 194J) and Contractual Work (Section 194C). The applicable TDS rate for both types of work is 2%, ensuring compliance with Indian tax regulations.</p>
+                  
+                  <div className="mt-4 space-y-4">
+                    {/* 9.1 Technical Services */}
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                      <h3 className="font-medium text-indigo-800">9.1 Technical Services (Section 194J - 2% TDS)</h3>
+                      <ul className="mt-2 text-sm space-y-1">
+                        <li className="flex items-start">
+                          <div className="flex-shrink-0 w-5 h-5 mt-1">
+                            <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="ml-2">We provide technical and IT services, including software development, IT consulting, and technical support.</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="flex-shrink-0 w-5 h-5 mt-1">
+                            <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="ml-2">As per Section 194J, a 2% TDS will be deducted on payments made for technical services.</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="flex-shrink-0 w-5 h-5 mt-1">
+                            <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="ml-2">TDS applies when the total payment exceeds ₹30,000 in a financial year.</span>
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    {/* 9.2 Contractual Work */}
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                      <h3 className="font-medium text-indigo-800">9.2 Contractual Work (Section 194C - 2% TDS)</h3>
+                      <ul className="mt-2 text-sm space-y-1">
+                        <li className="flex items-start">
+                          <div className="flex-shrink-0 w-5 h-5 mt-1">
+                            <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="ml-2">We undertake contract-based projects, including website/app development, software project delivery, and outsourced development.</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="flex-shrink-0 w-5 h-5 mt-1">
+                            <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="ml-2">As per Section 194C, a 2% TDS will be deducted on payments for contract work.</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="flex-shrink-0 w-5 h-5 mt-1">
+                            <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="ml-2">TDS applies to payments exceeding ₹30,000 in a single transaction or ₹1,00,000 annually.</span>
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    {/* 9.3 General TDS Compliance */}
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                      <h3 className="font-medium text-indigo-800">9.3 General TDS Compliance</h3>
+                      <ul className="mt-2 text-sm space-y-1">
+                        <li className="flex items-start">
+                          <div className="flex-shrink-0 w-5 h-5 mt-1">
+                            <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="ml-2">TDS will be deducted at the time of payment or when the amount is credited, whichever is earlier.</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="flex-shrink-0 w-5 h-5 mt-1">
+                            <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="ml-2">Proper invoices and tax documentation will be provided for all transactions.</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="flex-shrink-0 w-5 h-5 mt-1">
+                            <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="ml-2">Clients must ensure timely TDS deduction and deposit with the government.</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="flex-shrink-0 w-5 h-5 mt-1">
+                            <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="ml-2">Any disputes regarding tax deductions shall be addressed as per applicable laws and agreement terms.</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 mr-3">10</span>
+                  Data Submission & Processing
+                </h2>
+                <div className="mt-4 pl-11 text-gray-600 leading-relaxed">
+                  <p>When you submit data to our platform, we will process and update it based on the clarity and accuracy of the information provided. If the submitted data lacks complete clarity, we will process and update it based on the best possible interpretation within the available clarity. However, we do not guarantee the accuracy of incomplete or unclear submissions. It is the client's responsibility to provide precise and complete information to ensure the best possible outcome.</p>
+                  
+                  <div className="mt-4 space-y-4">
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                      <h3 className="font-medium text-indigo-800">10.1 Processing Unclear Data</h3>
+                      <p className="mt-2 text-sm">If any updates are consumed while processing unclear data, the client will need to correct any remaining issues in their next update. We do not provide additional revisions for incomplete data beyond the consumed update.</p>
+                    </div>
+                    
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                      <h3 className="font-medium text-indigo-800">10.2 Errors on Our End</h3>
+                      <p className="mt-2 text-sm">However, if an issue arises due to an error on our end, the client may raise a support ticket through our support page. In such cases, our support team will resolve the issue with full responsibility at no additional cost, without consuming the client's update.</p>
+                    </div>
+                  </div>
+                  </div>
+                  </section>
+
+            </div>
+
+            {/* Last updated date only */}
+            <div className="mt-10 pt-6 border-t border-gray-200">
+              <div className="text-gray-500 text-sm">
+                Last updated: March 14, 2025
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ULTRA-CLEAN COMPARISON (tone-matched, lightweight) */}
-      <section className="py-12 md:py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 md:mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
-              <Accent />
-              Coding-based vs Website Builders
-            </h2>
-            <p className="mt-2 text-gray-600 max-w-3xl">
-              Clear, practical differences — focused on control, performance, security, and SEO.
-            </p>
-          </div>
-
-          <ul className="space-y-4">
-            <CompareRow
-              aspect="Ownership"
-              good="Full source in your repo — independent, portable, auditable."
-              bad="Vendor/theme/plugin lock-in; limited access to underlying code."
-            />
-            <CompareRow
-              aspect="Performance"
-              good="Optimized bundles and lean markup — faster loads, better Core Web Vitals."
-              bad="Heavy scripts & plugins slow pages; scores fluctuate with add-ons."
-            />
-            <CompareRow
-              aspect="Security"
-              good="Smaller dependency surface; updates are reviewed and intentional."
-              bad="Plugin vulnerabilities are common; constant patching and break risk."
-            />
-            <CompareRow
-              aspect="Design & UX"
-              good="Tailor-made components; brand-true, reusable, consistent UI."
-              bad="Template constraints; deep customizations become brittle."
-            />
-            <CompareRow
-              aspect="Scalability"
-              good="Grows with your needs; features added without platform limits."
-              bad="Bound by platform features; advanced needs often force migration."
-            />
-            <CompareRow
-              aspect="SEO"
-              good="Semantic, clean HTML; predictable structure for stable ranking."
-              bad="Bloated markup; SEO depends on plugins and can be inconsistent."
-            />
-          </ul>
-
-          <p className="mt-5 text-xs text-gray-500">
-            For long-term reliability and growth, coding-first keeps control, speed, and SEO in your favor.
-          </p>
-        </div>
-      </section>
-
-      {/* TRUST / CTA */}
-      <section className="py-8 md:py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-6 md:p-8 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <h3 className="text-xl md:text-2xl font-bold">
-                Ready for a coding-first build with full control?
-              </h3>
-              <p className="text-white/90">
-                Get a quick discovery call and see a clickable prototype.
-              </p>
-            </div>
-            <a
-              href="#contact"
-              className="inline-flex items-center gap-2 bg-white text-blue-700 font-semibold px-4 py-2 rounded-xl shadow hover:shadow-md"
-            >
-              Get Started <ArrowRight className="w-4 h-4" />
-            </a>
-          </div>
-
-          {/* Simple trust row */}
-          <div className="mt-6 grid sm:grid-cols-3 gap-3">
-            <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-              <Handshake className="w-5 h-5 text-blue-700" />
-              <p className="text-sm text-gray-700">
-                Transparent approvals at every step
-              </p>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-              <FolderGit2 className="w-5 h-5 text-blue-700" />
-              <p className="text-sm text-gray-700">Full repository handover</p>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-              <Rocket className="w-5 h-5 text-blue-700" />
-              <p className="text-sm text-gray-700">Performance-first delivery</p>
             </div>
           </div>
         </div>
-      </section>
-
-      <footer className="py-10 text-center text-sm text-gray-500">
-        © {new Date().getFullYear()} — Built the right way, with code.
-      </footer>
+        
+        {/* PDF Download button outside the main content */}
+        <div className="flex justify-center">
+          <button 
+            id="download-btn"
+            onClick={downloadPDF}
+            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Download PDF Copy
+          </button>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default TermsAndConditionsPage;

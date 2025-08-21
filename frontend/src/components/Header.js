@@ -191,47 +191,47 @@ const Header = () => {
           items: [
             {
               name: 'Website Development',
-              href: '/product-category?category=website-development',
+              href: '/website-development-service',
               desc: 'Custom Website Plans for Your Business',
               subCategories: [
-                { name: 'College Website', href: '/product-category?category=college-website' },
-                { name: 'Educational Website', href: '/product-category?category=educational-website' },
-                { name: 'Local Service Website', href: '/product-category?category=local-service-website' },
-                { name: 'Portfolio Website', href: '/product-category?category=portfolio-website' },
-                { name: 'Restaurant Website', href: '/product-category?category=restaurant-website' }
+                { name: 'Static Websites', href: '/static-websites' },
+                { name: 'Dynamic Website', href: '/dynamic-websites' },
+                // { name: 'Local Service Website', href: '/product-category?category=local-service-website' },
+                // { name: 'Portfolio Website', href: '/product-category?category=portfolio-website' },
+                // { name: 'Restaurant Website', href: '/product-category?category=restaurant-website' }
               ]
             },
             {
               name: 'Mobile App Development',
-              href: '/product-category?category=mobile-app-development',
+              href: '/mobile-app-development-service',
               desc: 'iOS & Android App Development',
               subCategories: [
-                { name: 'iOS App Development', href: '/product-category?category=ios-app-development' },
-                { name: 'Android App Development', href: '/product-category?category=android-app-development' },
+                // { name: 'iOS App Development', href: '/product-category?category=ios-app-development' },
+                { name: 'Native App Development', href: '/product-category?category=android-app-development' },
                 { name: 'Hybrid App Development', href: '/product-category?category=hybrid-app-development' },
-                { name: 'Custom Mobile Solutions', href: '/product-category?category=custom-mobile-solutions' }
+                // { name: 'Custom Mobile Solutions', href: '/product-category?category=custom-mobile-solutions' }
               ]
             },
             {
               name: 'Cloud Software Development',
-              href: '/product-category?category=cloud-software-development',
+              href: '/cloud-software-service',
               desc: 'Software to Automate Your Business',
               subCategories: [
-                { name: 'SaaS Development', href: '/product-category?category=saas-development' },
-                { name: 'CRM Solutions', href: '/product-category?category=crm-solutions' },
-                { name: 'ERP Systems', href: '/product-category?category=erp-systems' },
-                { name: 'Cloud Migration', href: '/product-category?category=cloud-migration' }
+                { name: 'Cloud Softwares', href: '/product-category?category=saas-development' },
+                // { name: 'CRM Solutions', href: '/product-category?category=crm-solutions' },
+                // { name: 'ERP Systems', href: '/product-category?category=erp-systems' },
+                // { name: 'Cloud Migration', href: '/product-category?category=cloud-migration' }
               ]
             },
             {
               name: 'Feature Upgrades',
-              href: '/product-category?category=feature-upgrades',
+              href: '/feature-upgrades-service',
               desc: 'Add Features to Existing Projects',
               subCategories: [
-                { name: 'Performance Optimization', href: '/product-category?category=performance-optimization' },
-                { name: 'Security Enhancements', href: '/product-category?category=security-enhancements' },
-                { name: 'UI/UX Improvements', href: '/product-category?category=ui-ux-improvements' },
-                { name: 'New Feature Integration', href: '/product-category?category=new-feature-integration' }
+                { name: 'Static Website Update Plans', href: '/product-category?category=performance-optimization' },
+                { name: 'Dynamic Website Update Plans', href: '/product-category?category=security-enhancements' },
+                { name: 'Cloud Software Update Plans', href: '/product-category?category=ui-ux-improvements' },
+                { name: 'Mobile App Update Plans', href: '/product-category?category=new-feature-integration' }
               ]
             }
           ]
