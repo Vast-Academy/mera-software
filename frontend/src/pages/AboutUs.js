@@ -34,13 +34,13 @@ const AboutUs = () => {
               </div>
               <ul className="list-none p-0 mb-8 space-y-3">
                 <li className="flex items-center text-lg text-gray-800">
-                  <FaCheckCircle className="text-green-500 mr-3 text-xl flex-shrink-0" /> Refreshing to get such a personal touch.
+                  <FaCheckCircle className="text-green-500 mr-3 text-xl flex-shrink-0" /> We listen, understand, and translate your ideas into digital solutions that truly feel like yours.
                 </li>
                 <li className="flex items-center text-lg text-gray-800">
-                  <FaCheckCircle className="text-green-500 mr-3 text-xl flex-shrink-0" /> Duis aute irure dolor in reprehenderit in voluptate.
+                  <FaCheckCircle className="text-green-500 mr-3 text-xl flex-shrink-0" /> From planning to launch, we ensure every step is smooth, transparent, and stress-free.
                 </li>
                 <li className="flex items-center text-lg text-gray-800">
-                  <FaCheckCircle className="text-green-500 mr-3 text-xl flex-shrink-0" /> Velit esse cillum dolore eu fugiat nulla pariatur.
+                  <FaCheckCircle className="text-green-500 mr-3 text-xl flex-shrink-0" /> Our websites aren’t just functional today—they’re scalable, secure, and ready to grow with your business.
                 </li>
               </ul>
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">

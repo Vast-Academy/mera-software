@@ -941,74 +941,75 @@ const getDynamicWebsiteIcon = (serviceName) => {
 
 
       {/* 6) Other Services */}
-      <section id="others" className="py-12 bg-gray-50">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    
-    {/* Heading */}
-    <div className="text-center mb-8">
-      <h2 className="text-3xl font-bold text-gray-900 mb-2">Explore Our Other Services</h2>
-      <p className="text-gray-600">One team for complete end-to-end digital solutions</p>
-    </div>
+     
+      <section id="combined-services-form" className="py-12 bg-gray-50"> {/* Use a suitable background color */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start"> {/* Main grid for 2 columns */}
 
-    {/* Cards */}
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
-      
-      {/* Cloud Software Development */}
-      <a href="/cloud-software-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
-        <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
-          <Cloud className="w-6 h-6 text-blue-700" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">Web App Development</h3>
-        <p className="text-gray-600 text-sm mb-3">Scalable SaaS, cloud apps & integrations</p>
-        <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
-          See Details <ArrowRight className="w-4 h-4 ml-1" />
-        </span>
-      </a>
+            {/* LEFT COLUMN: Other Services */}
+            <div>
+              <div className="text-center md:text-left mb-8"> {/* Adjust text alignment for left column */}
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">Explore Our Other Services</h2>
+                <p className="text-gray-600">One team for complete end-to-end digital solutions</p>
+              </div>
 
-      {/* Software Solutions */}
-      <a href="/software-solutions" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
-        <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
-          <Layers className="w-6 h-6 text-blue-700" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">Software Solutions</h3>
-        <p className="text-gray-600 text-sm mb-3">ERP, CRM, dashboards & automation</p>
-        <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
-          Explore More <ArrowRight className="w-4 h-4 ml-1" />
-        </span>
-      </a>
+              {/* Cards for Other Services - now in a 2x2 grid within this column */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6"> {/* Changed to sm:grid-cols-2 for 2x2 on small screens and up */}
 
-      {/* Mobile App Development */}
-      <a href="/mobile-app-development-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
-        <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
-          <Smartphone className="w-6 h-6 text-blue-700" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">Mobile App Development</h3>
-        <p className="text-gray-600 text-sm mb-3">React Native / Flutter / Native Apps</p>
-        <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
-          Learn More <ArrowRight className="w-4 h-4 ml-1" />
-        </span>
-      </a>
+                {/* Cloud Software Development */}
+                <a href="/cloud-software-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
+                    <Cloud className="w-6 h-6 text-blue-700" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Web App Development</h3>
+                  <p className="text-gray-600 text-sm mb-3">Scalable SaaS, cloud apps & integrations</p>
+                  <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
+                    See Details <ArrowRight className="w-4 h-4 ml-1" />
+                  </span>
+                </a>
 
-      {/* Website / Software Updates */}
-      <a href="/feature-upgrades-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
-        <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
-          <RefreshCw className="w-6 h-6 text-blue-700" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">Website / Software Updates</h3>
-        <p className="text-gray-600 text-sm mb-3">Regular updates, fixes & feature upgrades</p>
-        <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
-          Get Started <ArrowRight className="w-4 h-4 ml-1" />
-        </span>
-      </a>
+                {/* Software Solutions */}
+                <a href="/software-solutions" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
+                    <Layers className="w-6 h-6 text-blue-700" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Software Solutions</h3>
+                  <p className="text-gray-600 text-sm mb-3">ERP, CRM, dashboards & automation</p>
+                  <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
+                    Explore More <ArrowRight className="w-4 h-4 ml-1" />
+                  </span>
+                </a>
 
-    </div>
-  </div>
-    </section>
+                {/* Mobile App Development */}
+                <a href="/mobile-app-development-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
+                    <Smartphone className="w-6 h-6 text-blue-700" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Mobile App Development</h3>
+                  <p className="text-gray-600 text-sm mb-3">React Native / Flutter / Native Apps</p>
+                  <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
+                    Learn More <ArrowRight className="w-4 h-4 ml-1" />
+                  </span>
+                </a>
 
-      {/* 7) Custom Development Form */}
-       <section id="custom-form" className="py-12 bg-white">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-8">
+                {/* Website / Software Updates */}
+                <a href="/feature-upgrades-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-blue-200">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
+                    <RefreshCw className="w-6 h-6 text-blue-700" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Website / Software Updates</h3>
+                  <p className="text-gray-600 text-sm mb-3">Regular updates, fixes & feature upgrades</p>
+                  <span className="inline-flex items-center text-blue-600 group-hover:text-blue-800 font-medium">
+                    Get Started <ArrowRight className="w-4 h-4 ml-1" />
+                  </span>
+                </a>
+
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN: Custom Development Form */}
+            <div>
+              <div className="text-center md:text-left mb-8"> {/* Adjust text alignment for right column */}
                 <h2 className="text-3xl font-bold text-gray-900 mb-3">Couldn't find a suitable website type?</h2>
                 <p className="text-gray-600 text-xl">
                   Don't worry! We'll build you a custom website from scratch.
@@ -1017,6 +1018,7 @@ const getDynamicWebsiteIcon = (serviceName) => {
 
               {!formSubmitted ? (
                 <form onSubmit={handleFormSubmit} className="bg-gradient-to-br from-blue-300 to-purple-200 rounded-2xl p-8 shadow-lg">
+                  {/* ... (Form fields remain unchanged) ... */}
                   <div className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="relative">
@@ -1370,7 +1372,9 @@ const getDynamicWebsiteIcon = (serviceName) => {
                 </div>
               )}
             </div>
-    </section>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

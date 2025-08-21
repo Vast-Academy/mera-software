@@ -635,342 +635,348 @@ const MobileAppDevelopmentPage = () => {
 
 
       {/* 6) Other Services */}
-      <section id="others" className="py-12 bg-gray-50">
+     {/* COMBINED SECTION: Other Services (Left) & Custom Form (Right) */}
+<section id="related-services-and-form" className="py-12 bg-gray-50">
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    
-    {/* Heading */}
-    <div className="text-center mb-8">
-      <h2 className="text-3xl font-bold text-gray-900 mb-2">Explore Our Related Services</h2>
-      <p className="text-gray-600">Comprehensive digital solutions for your business</p>
-    </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start"> {/* Main 2-column grid */}
 
-    {/* Cards */}
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
-      
-      {/* Web App Development */}
-      <a href="/cloud-software-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-purple-200">
-        <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center mb-4">
-          <Cloud className="w-6 h-6 text-purple-700" />
+      {/* LEFT COLUMN: Other Services */}
+      <div>
+        {/* Heading for Other Services */}
+        <div className="text-left mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Explore Our Related Services</h2>
+          <p className="text-gray-600">Comprehensive digital solutions for your business</p>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">Web App Development</h3>
-        <p className="text-gray-600 text-sm mb-3">Scalable SaaS, cloud apps & integrations</p>
-        <span className="inline-flex items-center text-purple-600 group-hover:text-purple-800 font-medium">
-          See Details <ArrowRight className="w-4 h-4 ml-1" />
-        </span>
-      </a>
 
-      {/* Software Solutions */}
-      <a href="/software-solutions" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-purple-200">
-        <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center mb-4">
-          <Layers className="w-6 h-6 text-purple-700" />
+        {/* Cards for Other Services - NOW 2x2 GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"> {/* IMPORTANT CHANGE HERE */}
+
+          {/* Web App Development */}
+          <a href="/cloud-software-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-purple-200">
+            <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center mb-4">
+              <Cloud className="w-6 h-6 text-purple-700" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Web App Development</h3>
+            <p className="text-gray-600 text-sm mb-3">Scalable SaaS, cloud apps & integrations</p>
+            <span className="inline-flex items-center text-purple-600 group-hover:text-purple-800 font-medium">
+              See Details <ArrowRight className="w-4 h-4 ml-1" />
+            </span>
+          </a>
+
+          {/* Software Solutions */}
+          <a href="/software-solutions" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-purple-200">
+            <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center mb-4">
+              <Layers className="w-6 h-6 text-purple-700" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Custom Software Solutions</h3>
+            <p className="text-gray-600 text-sm mb-3">ERP, CRM, dashboards & automation</p>
+            <span className="inline-flex items-center text-purple-600 group-hover:text-purple-800 font-medium">
+              Explore More <ArrowRight className="w-4 h-4 ml-1" />
+            </span>
+          </a>
+
+          {/* Website Development */}
+          <a href="/website-development-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-purple-200">
+            <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center mb-4">
+              <Globe className="w-6 h-6 text-purple-700" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Website Development</h3>
+            <p className="text-gray-600 text-sm mb-3">Pure coding based static & dynamic websites</p>
+            <span className="inline-flex items-center text-purple-600 group-hover:text-purple-800 font-medium">
+              Learn More <ArrowRight className="w-4 h-4 ml-1" />
+            </span>
+          </a>
+
+          {/* Website / Software Updates */}
+          <a href="/feature-upgrades-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-purple-200">
+            <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center mb-4">
+              <RefreshCw className="w-6 h-6 text-purple-700" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">App / Software Updates</h3>
+            <p className="text-gray-600 text-sm mb-3">Regular updates, fixes & feature upgrades</p>
+            <span className="inline-flex items-center text-purple-600 group-hover:text-purple-800 font-medium">
+              Get Started <ArrowRight className="w-4 h-4 ml-1" />
+            </span>
+          </a>
+
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">Custom Software Solutions</h3>
-        <p className="text-gray-600 text-sm mb-3">ERP, CRM, dashboards & automation</p>
-        <span className="inline-flex items-center text-purple-600 group-hover:text-purple-800 font-medium">
-          Explore More <ArrowRight className="w-4 h-4 ml-1" />
-        </span>
-      </a>
+      </div>
 
-      {/* Website Development */}
-      <a href="/website-development-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-purple-200">
-        <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center mb-4">
-          <Globe className="w-6 h-6 text-purple-700" />
+      {/* RIGHT COLUMN: Custom Development Form */}
+      <div>
+        {/* Heading for Custom Form */}
+        <div className="text-left mb-8"> {/* Changed from text-center to text-left */}
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">Need a custom mobile app?</h2>
+          <p className="text-gray-600 text-xl">
+            Tell us your idea, and we'll build a unique app tailored to your needs.
+          </p>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">Website Development</h3>
-        <p className="text-gray-600 text-sm mb-3">Pure coding based static & dynamic websites</p>
-        <span className="inline-flex items-center text-purple-600 group-hover:text-purple-800 font-medium">
-          Learn More <ArrowRight className="w-4 h-4 ml-1" />
-        </span>
-      </a>
 
-      {/* Website / Software Updates */}
-      <a href="/feature-upgrades-service" className="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl hover:-translate-y-0.5 hover:border-purple-200">
-        <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center mb-4">
-          <RefreshCw className="w-6 h-6 text-purple-700" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">App / Software Updates</h3>
-        <p className="text-gray-600 text-sm mb-3">Regular updates, fixes & feature upgrades</p>
-        <span className="inline-flex items-center text-purple-600 group-hover:text-purple-800 font-medium">
-          Get Started <ArrowRight className="w-4 h-4 ml-1" />
-        </span>
-      </a>
-
-    </div>
-  </div>
-</section>
-
-
-
-      {/* 7) Custom Development Form */}
-      <section id="custom-form" className="py-12 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">Need a custom mobile app?</h2>
-            <p className="text-gray-600 text-xl">
-              Tell us your idea, and we'll build a unique app tailored to your needs.
-            </p>
-          </div>
-
-          {!formSubmitted ? (
-            <div className="bg-gradient-to-br from-purple-300 to-indigo-200 rounded-2xl p-8 shadow-lg">
-              <div className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Full Name</label>
-                    <input
-                      type="text"
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter your full name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Email Address</label>
-                    <input
-                      type="email"
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter your email"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Phone Number</label>
-                    <div className="flex">
-                      <select
-                        className="px-4 py-3 border border-gray-300 rounded-l-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      >
-                        <option value="+91">🇮🇳 +91 (India)</option>
-                        <option value="+61">🇦🇺 +61 (Australia)</option>
-                        <option value="+1">🇺🇸 +1 (America)</option>
-                        <option value="+44">🇬🇧 +44 (U.K.)</option>
-                        <option value="+1">🇨🇦 +1 (Canada)</option>
-                      </select>
-                      <input
-                        type="tel"
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-r-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="Enter your phone number"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Company Name (Optional)</label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter your company name"
-                    />
-                  </div>
-                </div>
-
-                {/* STEP 1: App Category (max 5 in UI) */}
+        {/* Custom Development Form Content */}
+        {!formSubmitted ? (
+          <div className="bg-gradient-to-br from-purple-300 to-indigo-200 rounded-2xl p-8 shadow-lg">
+            <div className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-700 font-medium mb-2">App Category</label>
+                  <label className="block text-gray-700 font-medium mb-2">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Enter your full name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Enter your email"
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Phone Number</label>
+                  <div className="flex">
+                    <select
+                      className="px-4 py-3 border border-gray-300 rounded-l-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    >
+                      <option value="+91">🇮🇳 +91 (India)</option>
+                      <option value="+61">🇦🇺 +61 (Australia)</option>
+                      <option value="+1">🇺🇸 +1 (America)</option>
+                      <option value="+44">🇬🇧 +44 (U.K.)</option>
+                      <option value="+1">🇨🇦 +1 (Canada)</option>
+                    </select>
+                    <input
+                      type="tel"
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-r-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Company Name (Optional)</label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Enter your company name"
+                  />
+                </div>
+              </div>
+
+              {/* STEP 1: App Category (max 5 in UI) */}
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">App Category</label>
+                <select
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  value={appCategory}
+                  onChange={(e) => {
+                    setAppCategory(e.target.value);
+                    setAppType('');
+                    setUpdatePlan('');
+                    setWhoUpdates('');
+                    setBudgetRange('');
+                    setContactPreference('');
+                  }}
+                >
+                  <option value="">Select your app category</option>
+                  {appTypes.slice(0, CATEGORIES_LIMIT).map((c, i) => (
+                    <option key={i} value={c.category}>{c.category}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* STEP 2: Sub Category (5–9 in UI) */}
+              {appCategory && (
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">App Sub-Category</label>
                   <select
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    value={appCategory}
+                    value={appType}
                     onChange={(e) => {
-                      setAppCategory(e.target.value);
-                      setAppType('');
+                      setAppType(e.target.value);
                       setUpdatePlan('');
                       setWhoUpdates('');
                       setBudgetRange('');
                       setContactPreference('');
                     }}
                   >
-                    <option value="">Select your app category</option>
-                    {appTypes.slice(0, CATEGORIES_LIMIT).map((c, i) => (
-                      <option key={i} value={c.category}>{c.category}</option>
+                    <option value="">Select a sub-category</option>
+                    {subTypesForSelectedCategory.map((t, idx) => (
+                      <option key={idx} value={t}>{t}</option>
                     ))}
                   </select>
                 </div>
+              )}
 
-                {/* STEP 2: Sub Category (5–9 in UI) */}
-                {appCategory && (
+              {/* STEP 3: App Update Plan */}
+              {appType && (
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">App Plan — Updates</label>
+                  <select
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    value={updatePlan}
+                    onChange={(e) => {
+                      setUpdatePlan(e.target.value);
+                      setWhoUpdates('');
+                      setBudgetRange('');
+                      setContactPreference('');
+                    }}
+                  >
+                    <option value="">How will you update the app?</option>
+                    <option value="one-time">One-time app development</option>
+                    <option value="occasional">Occasional updates</option>
+                    <option value="mostly">Mostly updated (frequent updates)</option>
+                  </select>
+                </div>
+              )}
+
+              {/* STEP 4A: If One-time → Budget (small) */}
+              {updatePlan === 'one-time' && (
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Budget Range</label>
+                  <select
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    value={budgetRange}
+                    onChange={(e) => setBudgetRange(e.target.value)}
+                  >
+                    <option value="">Select budget range</option>
+                    {budgetOptionsSmall.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* STEP 4B: If Occasional or Mostly → who updates + budget */}
+              {(updatePlan === 'occasional' || updatePlan === 'mostly') && (
+                <>
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">App Sub-Category</label>
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Who will do the updates?
+                    </label>
                     <select
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      value={appType}
+                      value={whoUpdates}
                       onChange={(e) => {
-                        setAppType(e.target.value);
-                        setUpdatePlan('');
-                        setWhoUpdates('');
+                        setWhoUpdates(e.target.value);
                         setBudgetRange('');
-                        setContactPreference('');
                       }}
                     >
-                      <option value="">Select a sub-category</option>
-                      {subTypesForSelectedCategory.map((t, idx) => (
-                        <option key={idx} value={t}>{t}</option>
-                      ))}
+                      <option value="">Select an option</option>
+                      <option value="self">I will update myself</option>
+                      <option value="us">You/Developer will update</option>
                     </select>
                   </div>
-                )}
 
-                {/* STEP 3: App Update Plan */}
-                {appType && (
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">App Plan — Updates</label>
-                    <select
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      value={updatePlan}
-                      onChange={(e) => {
-                        setUpdatePlan(e.target.value);
-                        setWhoUpdates('');
-                        setBudgetRange('');
-                        setContactPreference('');
-                      }}
-                    >
-                      <option value="">How will you update the app?</option>
-                      <option value="one-time">One-time app development</option>
-                      <option value="occasional">Occasional updates</option>
-                      <option value="mostly">Mostly updated (frequent updates)</option>
-                    </select>
-                  </div>
-                )}
-
-                {/* STEP 4A: If One-time → Budget (small) */}
-                {updatePlan === 'one-time' && (
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Budget Range</label>
-                    <select
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      value={budgetRange}
-                      onChange={(e) => setBudgetRange(e.target.value)}
-                    >
-                      <option value="">Select budget range</option>
-                      {budgetOptionsSmall.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* STEP 4B: If Occasional or Mostly → who updates + budget */}
-                {(updatePlan === 'occasional' || updatePlan === 'mostly') && (
-                  <>
+                  {whoUpdates && (
                     <div>
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Who will do the updates?
-                      </label>
+                      <label className="block text-gray-700 font-medium mb-2">Budget Range</label>
                       <select
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        value={whoUpdates}
-                        onChange={(e) => {
-                          setWhoUpdates(e.target.value);
-                          setBudgetRange('');
-                        }}
+                        value={budgetRange}
+                        onChange={(e) => setBudgetRange(e.target.value)}
                       >
-                        <option value="">Select an option</option>
-                        <option value="self">I will update myself</option>
-                        <option value="us">You/Developer will update</option>
+                        <option value="">Select budget range</option>
+                        {(whoUpdates === 'self' ? budgetOptionsSelfUpdates : budgetOptionsSmall).map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
                       </select>
                     </div>
+                  )}
+                </>
+              )}
 
-                    {whoUpdates && (
-                      <div>
-                        <label className="block text-gray-700 font-medium mb-2">Budget Range</label>
-                        <select
-                          required
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          value={budgetRange}
-                          onChange={(e) => setBudgetRange(e.target.value)}
-                        >
-                          <option value="">Select budget range</option>
-                          {(whoUpdates === 'self' ? budgetOptionsSelfUpdates : budgetOptionsSmall).map((o) => (
-                            <option key={o.value} value={o.value}>{o.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {/* STEP 5: Contact Preference */}
-                {(updatePlan === 'one-time' ? budgetRange : whoUpdates ? budgetRange : false) && (
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">How should we contact you?</label>
-                    <select
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      value={contactPreference}
-                      onChange={(e) => setContactPreference(e.target.value)}
-                    >
-                      <option value="">Choose a contact method</option>
-                      <option value="callback">Call back</option>
-                      <option value="chat">Chat (WhatsApp/Message)</option>
-                      <option value="meeting">In-person meeting</option>
-                    </select>
-                  </div>
-                )}
-
-                {/* Requirements textarea */}
+              {/* STEP 5: Contact Preference */}
+              {(updatePlan === 'one-time' ? budgetRange : whoUpdates ? budgetRange : false) && (
                 <div>
-                  <label className="block text-gray-700 font-medium mb-2">Describe your app requirements</label>
-                  <textarea
+                  <label className="block text-gray-700 font-medium mb-2">How should we contact you?</label>
+                  <select
                     required
-                    rows={4}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Describe your app requirements..."
-                  ></textarea>
-                </div>
-
-                <div className="text-center">
-                  <button
-                    onClick={handleFormSubmit}
-                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-indigo-700 text-white px-8 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 flex items-center mx-auto"
-                    disabled={
-                      !appCategory ||
-                      !appType ||
-                      !updatePlan ||
-                      (updatePlan !== 'one-time' && !whoUpdates) ||
-                      !budgetRange ||
-                      !contactPreference
-                    }
-                    title="Please complete all steps before submitting"
+                    value={contactPreference}
+                    onChange={(e) => setContactPreference(e.target.value)}
                   >
-                    Submit Requirements
-                    <ChevronRight className="ml-2 w-5 h-5" />
-                  </button>
+                    <option value="">Choose a contact method</option>
+                    <option value="callback">Call back</option>
+                    <option value="chat">Chat (WhatsApp/Message)</option>
+                    <option value="meeting">In-person meeting</option>
+                  </select>
                 </div>
+              )}
+
+              {/* Requirements textarea */}
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Describe your app requirements</label>
+                <textarea
+                  required
+                  rows={4}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Describe your app requirements..."
+                ></textarea>
+              </div>
+
+              <div className="text-center">
+                <button
+                  onClick={handleFormSubmit}
+                  className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-indigo-700 text-white px-8 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 flex items-center mx-auto"
+                  disabled={
+                    !appCategory ||
+                    !appType ||
+                    !updatePlan ||
+                    (updatePlan !== 'one-time' && !whoUpdates) ||
+                    !budgetRange ||
+                    !contactPreference
+                  }
+                  title="Please complete all steps before submitting"
+                >
+                  Submit Requirements
+                  <ChevronRight className="ml-2 w-5 h-5" />
+                </button>
               </div>
             </div>
-          ) : (
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 text-center shadow-lg">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-10 h-10 text-emerald-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Thank You!</h3>
-              <p className="text-gray-600 mb-6">
-                Your app requirements have been submitted. Our team will contact you within 24 hours.
-              </p>
-              <button
-                onClick={() => {
-                  setFormSubmitted(false);
-                  setAppCategory('');
-                  setAppType('');
-                  setUpdatePlan('');
-                  setWhoUpdates('');
-                  setBudgetRange('');
-                  setContactPreference('');
-                }}
-                className="text-purple-600 hover:text-purple-800 font-medium"
-              >
-                Submit Another Request
-              </button>
+          </div>
+        ) : (
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 text-center shadow-lg">
+            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-10 h-10 text-emerald-600" />
             </div>
-          )}
-        </div>
-      </section>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">Thank You!</h3>
+            <p className="text-gray-600 mb-6">
+              Your app requirements have been submitted. Our team will contact you within 24 hours.
+            </p>
+            <button
+              onClick={() => {
+                setFormSubmitted(false);
+                setAppCategory('');
+                setAppType('');
+                setUpdatePlan('');
+                setWhoUpdates('');
+                setBudgetRange('');
+                setContactPreference('');
+              }}
+              className="text-purple-600 hover:text-purple-800 font-medium"
+            >
+              Submit Another Request
+            </button>
+          </div>
+        )}
+      </div>
+
+    </div>
+  </div>
+</section>
+
     </div>
   );
 };
