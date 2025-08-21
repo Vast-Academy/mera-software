@@ -253,10 +253,10 @@ const Header = () => {
         {
           category: 'IT Solutions',
           items: [
-            { name: 'Security Alarm & Theft Prevention', href: '/solutions?industry=security-alarm-theft-prevention' },
-            { name: 'Parking Management System', href: '/solutions?industry=parking-management-system' },
-            { name: 'Automatic Main Gates', href: '/solutions?industry=automatic-main-gates' },
-            { name: 'Fire Hydrant & Alarms', href: '/solutions?industry=fire-hydrant-alarms' }
+            { name: 'Security Alarm & Theft Prevention', href:'https://www.3gdigital.net/Solutions/security-alarm/' },
+            { name: 'Parking Management System', href: 'https://www.3gdigital.net/Solutions/parking-managemen/t' },
+            { name: 'Automatic Main Gates', href: 'https://www.3gdigital.net/Solutions/automatic-gates/' },
+            { name: 'Fire Hydrant & Alarms', href: 'https://www.3gdigital.net/Solutions/fire-hydrant-alarms/' }
           ]
         }
       ]
