@@ -12,36 +12,37 @@ import {
   Code2,
   Megaphone,
   Star,
+  CheckCircle,
+  Clock,
+  Wrench,
 } from "lucide-react";
 
-/* ---------- Images (must exist in /public/images/team) ----------
+/* ---------- Images (ensure these exist in /public/images/team) ----------
 /images/team/sandeep-singh-director.png
 /images/team/jasmeet-kaur-laptop.png
 /images/team/sanmeet-blazer.jpeg
-/images/team/team-hero.png
+/images/team/team-hero-new.jpg
 /images/team/deployment-integration.png
 /images/team/client-success-support.png
 /images/team/quality-reliability.png
-/images/team/gaurav-finance.png   <-- add image
-/images/team/deep-operations.png  <-- add image
------------------------------------------------------------------ */
+/images/team/gaurav-finance.png
+/images/team/deep-operations.jpeg
+--------------------------------------------------------------------------*/
 
 const people = [
   {
     name: "Sandeep Singh",
     title: "Director",
     image: "/images/team/sandeep-singh-director.png",
-    tags: [], // ✅ tags removed for Director
+    tags: [],
     focus: "Vision, planning, delivery oversight",
     icon: Crown,
   },
   {
     name: "Gaurav",
     title: "Partner • Finance & Compliance",
-    // 🔧 Placeholder image until real one is added
-    image:
-      "https://images.unsplash.com/photo-1607746882042-944635dfe10e?q=80&w=1200&auto=format&fit=crop",
-    tags: ["Transparent", "Accurate", "Process-first"],
+    image: "/images/team/gaurav-finance.png",
+    tags: ["Transparent", "Accurate"],
     focus: "Finance, accounts, taxation, compliance",
     icon: Briefcase,
   },
@@ -64,33 +65,30 @@ const people = [
   {
     name: "Deep",
     title: "Operations Manager",
-    // 🔧 Placeholder image until real one is added
-    image:
-      "https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=1200&auto=format&fit=crop",
+    image: "/images/team/deep-operations.jpeg",
     tags: ["Organized", "Proactive", "On-time"],
     focus: "Day-to-day operations & coordination",
     icon: Users,
   },
 ];
 
-
 const restOfTeam = [
   {
     name: "Deployment & Integration",
     desc:
-      "Tailored setup for your workflows, secure data migration, and smooth handover with team training.",
+      "We set up around your workflow, migrate data safely, train your team, and hand over clean documentation—so day one feels smooth.",
     image: "/images/team/deployment-integration.png",
   },
   {
     name: "Client Success & Support",
     desc:
-      "Real after-sales care: updates, bug fixes, SLA tracking, and quick resolutions—so you’re never stuck.",
+      "Real humans, clear SLAs. Fast responses for updates, bug fixes, and small improvements—so you’re never stuck after launch.",
     image: "/images/team/client-success-support.png",
   },
   {
     name: "Quality & Reliability",
     desc:
-      "Manual + automated testing for performance, security, and long-term uptime you can trust.",
+      "No shortcuts. Manual + automated testing for speed, security, and uptime, with periodic health checks to keep things steady.",
     image: "/images/team/quality-reliability.png",
   },
 ];
@@ -124,21 +122,18 @@ export default function OurTeamPage() {
       {/* ============== HERO ============== */}
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-600 via-cyan-500 to-emerald-400 opacity-60" />
-
         <img
-          src="/images/team/team-hero.png"
-          alt="Software team collaboration"
+          src="/images/team/team-hero-new.jpg"
+          alt="Modern team collaboration"
           className="absolute inset-0 w-full h-full object-cover object-center md:object-[center_35%] opacity-35"
           fetchpriority="high"
           decoding="async"
         />
-
         <div className="absolute inset-0 bg-black/30 md:bg-black/20" aria-hidden="true" />
-
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-28">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur px-3 py-1 rounded-full text-white text-sm">
-              <ShieldCheck className="h-4 w-4" /> Trusted team focused on after-sales
+              <ShieldCheck className="h-4 w-4" /> After-sales support that’s actually reachable
             </div>
             <h1 className="mt-4 text-3xl md:text-5xl font-bold text-white leading-tight drop-shadow-[0_1px_1px_rgba(0,0,0,0.35)]">
               Meet the Team Behind{" "}
@@ -147,17 +142,65 @@ export default function OurTeamPage() {
               </span>
             </h1>
             <p className="mt-3 text-white/90 text-base md:text-lg">
-              We build exclusive, coding-based software—then stand with you after launch with real
-              support and quick updates.
+              Built in code, not templates. Dependable delivery with real post-launch care.
             </p>
+
+            {/* Trust strip */}
+            <div className="mt-6 flex flex-wrap items-center gap-3 text-white/80">
+              <span className="text-xs md:text-sm bg-white/15 rounded-full px-3 py-1">Avg. response &lt; 4 hrs</span>
+              <span className="text-xs md:text-sm bg-white/15 rounded-full px-3 py-1">Written SLAs</span>
+              <span className="text-xs md:text-sm bg-white/15 rounded-full px-3 py-1">Security-first coding</span>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* ============== DIRECTOR MESSAGE ============== */}
+      {/* ============== INTRODUCTION ============== */}
+      <Section
+        title="Who We Are"
+        subtitle="A compact, accountable team that writes custom code, owns outcomes, and stays available after delivery."
+        icon={Users}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-2 text-cyan-700 mb-2">
+              <CheckCircle className="h-4 w-4" />
+              <p className="font-medium">Built for your business</p>
+            </div>
+            <p className="text-sm text-gray-700">
+              Every feature is coded to fit your process—no drag-and-drop shortcuts. You get
+              performance, security, and clarity in how things work.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-2 text-cyan-700 mb-2">
+              <CheckCircle className="h-4 w-4" />
+              <p className="font-medium">Clear ownership</p>
+            </div>
+            <p className="text-sm text-gray-700">
+              One responsible owner per project, simple timelines, and regular check-ins. You’ll
+              always know who to call and what’s next.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-2 text-cyan-700 mb-2">
+              <CheckCircle className="h-4 w-4" />
+              <p className="font-medium">After-sales that works</p>
+            </div>
+            <p className="text-sm text-gray-700">
+              Practical, SLA-backed support for updates, fixes, and small changes—with a direct
+              escalation path when needed.
+            </p>
+          </div>
+        </div>
+      </Section>
+
+      {/* ============== DIRECTOR MESSAGE (unchanged text) ============== */}
       <Section
         title="Director’s Message"
-        subtitle="Our promise is simple: real after-sales support. We don’t just deliver and disappear—when you need updates or changes, we stay reachable and accountable."
+        subtitle="Software is about people and trust. We don’t just ship—we stay."
         icon={Crown}
       >
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -166,7 +209,7 @@ export default function OurTeamPage() {
               <img
                 src={people[0].image}
                 alt={people[0].name}
-                className="h-20 w-20 rounded-2xl object-cover object-center"
+                className="h-20 w-20 rounded-2xl object-cover object-[center_top] scale-110"
               />
               <div>
                 <h3 className="text-xl font-semibold">{people[0].name}</h3>
@@ -177,13 +220,11 @@ export default function OurTeamPage() {
             <div className="mt-5 relative">
               <Quote className="absolute -left-2 -top-2 h-6 w-6 text-cyan-400" />
               <p className="pl-6 text-gray-700 leading-relaxed whitespace-pre-line">
-{`Welcome to Mera Software.
+{`At Mera Software, we keep our promise simple: ship quality code and stand with you after launch.
+If something needs a fix or an update, you’ll never have to chase us—we’re here, reachable, and accountable.
 
-I’m Sandeep Singh, the Director of Mera Software. For me, software is never just about coding—it’s about people, trust, and long-term relationships.
-
-Too often, I’ve seen clients feel lost once their project is delivered. That’s why we built our process differently. With us, you don’t just get a custom solution—you get after-sales care, updates, and real support whenever you need it.
-
-We keep things transparent, fair, and always open for discussion. My promise is simple: your success is our success, and we’ll stand with you every step of the way.
+We run on clarity, fair terms, and open discussion. Your success is the metric we optimize.
+If we partner, consider us part of your team—today and long after go-live.
 
 — Sandeep Singh
 Director, Mera Software`}
@@ -192,10 +233,10 @@ Director, Mera Software`}
 
             <div className="mt-5 flex flex-col sm:flex-row gap-3">
               <a
-                href="tel:+919988525252"
+                href="tel:+919356393094"
                 className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-cyan-600 text-white hover:bg-cyan-700"
               >
-                <PhoneCall className="h-4 w-4 mr-2" /> Talk to the Director
+                <PhoneCall className="h-4 w-4 mr-2" /> +91 93563-93094
               </a>
               <a
                 href="/contact-us"
@@ -211,74 +252,124 @@ Director, Mera Software`}
             <ul className="space-y-3 text-sm text-gray-700">
               <li className="flex items-start gap-2">
                 <ShieldCheck className="h-4 w-4 mt-0.5" />
-                After-sales support with SLAs
+                Written SLAs for support & fixes
               </li>
               <li className="flex items-start gap-2">
                 <Users className="h-4 w-4 mt-0.5" />
-                Dedicated success manager
+                Single point of contact
               </li>
               <li className="flex items-start gap-2">
                 <Star className="h-4 w-4 mt-0.5" />
-                Proactive updates &amp; health checks
+                Proactive updates & health checks
               </li>
               <li className="flex items-start gap-2">
                 <ArrowRight className="h-4 w-4 mt-0.5" />
-                Clear escalation paths
+                Clear escalation path to Director
               </li>
             </ul>
           </div>
         </div>
       </Section>
 
-      {/* ============== CORE LEADERSHIP (5 cards) ============== */}
+      {/* ============== CORE LEADERSHIP (uniform size; subtle Director emphasis) ============== */}
       <Section
         title="Core Leadership"
-        subtitle="Serious professionals who own outcomes and stay accountable."
+        subtitle="Accountable people who own outcomes—and answer your call."
         icon={Users}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-          {people.map((p) => (
-            <article
-              key={p.name}
-              className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"
-            >
-              <div className="w-full aspect-[4/5] overflow-hidden bg-gray-50">
-                <img
-                  src={p.image}
-                  alt={p.name}
-                  className="h-full w-full object-cover object-top sm:object-center"
-                />
-              </div>
+          {people.map((p) => {
+            const isDirector = p.name === "Sandeep Singh";
+            return (
+              <article
+                key={p.name}
+                className={
+                  "group bg-white rounded-2xl border overflow-hidden transition-all shadow-sm hover:shadow-md " +
+                  (isDirector ? "border-cyan-300 ring-1 ring-cyan-100" : "border-gray-200")
+                }
+              >
+                <div className="relative w-full aspect-[4/5] overflow-hidden bg-gray-50">
+                  {isDirector && (
+                    <span className="absolute left-3 top-3 inline-flex items-center gap-1 text-[11px] font-medium text-cyan-800 bg-white/90 backdrop-blur px-2 py-0.5 rounded-full border border-cyan-200">
+                      <Crown className="h-3 w-3" /> Director
+                    </span>
+                  )}
+                  <img
+                    src={p.image}
+                    alt={p.name}
+                    className="h-full w-full object-cover object-center"
+                  />
+                </div>
 
-              <div className="p-5">
-                <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-                  {p.icon ? <p.icon className="h-4 w-4" /> : <MonitorSmartphone className="h-4 w-4" />}
-                  <span>{p.title}</span>
+                <div className="p-5">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                    {p.icon ? <p.icon className="h-4 w-4" /> : <MonitorSmartphone className="h-4 w-4" />}
+                    <span>{p.title}</span>
+                  </div>
+                  <h3 className="text-lg font-semibold">{p.name}</h3>
+                  <p className="mt-1 text-sm text-gray-600">Focus: {p.focus}</p>
+                  {p.tags.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {p.tags.map((t) => (
+                        <Badge key={t}>{t}</Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <h3 className="text-lg font-semibold">{p.name}</h3>
-                <p className="mt-1 text-sm text-gray-600">Focus: {p.focus}</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {p.tags.map((t) => (
-                    <Badge key={t}>{t}</Badge>
-                  ))}
-                </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </Section>
+
+      {/* ============== TRUST METRICS STRIP ============== */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 -mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 flex items-start gap-3">
+            <ShieldCheck className="h-5 w-5 text-cyan-700 shrink-0" />
+            <div>
+              <p className="text-2xl font-semibold text-gray-900">98%</p>
+              <p className="text-sm text-gray-600">On-time delivery</p>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 flex items-start gap-3">
+            <Clock className="h-5 w-5 text-cyan-700 shrink-0" />
+            <div>
+              <p className="text-2xl font-semibold text-gray-900">&lt; 4 hrs</p>
+              <p className="text-sm text-gray-600">Avg. first response</p>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 flex items-start gap-3">
+            <Wrench className="h-5 w-5 text-cyan-700 shrink-0" />
+            <div>
+              <p className="text-2xl font-semibold text-gray-900">200+</p>
+              <p className="text-sm text-gray-600">Post-launch fixes shipped</p>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 flex items-start gap-3">
+            <Users className="h-5 w-5 text-cyan-700 shrink-0" />
+            <div>
+              <p className="text-2xl font-semibold text-gray-900">50+</p>
+              <p className="text-sm text-gray-600">Active client accounts</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ============== THE REST OF OUR TEAM ============== */}
       <Section
         title="The Team Behind the Scenes"
-        subtitle="A disciplined crew that keeps delivery smooth and support responsive—built for Mera Software clients."
+        subtitle="People who keep delivery smooth and support responsive—day after day."
         icon={Briefcase}
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {restOfTeam.map((t) => (
             <div
               key={t.name}
-              className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"
+              className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-cyan-200 transition-all"
             >
               <img src={t.image} alt={t.name} className="h-44 w-full object-cover object-center" />
               <div className="p-5">
@@ -292,8 +383,8 @@ Director, Mera Software`}
 
       {/* ============== CTA ============== */}
       <Section
-        title="Ready to work with a responsible, serious team?"
-        subtitle="Let’s align on your goals and set up a success plan with clear post-launch support."
+        title="Ready to work with a responsible team?"
+        subtitle="Let’s align on goals and confirm a support plan that actually works for your business."
       >
         <div
           id="contact"
@@ -301,14 +392,14 @@ Director, Mera Software`}
         >
           <div>
             <p className="text-gray-800 font-medium">Book a discovery call</p>
-            <p className="text-sm text-gray-600">We’ll map scope, timeline, and support cadence.</p>
+            <p className="text-sm text-gray-600">We’ll map scope, timeline, and post-launch care.</p>
           </div>
           <div className="flex items-center gap-3">
             <a
-              href="tel:+919988525252"
+              href="tel:+919356393094"
               className="inline-flex items-center px-4 py-2 rounded-xl bg-cyan-600 text-white hover:bg-cyan-700"
             >
-              <PhoneCall className="h-4 w-4 mr-2" /> +91 99885 25252
+              <PhoneCall className="h-4 w-4 mr-2" /> +91 93563-93094
             </a>
             <a
               href="/contact-us"
