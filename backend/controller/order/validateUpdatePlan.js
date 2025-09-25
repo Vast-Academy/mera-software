@@ -90,9 +90,17 @@ const validateUpdatePlan = async (req, res) => {
       userId,
       isActive: true,
       'productId.category': 'website_updates'
-    });
+    }).populate('productId');
 
     if (existingUpdatePlan) {
+      // If it's a yearly renewable plan, allow only one at a time
+      if (existingUpdatePlan.productId?.isMonthlyRenewablePlan) {
+        return res.status(400).json({
+          success: false,
+          message: 'You already have an active yearly renewable plan. Only one yearly plan allowed at a time.'
+        });
+      }
+      // For regular update plans, also restrict to one active plan
       return res.status(400).json({
         success: false,
         message: 'You already have an active update plan. Please deactivate it before purchasing a new one.'

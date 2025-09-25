@@ -152,6 +152,58 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    // New fields for yearly renewable plans
+    monthlyRenewalHistory: [{
+        renewalDate: {
+            type: Date,
+            required: true
+        },
+        renewalCost: {
+            type: Number,
+            required: true
+        },
+        paymentStatus: {
+            type: String,
+            enum: ['paid', 'pending', 'expired'],
+            default: 'paid'
+        },
+        renewalPeriodStart: {
+            type: Date,
+            required: true
+        },
+        renewalPeriodEnd: {
+            type: Date,
+            required: true
+        },
+        updatesUsedInPeriod: {
+            type: Number,
+            default: 0
+        }
+    }],
+    totalYearlyDaysRemaining: {
+        type: Number,
+        validate: {
+            validator: function(value) {
+                if (value !== null && value !== undefined) {
+                    return value >= 0 && value <= 365;
+                }
+                return true;
+            },
+            message: 'Yearly days remaining must be between 0 and 365'
+        }
+    },
+    currentMonthExpiryDate: {
+        type: Date
+    },
+    autoRenewalStatus: {
+        type: String,
+        enum: ['active', 'paused', 'expired'],
+        default: 'active'
+    },
+    currentMonthUpdatesUsed: {
+        type: Number,
+        default: 0
+    },
     assignedDeveloper: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Developer',

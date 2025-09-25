@@ -113,6 +113,35 @@ const productSchema = new mongoose.Schema({
         message: 'Update count must be greater than 0'
     }
 },
+  // New fields for yearly renewable plans
+  isMonthlyRenewablePlan: {
+    type: Boolean,
+    default: false
+  },
+  yearlyPlanDuration: {
+    type: Number,  // Total plan duration in days (365)
+    validate: {
+      validator: function(value) {
+        if (!this.isMonthlyRenewablePlan) return true;
+        return value > 0 && value <= 365;
+      },
+      message: 'Yearly plan duration must be between 1 and 365 days'
+    }
+  },
+  monthlyRenewalCost: {
+    type: Number,  // Cost for monthly renewal (₹8000)
+    validate: {
+      validator: function(value) {
+        if (!this.isMonthlyRenewablePlan) return true;
+        return value > 0;
+      },
+      message: 'Monthly renewal cost must be greater than 0'
+    }
+  },
+  isUnlimitedUpdates: {
+    type: Boolean,
+    default: false
+  },
     additionalFeatures: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'product'  // References the same Product model

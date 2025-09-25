@@ -15,6 +15,26 @@ async function UploadProductController(req,res){
             productData.isHidden = req.body.isHidden
         }
 
+        // Special handling for yearly renewable plans
+        if (productData.isMonthlyRenewablePlan) {
+            // Validate required fields for yearly plans
+            if (!productData.yearlyPlanDuration || !productData.monthlyRenewalCost) {
+                throw new Error("Yearly plan duration and monthly renewal cost are required for renewable plans")
+            }
+
+            // Ensure proper values for yearly plans
+            productData.validityPeriod = 30; // Current active period
+            productData.updateCount = 999999; // Unlimited updates
+            productData.isUnlimitedUpdates = true;
+            productData.isWebsiteUpdate = true; // Ensure it's marked as website update
+
+            console.log('Creating yearly renewable plan:', {
+                yearlyPlanDuration: productData.yearlyPlanDuration,
+                monthlyRenewalCost: productData.monthlyRenewalCost,
+                isMonthlyRenewablePlan: productData.isMonthlyRenewablePlan
+            });
+        }
+
         const uploadProduct = new productModel(productData)
         const saveProduct = await uploadProduct.save()
 

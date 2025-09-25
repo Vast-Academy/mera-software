@@ -45,6 +45,7 @@ console.log('Product category from DB:', product.category);
     const isWebsiteService = ['standard_websites', 'dynamic_websites', 'cloud_software_development']
       .includes(product.category);
     const isWebsiteUpdate = product.category === 'website_updates';
+    const isYearlyRenewablePlan = product.isMonthlyRenewablePlan || false;
 
     // Create the base order data
     let orderData = {
@@ -239,6 +240,34 @@ console.log('Product category from DB:', product.category);
     if (isWebsiteUpdate) {
       orderData.updatesUsed = 0;
       orderData.isActive = true;
+
+      // Special handling for yearly renewable plans
+      if (isYearlyRenewablePlan) {
+        const currentDate = new Date();
+        const monthExpiryDate = new Date(currentDate);
+        monthExpiryDate.setDate(monthExpiryDate.getDate() + 30); // First month starts immediately
+
+        orderData.totalYearlyDaysRemaining = product.yearlyPlanDuration || 365;
+        orderData.currentMonthExpiryDate = monthExpiryDate;
+        orderData.autoRenewalStatus = 'active';
+        orderData.currentMonthUpdatesUsed = 0;
+
+        // Initialize first renewal period in history
+        orderData.monthlyRenewalHistory = [{
+          renewalDate: currentDate,
+          renewalCost: price, // Initial purchase amount
+          paymentStatus: 'paid',
+          renewalPeriodStart: currentDate,
+          renewalPeriodEnd: monthExpiryDate,
+          updatesUsedInPeriod: 0
+        }];
+
+        console.log('Yearly renewable plan initialized with:', {
+          totalYearlyDaysRemaining: orderData.totalYearlyDaysRemaining,
+          currentMonthExpiryDate: orderData.currentMonthExpiryDate,
+          firstRenewalPeriod: orderData.monthlyRenewalHistory[0]
+        });
+      }
     }
 
     // Process additional features if provided
