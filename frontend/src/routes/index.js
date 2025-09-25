@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import App from "../App"
+import App from "../App";
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import ForgotPassword from "../pages/ForgotPassword";
@@ -66,7 +66,7 @@ import PartnerDashboard from "../pages/PartnerDashboard";
 import PartnerCustomers from "../pages/PartnerCustomers";
 import BusinessCreated from "../pages/BusinessCreated";
 import FirstPurchaseList from "../pages/FirstPurchaseList";
-import Practice from "../pages/Practice"
+import Practice from "../pages/Practice";
 import CompleteProfile from "../pages/CompleteProfile";
 import AdminWithdrawalManagement from "../pages/AdminWithdrawalManagement";
 import LocalBusinessWebsite from "../pages/LocalBusinessWebsite";
@@ -87,9 +87,13 @@ import FAQ from "../pages/FAQ";
 import Blog from "../pages/Blog";
 import PostPage from "../pages/PostPage";
 import ContactPage from "../pages/ContactPage";
-
-
-
+import OurPortfolio from "../pages/OurPortfolio";
+import Portfolio1 from "../pages/Portfolio1";
+import Portfolio2 from "../pages/Portfolio2";
+import Portfolio3 from "../pages/Portfolio3";
+import Portfolio4 from "../pages/Portfolio4";
+import Portfolio5 from "../pages/Portfolio5";
+import Portfolio6 from "../pages/Portfolio6";
 
 // Create a conditional home route
 // const HomeRoute = () => {
@@ -103,410 +107,436 @@ import ContactPage from "../pages/ContactPage";
 //   };
 
 const router = createBrowserRouter([
-    {
-        path: "/",
-        element: <App />,
+  {
+    path: "/",
+    element: <App />,
+    children: [
+      {
+        path: "",
+        element: <RoleBasedHome />,
+      },
+      {
+        path: "home",
+        element: <Home />,
+      },
+      {
+        path: "login",
+        element: <Login />,
+      },
+      {
+        path: "unauthorized",
+        element: <div>Unauthorized Access</div>,
+      },
+      {
+        path: "forgot-password",
+        element: <ForgotPassword />,
+      },
+      {
+        path: "product-category/",
+        element: <CategoryProduct />,
+      },
+      {
+        path: "product/:id",
+        element: <ProductDetails />,
+      },
+      {
+        path: "cart",
+        element: <Cart />,
+      },
+      {
+        path: "cancel",
+        element: <Cancel />,
+      },
+      {
+        path: "success",
+        element: <Success />,
+      },
+      {
+        path: "search",
+        element: <SearchProduct />,
+      },
+      {
+        path: "order",
+        element: <OrderPage />,
+      },
+      {
+        path: "order-detail/:orderId",
+        element: <OrderDetailPage />,
+      },
+      {
+        path: "profile",
+        element: <Profile />,
+      },
+      {
+        path: "project-details/:orderId",
+        element: <ProjectDetails />,
+      },
+      {
+        path: "wallet",
+        element: <WalletDetails />,
+      },
+      {
+        path: "/service-card",
+        element: <ServiceCard />,
+      },
+      {
+        path: "my-updates",
+        element: <UserUpdateDashboard />,
+      },
+      {
+        path: "dashboard",
+        element: <UserDashboard />,
+      },
+      {
+        path: "direct-payment",
+        element: <DirectPayment />,
+      },
+      {
+        path: "support",
+        element: <ContactSupport />,
+      },
+      {
+        path: "installment-payment/:orderId/:installmentNumber",
+        element: <InstallmentPayment />,
+      },
+      {
+        path: "terms-and-conditions",
+        element: <TermsAndConditionsPage />,
+      },
+      {
+        path: "privacy-policy",
+        element: <PrivacyPolicyPage />,
+      },
+      {
+        path: "cookies-policy",
+        element: <CookiesPolicyPage />,
+      },
+      {
+        path: "delivery-policy",
+        element: <DeliveryPolicyPage />,
+      },
+      {
+        path: "refund-policy",
+        element: <RefundPolicyPage />,
+      },
+      {
+        path: "disclaimers",
+        element: <DisclaimersPage />,
+      },
+      {
+        path: "contact-us",
+        element: <ContactUsForm />,
+      },
+      {
+        path: "contact",
+        element: <ContactPage />,
+      },
+
+      {
+        path: "support-tickets/:ticketId",
+        element: <TicketDetail />,
+      },
+      {
+        path: "practice",
+        element: <Practice />,
+      },
+      {
+        path: "admin-tickets/:ticketId",
+        element: <TicketDetail isAdmin={true} />,
+      },
+      {
+        path: "complete-profile",
+        element: <CompleteProfile />,
+      },
+      {
+        path: "website-development-service",
+        element: <WebsiteDevelopmentPage />,
+      },
+      {
+        path: "cloud-software-service",
+        element: <WebSoftwareService />,
+      },
+      {
+        path: "feature-upgrades-service",
+        element: <FeatureUpgradesService />,
+      },
+      {
+        path: "mobile-app-development-service",
+        element: <MobileAppDevelopmentService />,
+      },
+      {
+        path: "static-websites",
+        element: <StaticWebsitesPage />,
+      },
+      {
+        path: "dynamic-websites",
+        element: <DynamicWebistesPage />,
+      },
+      {
+        path: "coding-based-website-development",
+        element: <CodingBasedWebsitePage />,
+      },
+      {
+        path: "local-business-setup",
+        element: <LocalBusinessWebsite />,
+      },
+      {
+        path: "about-us",
+        element: <AboutUs />,
+      },
+      {
+        path: "our-team",
+        element: <OurTeamPage />,
+      },
+      {
+        path: "customer-relation-management",
+        element: <CustomerRelationManagement />,
+      },
+      {
+        path: "complaint-management",
+        element: <ComplaintManagement />,
+      },
+      {
+        path: "laptop-mobile-repair-registration",
+        element: <LaptopMobileRepair />,
+      },
+      {
+        path: "partner-service-management",
+        element: <PartnerServiceManagement />,
+      },
+      {
+        path: "faq",
+        element: <FAQ />,
+      },
+      {
+        path: "our-portfolio",
+        element: <OurPortfolio />,
+      },
+      {
+        path: "sln",
+        element: <Portfolio1 />,
+      },
+      {
+        path: "cms-3gdigital",
+        element: <Portfolio2 />,
+      },
+      {
+        path: "app-3gdigital",
+        element: <Portfolio3 />,
+      },
+      {
+        path: "ezing",
+        element: <Portfolio4 />,
+      },
+      {
+        path: "crm-software",
+        element: <Portfolio5 />,
+      },
+      {
+        path: "va-computers",
+        element: <Portfolio6 />,
+      },
+      {
+        path: "blog",
+        element: <Blog />,
+      },
+      {
+        path: "blog/:slug",
+        element: <PostPage />,
+      },
+
+      {
+        path: "admin-panel",
+        element: (
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminPanel />
+          </ProtectedRoute>
+        ),
         children: [
-            {
-                path: "",
-                element: <RoleBasedHome />
-            },
-            {
-                path: "home",
-                element: <Home />
-            },
-            {
-                path: "login",
-                element: <Login />
-            },
-            {
-                path: "unauthorized",
-                element: <div>Unauthorized Access</div>
-            },
-            {
-                path: "forgot-password",
-                element: <ForgotPassword />
-            },
-            {
-                path: "product-category/",
-                element: <CategoryProduct />
-            },
-            {
-                path: "product/:id",
-                element: <ProductDetails />
-            },
-            {
-                path: "cart",
-                element: <Cart />
-            },
-            {
-                path: "cancel",
-                element: <Cancel />
-            },
-            {
-                path: "success",
-                element: <Success />
-            },
-            {
-                path: "search",
-                element: <SearchProduct />
-            },
-            {
-                path: "order",
-                element: <OrderPage />
-            },
-            {
-                path: "order-detail/:orderId",
-                element: <OrderDetailPage />
-            },
-            {
-                path: "profile",
-                element: <Profile />
-            },
-            {
-                path: "project-details/:orderId",
-                element: <ProjectDetails />
-            },
-            {
-                path: "wallet",
-                element: <WalletDetails />
-            },
-            {
-                path: "/service-card",
-                element: <ServiceCard />
-            },
-            {
-                path: "my-updates",
-                element: <UserUpdateDashboard />
-            },
-            {
-                path: "dashboard",
-                element: <UserDashboard />
-            },
-            {
-                path: "direct-payment",
-                element: <DirectPayment />
-            },
-            {
-                path: "support",
-                element: <ContactSupport />
-            },
-            {
-                path: "installment-payment/:orderId/:installmentNumber",
-                element: <InstallmentPayment />
-            },
-            {
-                path: "terms-and-conditions",
-                element: <TermsAndConditionsPage />
-            },
-            {
-                path: "privacy-policy",
-                element: <PrivacyPolicyPage />
-            },
-            {
-                path: "cookies-policy",
-                element: <CookiesPolicyPage />
-            },
-            {
-                path: "delivery-policy",
-                element: <DeliveryPolicyPage />
-            },
-            {
-                path: "refund-policy",
-                element: <RefundPolicyPage />
-            },
-            {
-                path: "disclaimers",
-                element: <DisclaimersPage />
-            },
-            {
-                path: "contact-us",
-                element: <ContactUsForm />
-            },
-            {
-                path: "contact",
-                element: <ContactPage />
-            },
-
-            {
-                path: "support-tickets/:ticketId",
-                element: <TicketDetail />
-            },
-            {
-                path: "practice",
-                element: <Practice />
-            },
-            {
-                path: "admin-tickets/:ticketId",
-                element: <TicketDetail isAdmin={true} />
-            },
-            {
-                path: "complete-profile",
-                element: <CompleteProfile />
-            },
-            {
-                path: "website-development-service",
-                element: <WebsiteDevelopmentPage />
-            },
-            {
-                path: "cloud-software-service",
-                element: <WebSoftwareService />
-            },
-            {
-                path: "feature-upgrades-service",
-                element: <FeatureUpgradesService />
-            },
-            {
-                path: "mobile-app-development-service",
-                element: <MobileAppDevelopmentService />
-            },
-            {
-                path: "static-websites",
-                element: <StaticWebsitesPage />
-            },
-            {
-                path: "dynamic-websites",
-                element: <DynamicWebistesPage />
-            },
-            {
-                path: "coding-based-website-development",
-                element: <CodingBasedWebsitePage />
-            },
-            {
-                path: "local-business-setup",
-                element: <LocalBusinessWebsite />
-            },
-            {
-                path: "about-us",
-                element: <AboutUs />
-            },
-            {
-                path: "our-team",
-                element: <OurTeamPage />
-            },
-            {
-                path: "customer-relation-management",
-                element: <CustomerRelationManagement />
-            },
-            {
-                path: "complaint-management",
-                element: <ComplaintManagement />
-            },
-            {
-                path: "laptop-mobile-repair-registration",
-                element: <LaptopMobileRepair />
-            },
-            {
-                path: "partner-service-management",
-                element: <PartnerServiceManagement />
-            },
-            {
-                path: "faq",
-                element: <FAQ />
-            },
-
-            {
-                path: "blog",
-                element: <Blog />
-            },
-            {
-                path: "blog/:slug",
-                element: <PostPage />
-            },
-
-
-            {
-                path: "admin-panel",
-                element: (
-                    <ProtectedRoute allowedRoles={['admin']}>
-                        <AdminPanel />
-                    </ProtectedRoute>
-                ),
-                children: [
-                    {
-                        path: "",
-                        element: <Navigate to="all-products" replace />
-                    },
-                    {
-                        path: "all-products",
-                        element: <AllProducts />
-                    },
-                    {
-                        path: "all-users",
-                        element: <AllUsers />
-                    },
-                    {
-                        path: "admins",
-                        element: <AdminManagement />
-                    },
-                    {
-                        path: "managers",
-                        element: <ManagerManagement />
-                    },
-                    {
-                        path: "developers",
-                        element: <DeveloperManagement />
-                    },
-                    {
-                        path: "partners",
-                        element: <PartnerManagement />
-                    },
-                    {
-                        path: "customers",
-                        element: <CustomerManagement />
-                    },
-                    {
-                        path: "admin-settings",
-                        element: <AdminFileSettings />
-                    },
-                    {
-                        path: "order-approval",
-                        element: <AdminOrdersPage />
-                    },
-                    {
-                        path: "admin-tickets",
-                        element: <AdminTicketsDashboard />
-                    },
-                    {
-                        path: "payment-verification",
-                        element: <AdminPaymentVerification />
-                    },
-                    {
-                        path: "coupon-management",
-                        element: <AdminCouponPage />
-                    },
-                    {
-                        path: "welcome-content",
-                        element: <AllWelcomeContent />
-                    },
-                    {
-                        path: "update-requests",
-                        element: <AdminUpdateRequests />
-                    },
-                    {
-                        path: "projects",
-                        element: <AdminProjects />
-                    },
-                    {
-                        path: "website-updates",
-                        element: <AdminWebsiteUpdates />
-                    },
-                    {
-                        path: "all-developers",
-                        element: <AllDevelopers />
-                    },
-                    {
-                        path: "all-ads",
-                        element: <AllAds />
-                    },
-                    {
-                        path: "all-categories",
-                        element: <AllCategory />
-                    },
-                    {
-                        path: "all-orders",
-                        element: <AllOrder />
-                    },
-                    {
-                        path: "wallet-management",
-                        element: <WalletManagement />
-                    },
-                    {
-                        path: "partner-withdrawal-requests",
-                        element: <AdminWithdrawalManagement />
-                    }
-                ]
-            },
-            {
-                path: "manager-panel",
-                element: (
-                    <ProtectedRoute allowedRoles={['manager']}>
-                        <ManagerPanel />
-                    </ProtectedRoute>
-                ),
-                children: [
-                    {
-                        path: "",
-                        element: <Navigate to="dashboard" replace />
-                    },
-                    {
-                        path: "dashboard",
-                        element: <ManagerDashboard />
-                    },
-                    {
-                        path: "all-products",
-                        element: <AllProducts />
-                    },
-                    {
-                        path: "all-ads",
-                        element: <AllAds />
-                    },
-                    {
-                        path: "all-categories",
-                        element: <AllCategory />
-                    },
-                    {
-                        path: "welcome-content",
-                        element: <AllWelcomeContent />
-                    },
-                    {
-                        path: "hidden-products",
-                        element: <HiddenProducts />
-                    },
-                ]
-            },
-            {
-                path: "partner-panel",
-                element: (
-                    <ProtectedRoute allowedRoles={['partner']}>
-                        <PartnerDashboard />
-                    </ProtectedRoute>
-                ),
-                children: [
-                    {
-                        path: "",
-                        element: <Navigate to="dashboard" replace />
-                    },
-                    {
-                        path: "dashboard",
-                        element: <PartnerDashboard />
-                    },
-                    {
-                        path: "partner-customers",
-                        element: <PartnerCustomers />
-                    },
-                    {
-                        path: "business-created",
-                        element: <BusinessCreated />
-                    },
-                    {
-                        path: "first-purchase-list",
-                        element: <FirstPurchaseList />
-                    },
-                ]
-            },
-            {
-                path: "developer-panel",
-                element: <DeveloperPanel />,
-                children: [
-                    {
-                        path: "developer-update-requests",
-                        element: <DeveloperUpdatePanel />
-                    },
-                ]
-            }
-        ]
-    },
-    {
-        path: "/",
-        element: <LandingPageLayout />,
+          {
+            path: "",
+            element: <Navigate to="all-products" replace />,
+          },
+          {
+            path: "all-products",
+            element: <AllProducts />,
+          },
+          {
+            path: "all-users",
+            element: <AllUsers />,
+          },
+          {
+            path: "admins",
+            element: <AdminManagement />,
+          },
+          {
+            path: "managers",
+            element: <ManagerManagement />,
+          },
+          {
+            path: "developers",
+            element: <DeveloperManagement />,
+          },
+          {
+            path: "partners",
+            element: <PartnerManagement />,
+          },
+          {
+            path: "customers",
+            element: <CustomerManagement />,
+          },
+          {
+            path: "admin-settings",
+            element: <AdminFileSettings />,
+          },
+          {
+            path: "order-approval",
+            element: <AdminOrdersPage />,
+          },
+          {
+            path: "admin-tickets",
+            element: <AdminTicketsDashboard />,
+          },
+          {
+            path: "payment-verification",
+            element: <AdminPaymentVerification />,
+          },
+          {
+            path: "coupon-management",
+            element: <AdminCouponPage />,
+          },
+          {
+            path: "welcome-content",
+            element: <AllWelcomeContent />,
+          },
+          {
+            path: "update-requests",
+            element: <AdminUpdateRequests />,
+          },
+          {
+            path: "projects",
+            element: <AdminProjects />,
+          },
+          {
+            path: "website-updates",
+            element: <AdminWebsiteUpdates />,
+          },
+          {
+            path: "all-developers",
+            element: <AllDevelopers />,
+          },
+          {
+            path: "all-ads",
+            element: <AllAds />,
+          },
+          {
+            path: "all-categories",
+            element: <AllCategory />,
+          },
+          {
+            path: "all-orders",
+            element: <AllOrder />,
+          },
+          {
+            path: "wallet-management",
+            element: <WalletManagement />,
+          },
+          {
+            path: "partner-withdrawal-requests",
+            element: <AdminWithdrawalManagement />,
+          },
+        ],
+      },
+      {
+        path: "manager-panel",
+        element: (
+          <ProtectedRoute allowedRoles={["manager"]}>
+            <ManagerPanel />
+          </ProtectedRoute>
+        ),
         children: [
-            {
-                path: "landing",
-                element: <ModernBusinessLandingPage />
-            },
-        ]
-    },
-])
+          {
+            path: "",
+            element: <Navigate to="dashboard" replace />,
+          },
+          {
+            path: "dashboard",
+            element: <ManagerDashboard />,
+          },
+          {
+            path: "all-products",
+            element: <AllProducts />,
+          },
+          {
+            path: "all-ads",
+            element: <AllAds />,
+          },
+          {
+            path: "all-categories",
+            element: <AllCategory />,
+          },
+          {
+            path: "welcome-content",
+            element: <AllWelcomeContent />,
+          },
+          {
+            path: "hidden-products",
+            element: <HiddenProducts />,
+          },
+        ],
+      },
+      {
+        path: "partner-panel",
+        element: (
+          <ProtectedRoute allowedRoles={["partner"]}>
+            <PartnerDashboard />
+          </ProtectedRoute>
+        ),
+        children: [
+          {
+            path: "",
+            element: <Navigate to="dashboard" replace />,
+          },
+          {
+            path: "dashboard",
+            element: <PartnerDashboard />,
+          },
+          {
+            path: "partner-customers",
+            element: <PartnerCustomers />,
+          },
+          {
+            path: "business-created",
+            element: <BusinessCreated />,
+          },
+          {
+            path: "first-purchase-list",
+            element: <FirstPurchaseList />,
+          },
+        ],
+      },
+      {
+        path: "developer-panel",
+        element: <DeveloperPanel />,
+        children: [
+          {
+            path: "developer-update-requests",
+            element: <DeveloperUpdatePanel />,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: "/",
+    element: <LandingPageLayout />,
+    children: [
+      {
+        path: "landing",
+        element: <ModernBusinessLandingPage />,
+      },
+    ],
+  },
+]);
 
 export default router;

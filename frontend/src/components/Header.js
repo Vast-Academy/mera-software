@@ -1,28 +1,27 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
-import Logo from "../assest/newlogo.png"; // Make sure this path is correct
-import { GrSearch } from "react-icons/gr";
-import { FaRegCircleUser } from "react-icons/fa6";
-import { GoArrowSwitch } from "react-icons/go";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import SummaryApi from "../common"; // Make sure this path is correct
-import { toast } from "react-toastify";
-import { setUserDetails, logout } from "../store/userSlice"; // Make sure this path is correct
-import ROLE from "../common/role"; // Make sure this path is correct
-import Context from "../context"; // Make sure this path is correct
-import { useOnlineStatus } from "../App"; // Make sure this path is correct
-import { IoWalletOutline } from "react-icons/io5";
-import CookieManager from "../utils/cookieManager"; // Make sure this path is correct
-import StorageService from "../utils/storageService"; // Make sure this path is correct
-import displayCurrency from "../helpers/displayCurrency"; // Make sure this path is correct
-import NotificationBell from "../components/NotificationBell"; // Make sure this path is correct
-import LoginPopup from "../components/LoginPopup"; // Make sure this path is correct
-import TriangleMazeLoader from "../components/TriangleMazeLoader"; // Make sure this path is correct
-import { ChevronRight, Home, Menu, X } from "lucide-react"; // Ensure lucide-react is installed
+import React, { useContext, useEffect, useRef, useState } from 'react'
+import Logo from '../assest/newlogo.png' // Make sure this path is correct
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import SummaryApi from '../common'; // Make sure this path is correct
+import { toast } from 'react-toastify';
+import { logout } from '../store/userSlice'; // Make sure this path is correct
+import ROLE from '../common/role'; // Make sure this path is correct
+import Context from '../context'; // Make sure this path is correct
+import { useOnlineStatus } from '../App'; // Make sure this path is correct
+import CookieManager from '../utils/cookieManager'; // Make sure this path is correct
+import StorageService from '../utils/storageService'; // Make sure this path is correct
+import displayCurrency from "../helpers/displayCurrency" // Make sure this path is correct
+import NotificationBell from '../components/NotificationBell'; // Make sure this path is correct
+import LoginPopup from '../components/LoginPopup'; // Make sure this path is correct
+import TriangleMazeLoader from '../components/TriangleMazeLoader'; // Make sure this path is correct
+import { 
+  Search, User, Wallet, LogOut, ChevronDown, ChevronRight, 
+  Menu, X, Home, Settings, ExternalLink
+} from 'lucide-react'; // Ensure lucide-react is installed
 
 const Header = () => {
-  const user = useSelector((state) => state?.user?.user);
-  const dispatch = useDispatch();
+  const user = useSelector(state => state?.user?.user)
+  const dispatch = useDispatch()
   const { isOnline } = useOnlineStatus();
   const context = useContext(Context);
   const activeProject = context.activeProject;
@@ -31,20 +30,21 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
   const searchInput = useLocation();
-  const URLSearch = new URLSearchParams(searchInput?.search);
-  const searchQuery = URLSearch.getAll("q");
-  const [search, setSearch] = useState(searchQuery);
-  const [serviceTypes, setServiceTypes] = useState([]);
+  const URLSearch = new URLSearchParams(searchInput?.search)
+  const searchQuery = URLSearch.getAll("q")
+  const [search, setSearch] = useState(searchQuery)
+  const [serviceTypes, setServiceTypes] = useState([])
   const [loading, setLoading] = useState(true);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [isRoleSwitching, setIsRoleSwitching] = useState(false);
 
   const [activeDropdown, setActiveDropdown] = useState(null);
-  const [activeServiceSubCategory, setActiveServiceSubCategory] =
-    useState(null);
-  const [hoveredServiceItemName, setHoveredServiceItemName] = useState(null); // New state for service item name
+  const [activeServiceSubCategory, setActiveServiceSubCategory] = useState(null);
+  const [hoveredServiceItemName, setHoveredServiceItemName] = useState(null);
   const dropdownTimeoutRef = useRef(null);
   const [activeCategoryByMenu, setActiveCategoryByMenu] = useState({}); // { [menuIndex]: catIndex }
+  const searchInputRef = useRef(null);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const userDetails = useSelector((state) => state.user.user);
   const isAuthenticated = !!userDetails?._id;
@@ -53,11 +53,10 @@ const Header = () => {
   const onBack = () => navigate(-1);
 
   const getProjectLink = () => {
-    if (activeProject && activeProject._id)
-      return `/project-details/${activeProject._id}`;
+    if (activeProject && activeProject._id) return `/project-details/${activeProject._id}`;
     const currentPath = window.location.pathname;
-    if (currentPath.startsWith("/project-details/")) return currentPath;
-    return "/order";
+    if (currentPath.startsWith('/project-details/')) return currentPath;
+    return '/order';
   };
 
   const handleProtectedNavigation = (e) => {
@@ -68,7 +67,7 @@ const Header = () => {
 
   useEffect(() => {
     const loadServiceTypes = async () => {
-      const cached = StorageService.getProductsData("categories");
+      const cached = StorageService.getProductsData('categories');
       if (cached) {
         processCategories(cached);
         setLoading(false);
@@ -78,11 +77,11 @@ const Header = () => {
           const res = await fetch(SummaryApi.allCategory.url);
           const data = await res.json();
           if (data.success) {
-            StorageService.setProductsData("categories", data.data);
+            StorageService.setProductsData('categories', data.data);
             processCategories(data.data);
           }
         } catch (e) {
-          console.error("Error fetching categories:", e);
+          console.error('Error fetching categories:', e);
         } finally {
           setLoading(false);
         }
@@ -93,49 +92,46 @@ const Header = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        userMenuRef.current &&
-        !userMenuRef.current.contains(event.target) &&
-        menuDisplay
-      ) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target) && menuDisplay) {
         setMenuDisplay(false);
       }
-      if (
-        activeDropdown !== null &&
-        !event.target.closest(".main-nav-dropdown")
-      ) {
+      if (activeDropdown !== null && !event.target.closest('.main-nav-dropdown')) {
         setActiveDropdown(null);
-        setActiveServiceSubCategory(null); // Reset service sub-category on outside click
-        setHoveredServiceItemName(null); // Reset hovered service item name on outside click
+        setActiveServiceSubCategory(null);
+        setHoveredServiceItemName(null);
+      }
+      if (searchOpen && searchInputRef.current && !searchInputRef.current.contains(event.target)) {
+        setSearchOpen(false);
       }
     };
+    
     const handleEscKey = (event) => {
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         if (menuDisplay) setMenuDisplay(false);
         if (mobileMenuOpen) setMobileMenuOpen(false);
         if (activeDropdown !== null) {
           setActiveDropdown(null);
-          setActiveServiceSubCategory(null); // Reset service sub-category on escape
-          setHoveredServiceItemName(null); // Reset hovered service item name on escape
+          setActiveServiceSubCategory(null);
+          setHoveredServiceItemName(null);
         }
+        if (searchOpen) setSearchOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEscKey);
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscKey);
+    
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscKey);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscKey);
     };
-  }, [menuDisplay, mobileMenuOpen, activeDropdown]);
+  }, [menuDisplay, mobileMenuOpen, activeDropdown, searchOpen]);
 
   const processCategories = (data) => {
-    const unique = [...new Set(data.map((item) => item.serviceType))];
-    const objs = unique.map((type) => {
-      const typeCategories = data.filter((cat) => cat.serviceType === type);
-      return {
-        serviceType: type,
-        queryCategoryValues: typeCategories.map((cat) => cat.categoryValue),
-      };
+    const unique = [...new Set(data.map(item => item.serviceType))];
+    const objs = unique.map(type => {
+      const typeCategories = data.filter(cat => cat.serviceType === type);
+      return { serviceType: type, queryCategoryValues: typeCategories.map(cat => cat.categoryValue) };
     });
     setServiceTypes(objs);
   };
@@ -145,24 +141,16 @@ const Header = () => {
       const guestSlides = StorageService.getGuestSlides();
       if (guestSlides?.length) {
         try {
-          sessionStorage.setItem(
-            "sessionGuestSlides",
-            JSON.stringify(guestSlides)
-          );
-          localStorage.setItem(
-            "preservedGuestSlides",
-            JSON.stringify(guestSlides)
-          );
-          localStorage.setItem("guestSlides", JSON.stringify(guestSlides));
-          localStorage.setItem("lastLogoutTimestamp", Date.now().toString());
-        } catch (e) {
-          console.error("Failed to backup slides:", e);
-        }
+          sessionStorage.setItem('sessionGuestSlides', JSON.stringify(guestSlides));
+          localStorage.setItem('preservedGuestSlides', JSON.stringify(guestSlides));
+          localStorage.setItem('guestSlides', JSON.stringify(guestSlides));
+          localStorage.setItem('lastLogoutTimestamp', Date.now().toString());
+        } catch (e) { console.error('Failed to backup slides:', e); }
       }
       if (isOnline) {
         const response = await fetch(SummaryApi.logout_user.url, {
           method: SummaryApi.logout_user.method,
-          credentials: "include",
+          credentials: 'include'
         });
         const data = await response.json();
         if (data.success) toast.success(data.message);
@@ -170,17 +158,16 @@ const Header = () => {
       CookieManager.clearAll();
       StorageService.clearUserData();
 
-      const preserved = localStorage.getItem("preservedGuestSlides");
-      const sessionBackup = sessionStorage.getItem("sessionGuestSlides");
-      if (!localStorage.getItem("guestSlides")) {
-        if (preserved) localStorage.setItem("guestSlides", preserved);
-        else if (sessionBackup)
-          localStorage.setItem("guestSlides", sessionBackup);
+      const preserved = localStorage.getItem('preservedGuestSlides');
+      const sessionBackup = sessionStorage.getItem('sessionGuestSlides');
+      if (!localStorage.getItem('guestSlides')) {
+        if (preserved) localStorage.setItem('guestSlides', preserved);
+        else if (sessionBackup) localStorage.setItem('guestSlides', sessionBackup);
       }
 
       dispatch(logout());
       setMenuDisplay(false);
-      setSearch("");
+      setSearch('');
       navigate("/");
     } catch (e) {
       console.error("Error during logout:", e);
@@ -195,173 +182,134 @@ const Header = () => {
     else navigate("/search");
   };
 
-  // =========================
-  // MENU ITEMS
-  // =========================
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (search) navigate(`/search?q=${search}`);
+  };
+
+  // Menu items configuration
   const menuItems = [
     {
-      name: "Home",
-      href: "/",
-      icon: <Home className="w-4 h-4" />,
+      name: 'Home',
+      href: '/',
+      icon: <Home className="w-4 h-4" />
     },
     {
-      name: "Services",
+      name: 'Services',
       dropdown: [
         {
-          category: "Development Services",
+          category: 'Development Services',
           items: [
             {
-              name: "Website Development",
-              href: "/website-development-service",
-              desc: "Custom Website Plans for Your Business",
+              name: 'Website Development',
+              href: '/product-category?category=website-development',
+              desc: 'Custom Website Plans for Your Business',
               subCategories: [
-                { name: "Static Websites", href: "/static-websites" },
-                { name: "Dynamic Website", href: "/dynamic-websites" },
-                // { name: 'Local Service Website', href: '/product-category?category=local-service-website' },
-                // { name: 'Portfolio Website', href: '/product-category?category=portfolio-website' },
-                // { name: 'Restaurant Website', href: '/product-category?category=restaurant-website' }
-              ],
+                { name: 'College Website', href: '/product-category?category=college-website' },
+                { name: 'Educational Website', href: '/product-category?category=educational-website' },
+                { name: 'Local Service Website', href: '/product-category?category=local-service-website' },
+                { name: 'Portfolio Website', href: '/product-category?category=portfolio-website' },
+                { name: 'Restaurant Website', href: '/product-category?category=restaurant-website' }
+              ]
             },
             {
-              name: "Mobile App Development",
-              href: "/mobile-app-development-service",
-              desc: "iOS & Android App Development",
+              name: 'Mobile App Development',
+              href: '/product-category?category=mobile-app-development',
+              desc: 'iOS & Android App Development',
               subCategories: [
-                // { name: 'iOS App Development', href: '/product-category?category=ios-app-development' },
-                {
-                  name: "Native App Development",
-                  href: "/product-category?category=android-app-development",
-                },
-                {
-                  name: "Hybrid App Development",
-                  href: "/product-category?category=hybrid-app-development",
-                },
-                // { name: 'Custom Mobile Solutions', href: '/product-category?category=custom-mobile-solutions' }
-              ],
+                { name: 'iOS App Development', href: '/product-category?category=ios-app-development' },
+                { name: 'Android App Development', href: '/product-category?category=android-app-development' },
+                { name: 'Hybrid App Development', href: '/product-category?category=hybrid-app-development' },
+                { name: 'Custom Mobile Solutions', href: '/product-category?category=custom-mobile-solutions' }
+              ]
             },
             {
-              name: "Cloud Software Development",
-              href: "/cloud-software-service",
-              desc: "Software to Automate Your Business",
+              name: 'Cloud Software Development',
+              href: '/product-category?category=cloud-software-development',
+              desc: 'Software to Automate Your Business',
               subCategories: [
-                {
-                  name: "Cloud Softwares",
-                  href: "/product-category?category=saas-development",
-                },
-                // { name: 'CRM Solutions', href: '/product-category?category=crm-solutions' },
-                // { name: 'ERP Systems', href: '/product-category?category=erp-systems' },
-                // { name: 'Cloud Migration', href: '/product-category?category=cloud-migration' }
-              ],
+                { name: 'SaaS Development', href: '/product-category?category=saas-development' },
+                { name: 'CRM Solutions', href: '/product-category?category=crm-solutions' },
+                { name: 'ERP Systems', href: '/product-category?category=erp-systems' },
+                { name: 'Cloud Migration', href: '/product-category?category=cloud-migration' }
+              ]
             },
             {
-              name: "Feature Upgrades",
-              href: "/feature-upgrades-service",
-              desc: "Add Features to Existing Projects",
+              name: 'Feature Upgrades',
+              href: '/product-category?category=feature-upgrades',
+              desc: 'Add Features to Existing Projects',
               subCategories: [
-                {
-                  name: "Static Website Update Plans",
-                  href: "/product-category?category=performance-optimization",
-                },
-                {
-                  name: "Dynamic Website Update Plans",
-                  href: "/product-category?category=security-enhancements",
-                },
-                {
-                  name: "Cloud Software Update Plans",
-                  href: "/product-category?category=ui-ux-improvements",
-                },
-                {
-                  name: "Mobile App Update Plans",
-                  href: "/product-category?category=new-feature-integration",
-                },
-              ],
-            },
-          ],
+                { name: 'Performance Optimization', href: '/product-category?category=performance-optimization' },
+                { name: 'Security Enhancements', href: '/product-category?category=security-enhancements' },
+                { name: 'UI/UX Improvements', href: '/product-category?category=ui-ux-improvements' },
+                { name: 'New Feature Integration', href: '/product-category?category=new-feature-integration' }
+              ]
+            }
+          ]
         },
-      ],
+      ]
     },
     {
-      name: "Solutions",
+      name: 'Solutions',
       dropdown: [
         {
-          category: "Software Solutions",
+          category: 'Software Solutions',
           items: [
-            {
-              name: "Customer Relation Management",
-              href: "/customer-relation-management",
-            },
-            { name: "Complaint Management", href: "/complaint-management" },
-            {
-              name: "Laptop/Mobile Repair Registration",
-              href: "/laptop-mobile-repair-registration",
-            },
-            {
-              name: "Partner and Service Management",
-              href: "/partner-service-management",
-            },
-          ],
+            { name: 'Customer Relation Management', href: '/solutions?type=crm' },
+            { name: 'Complaint Management', href: '/solutions?type=complaint-management' },
+            { name: 'Laptop/Mobile Repair Registration', href: '/solutions?type=laptop-mobile-repair-registration' },
+            { name: 'Partner and Service Management', href: '/solutions?type=partner-service-management' }
+          ]
         },
         {
-          category: "IT Solutions",
+          category: 'IT Solutions',
           items: [
-            {
-              name: "Security Alarm & Theft Prevention",
-              href: "https://www.3gdigital.net/Solutions/security-alarm/",
-            },
-            {
-              name: "Parking Management System",
-              href: "https://www.3gdigital.net/Solutions/parking-management/",
-            },
-            {
-              name: "Automatic Main Gates",
-              href: "https://www.3gdigital.net/Solutions/automatic-gates/",
-            },
-            {
-              name: "Fire Hydrant & Alarms",
-              href: "https://www.3gdigital.net/Solutions/fire-hydrant-alarms/",
-            },
-          ],
-        },
-      ],
+            { name: 'Security Alarm & Theft Prevention', href: '/solutions?industry=security-alarm-theft-prevention' },
+            { name: 'Parking Management System', href: '/solutions?industry=parking-management-system' },
+            { name: 'Automatic Main Gates', href: '/solutions?industry=automatic-main-gates' },
+            { name: 'Fire Hydrant & Alarms', href: '/solutions?industry=fire-hydrant-alarms' }
+          ]
+        }
+      ]
     },
     {
-      name: "Resources",
+      name: 'Resources',
       dropdown: [
         {
-          category: "Learn & Support",
+          category: 'Learn & Support',
           items: [
-            { name: "Blog", href: "/blog" },
-            { name: "Documentation", href: "/docs" },
-            { name: "Tutorials", href: "/tutorials" },
-            { name: "FAQ", href: "/faq" },
-          ],
-        },
-      ],
+            { name: 'Blog', href: '/blog' },
+            { name: 'Documentation', href: '/docs' },
+            { name: 'Tutorials', href: '/tutorials' },
+            { name: 'FAQ', href: '/faq' }
+          ]
+        }
+      ]
     },
     {
-      name: "Company",
+      name: 'Company',
       dropdown: [
         {
-          category: "About",
+          category: 'About',
           items: [
-            { name: "About Us", href: "/about-us" },
-            { name: "Our Team", href: "/our-team" },
-          ],
+            { name: 'About Us', href: '/about' },
+            { name: 'Our Team', href: '/team' }
+          ]
         },
         {
-          category: "Legal",
+          category: 'Legal',
           items: [
-            { name: "Terms & Conditions", href: "/terms-and-conditions" },
-            { name: "Privacy Policy", href: "/privacy-policy" },
-            { name: "Cookie Policy", href: "/cookies-policy" },
-          ],
-        },
-      ],
+            { name: 'Terms & Conditions', href: '/terms' },
+            { name: 'Privacy Policy', href: '/privacy' },
+            { name: 'Cookie Policy', href: '/cookies' }
+          ]
+        }
+      ]
     },
     {
-      name: "Contact",
-      href: "/contact",
-    },
+      name: 'Contact',
+      href: '/contact'
+    }
   ];
 
   // Hover handlers
@@ -369,22 +317,18 @@ const Header = () => {
     if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
     setActiveDropdown(index);
 
-    // For Services, initialize activeServiceSubCategory to the first item's sub-categories
-    // AND set the default hoveredServiceItemName
-    if (menuItems[index].name === "Services") {
+    // Initialize Services right-pane with first service by default
+    if (menuItems[index].name === 'Services') {
       const firstServiceItem = menuItems[index].dropdown[0]?.items[0];
       setActiveServiceSubCategory(firstServiceItem?.subCategories || null);
-      setHoveredServiceItemName(firstServiceItem?.name || null); // Set default name
+      setHoveredServiceItemName(firstServiceItem?.name || null);
     } else {
-      setActiveServiceSubCategory(null); // Reset for other dropdowns
-      setHoveredServiceItemName(null); // Reset for other dropdowns
+      setActiveServiceSubCategory(null);
+      setHoveredServiceItemName(null);
     }
 
-    if (
-      menuItems[index].name === "Solutions" ||
-      menuItems[index].name === "Company"
-    ) {
-      setActiveCategoryByMenu((prev) => ({ ...prev, [index]: 0 }));
+    if (menuItems[index].name === 'Solutions' || menuItems[index].name === 'Company') {
+      setActiveCategoryByMenu(prev => ({ ...prev, [index]: 0 }));
     }
   };
 
@@ -392,14 +336,14 @@ const Header = () => {
     dropdownTimeoutRef.current = setTimeout(() => {
       setActiveDropdown(null);
       setActiveServiceSubCategory(null);
-      setHoveredServiceItemName(null); // Reset hovered service item name
+      setHoveredServiceItemName(null);
     }, 200);
   };
 
   const handleServiceItemMouseEnter = (serviceItem) => {
     if (serviceItem.subCategories) {
       setActiveServiceSubCategory(serviceItem.subCategories);
-      setHoveredServiceItemName(serviceItem.name); // Set the name of the hovered item
+      setHoveredServiceItemName(serviceItem.name);
     } else {
       setActiveServiceSubCategory(null);
       setHoveredServiceItemName(null);
@@ -415,358 +359,406 @@ const Header = () => {
   };
 
   const setActiveLeftPane = (menuIndex, catIndex) => {
-    setActiveCategoryByMenu((prev) => ({ ...prev, [menuIndex]: catIndex }));
+    setActiveCategoryByMenu(prev => ({ ...prev, [menuIndex]: catIndex }));
   };
 
   return (
     <>
       {isRoleSwitching && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
           <TriangleMazeLoader />
         </div>
       )}
 
       {/* Desktop Header */}
-      <header className="hidden lg:block bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header className='hidden lg:block bg-white sticky top-0 z-50 border-b border-gray-100'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
           <div className="flex justify-between items-center h-16">
-            <Link to={"/"}>
-              <div className="flex items-center">
-                <div className="bg-gradient-to-br from-cyan-500 to-cyan-700 text-white w-10 h-10 rounded-xl flex items-center justify-center font-bold">
+            <div className="flex items-center space-x-12">
+              {/* Logo */}
+              <Link to="/" className="flex items-center">
+                <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 text-white w-10 h-10 rounded-xl flex items-center justify-center font-bold shadow-lg shadow-indigo-200">
                   M
                 </div>
-                <span className="ml-3 text-xl font-bold text-gray-900">
+                <span className="ml-3 text-xl font-bold bg-gradient-to-r from-indigo-700 to-indigo-900 bg-clip-text text-transparent">
                   MeraSoftware
                 </span>
-              </div>
-            </Link>
+              </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex space-x-8">
-              {menuItems.map((item, index) => (
-                <div
-                  key={index}
-                  className="relative group main-nav-dropdown"
-                  onMouseEnter={() => handleMouseEnter(index)}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  {item.href ? (
-                    <Link
-                      to={item.href}
-                      className="text-gray-700 hover:text-emerald-600 flex items-center"
-                    >
-                      {item.icon && <span className="mr-1">{item.icon}</span>}
-                      {item.name}
-                    </Link>
-                  ) : (
-                    <button className="text-gray-700 hover:text-emerald-600 flex items-center focus:outline-none">
-                      {item.name}
-                      <ChevronRight
-                        className={`ml-1 w-4 h-4 transform ${
-                          activeDropdown === index ? "rotate-90" : ""
-                        } transition-transform`}
-                      />
-                    </button>
-                  )}
+              {/* Desktop Navigation */}
+              <nav className="hidden lg:flex space-x-8">
+                {menuItems.map((item, index) => (
+                  <div
+                    key={index}
+                    className="relative group main-nav-dropdown"
+                    onMouseEnter={() => handleMouseEnter(index)}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    {item.href ? (
+                      <Link 
+                        to={item.href} 
+                        className="text-gray-700 hover:text-indigo-600 flex items-center py-1 transition-all duration-200 group"
+                      >
+                        {item.icon && <span className="mr-1.5">{item.icon}</span>}
+                        <span className="relative">
+                          {item.name}
+                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 transition-all duration-300 group-hover:w-full"></span>
+                        </span>
+                      </Link>
+                    ) : (
+                      <button 
+                        className="text-gray-700 hover:text-indigo-600 flex items-center focus:outline-none py-1 transition-all duration-200 group"
+                      >
+                        <span className="relative">
+                          {item.name}
+                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 transition-all duration-300 group-hover:w-full"></span>
+                        </span>
+                        <ChevronDown className="ml-1 w-4 h-4 group-hover:text-indigo-600 transition-all duration-200" />
+                      </button>
+                    )}
 
-                  {item.dropdown && activeDropdown === index && (
-                    <>
-                      {/* SERVICES - Updated to match Solutions/Company layout */}
-                      {item.name === "Services" ? (
-                        <div className="absolute left-0 mt-3 bg-white rounded-lg shadow-xl ring-1 ring-gray-100 p-6 z-50">
-                          <div className="flex min-w-[640px]">
-                            {" "}
-                            {/* Adjust min-w as needed */}
-                            {/* Left Pane (Main Service Categories and their items) */}
-                            <div className="w-56 pr-8 border-r border-gray-100">
-                              {/* Iterate through the main categories like 'Development Services' */}
-                              {item.dropdown.map(
-                                (mainCategory, mainCatIndex) => {
-                                  return (
-                                    <div key={mainCatIndex}>
-                                      <h4 className="text-sm font-semibold text-gray-500 uppercase mb-3 tracking-wide">
-                                        {mainCategory.category}
-                                      </h4>
-                                      <ul className="space-y-1">
-                                        {mainCategory.items.map(
-                                          (serviceItem, serviceItemIndex) => {
-                                            // Determine if this serviceItem's subCategories are currently active
-                                            const isActiveServiceItem =
-                                              activeServiceSubCategory &&
-                                              serviceItem.subCategories ===
-                                                activeServiceSubCategory;
+                    {item.dropdown && activeDropdown === index && (
+                      <div className="absolute left-0 mt-2 bg-white rounded-lg shadow-xl ring-1 ring-gray-100 z-50">
+                        {/* SERVICES */}
+                        {item.name === 'Services' && (
+                          <div className="p-6">
+                            <div className="flex min-w-[720px]">
+                              {/* Left Pane (Main Service Categories and their items) */}
+                              <div className="w-64 pr-8 border-r border-gray-100">
+                                {item.dropdown.map((mainCategory, mainCatIndex) => (
+                                  <div key={mainCatIndex}>
+                                    <h4 className="text-sm font-semibold text-indigo-600 uppercase mb-3 tracking-wide">
+                                      {mainCategory.category}
+                                    </h4>
+                                    <ul className="space-y-2">
+                                      {mainCategory.items.map((serviceItem, serviceItemIndex) => {
+                                        const isActiveServiceItem =
+                                          activeServiceSubCategory &&
+                                          serviceItem.subCategories === activeServiceSubCategory;
 
-                                            return (
-                                              <li key={serviceItemIndex}>
-                                                <Link
-                                                  to={serviceItem.href}
-                                                  onMouseEnter={() =>
-                                                    handleServiceItemMouseEnter(
-                                                      serviceItem
-                                                    )
-                                                  }
-                                                  className={`flex justify-between items-center text-sm font-medium py-1 ${
-                                                    isActiveServiceItem
-                                                      ? "text-emerald-700"
-                                                      : "text-gray-800 hover:text-emerald-600"
-                                                  }`}
-                                                >
-                                                  {serviceItem.name}
-                                                  {serviceItem.subCategories && (
-                                                    <ChevronRight className="ml-2 w-4 h-4 text-gray-400" />
-                                                  )}
-                                                </Link>
-                                              </li>
-                                            );
-                                          }
-                                        )}
-                                      </ul>
-                                    </div>
-                                  );
-                                }
-                              )}
-                            </div>
-                            {/* Right Pane (Sub-Categories of the hovered Service Item) */}
-                            <div className="flex-1 pl-8">
-                              {activeServiceSubCategory ? (
-                                <>
-                                  {/* Display the name of the currently hovered main service item as heading */}
-                                  <h4 className="text-sm font-semibold text-gray-500 uppercase mb-3 tracking-wide">
-                                    {hoveredServiceItemName || "Sub-Categories"}{" "}
-                                    {/* Use the new state here */}
-                                  </h4>
-                                  <ul className="space-y-2">
-                                    {activeServiceSubCategory.map(
-                                      (subCat, subCatIndex) => (
+                                        return (
+                                          <li key={serviceItemIndex}>
+                                            <Link
+                                              to={serviceItem.href}
+                                              onMouseEnter={() => handleServiceItemMouseEnter(serviceItem)}
+                                              className={`flex justify-between items-center text-sm font-medium py-1.5 px-2 rounded-md transition-all duration-200 ${
+                                                isActiveServiceItem 
+                                                  ? 'text-indigo-700 bg-indigo-50' 
+                                                  : 'text-gray-800 hover:text-indigo-600 hover:bg-gray-50'
+                                              }`}
+                                            >
+                                              <div>
+                                                <div>{serviceItem.name}</div>
+                                                <div className="text-xs text-gray-500 mt-0.5">{serviceItem.desc}</div>
+                                              </div>
+                                              {serviceItem.subCategories && (
+                                                <ChevronRight className={`ml-2 w-4 h-4 ${isActiveServiceItem ? 'text-indigo-600' : 'text-gray-400'}`} />
+                                              )}
+                                            </Link>
+                                          </li>
+                                        );
+                                      })}
+                                    </ul>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Right Pane (Sub-Categories) */}
+                              <div className="flex-1 pl-8">
+                                {activeServiceSubCategory ? (
+                                  <>
+                                    <h4 className="text-sm font-semibold text-indigo-600 uppercase mb-3 tracking-wide flex items-center">
+                                      <span>{hoveredServiceItemName || 'Sub-Categories'}</span>
+                                      <ChevronRight className="h-3 w-3 mx-2" />
+                                      <span className="text-gray-500">Options</span>
+                                    </h4>
+                                    <ul className="grid grid-cols-2 gap-2">
+                                      {activeServiceSubCategory.map((subCat, subCatIndex) => (
                                         <li key={subCatIndex}>
                                           <Link
                                             to={subCat.href}
-                                            className="block text-gray-800 hover:text-emerald-600 text-sm font-medium whitespace-nowrap"
-                                          >
-                                            {subCat.name}{" "}
-                                            {/* e.g., College Website */}
-                                          </Link>
-                                        </li>
-                                      )
-                                    )}
-                                  </ul>
-                                </>
-                              ) : (
-                                // Default content for the right pane if no service item is hovered
-                                // Show sub-categories of the first service item by default
-                                <>
-                                  <h4 className="text-sm font-semibold text-gray-500 uppercase mb-3 tracking-wide">
-                                    {hoveredServiceItemName || "Sub-Categories"}{" "}
-                                    {/* Also use the new state for default */}
-                                  </h4>
-                                  <ul className="space-y-2">
-                                    {item.dropdown[0]?.items[0]?.subCategories?.map(
-                                      (subCat, subCatIndex) => (
-                                        <li key={subCatIndex}>
-                                          <Link
-                                            to={subCat.href}
-                                            className="block text-gray-800 hover:text-emerald-600 text-sm font-medium whitespace-nowrap"
+                                            className="block text-gray-800 hover:text-indigo-600 hover:bg-gray-50 text-sm font-medium py-1.5 px-3 rounded-md transition-all duration-200"
                                           >
                                             {subCat.name}
                                           </Link>
                                         </li>
-                                      )
-                                    )}
-                                  </ul>
-                                </>
-                              )}
+                                      ))}
+                                    </ul>
+                                  </>
+                                ) : (
+                                  <>
+                                    <h4 className="text-sm font-semibold text-indigo-600 uppercase mb-3 tracking-wide flex items-center">
+                                      <span>{hoveredServiceItemName || 'Website Development'}</span>
+                                      <ChevronRight className="h-3 w-3 mx-2" />
+                                      <span className="text-gray-500">Options</span>
+                                    </h4>
+                                    <ul className="grid grid-cols-2 gap-2">
+                                      {item.dropdown[0]?.items[0]?.subCategories?.map((subCat, subCatIndex) => (
+                                        <li key={subCatIndex}>
+                                          <Link
+                                            to={subCat.href}
+                                            className="block text-gray-800 hover:text-indigo-600 hover:bg-gray-50 text-sm font-medium py-1.5 px-3 rounded-md transition-all duration-200"
+                                          >
+                                            {subCat.name}
+                                          </Link>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ) : null}
+                        )}
 
-                      {/* SOLUTIONS & COMPANY — styled to match Services (same card/padding/typography) */}
-                      {item.name === "Solutions" || item.name === "Company" ? (
-                        <div className="absolute left-0 mt-3 bg-white rounded-lg shadow-xl ring-1 ring-gray-100 p-6 z-50">
-                          <div className="flex min-w-[640px]">
-                            {/* Left Pane (categories) */}
-                            <div className="w-56 pr-8 border-r border-gray-100">
-                              <h4 className="text-sm font-semibold text-gray-500 uppercase mb-3 tracking-wide">
-                                Categories
-                              </h4>
-                              <ul className="space-y-1">
-                                {item.dropdown.map((cat, catIndex) => {
-                                  const isActive =
-                                    (activeCategoryByMenu[index] ?? 0) ===
-                                    catIndex;
+                        {/* SOLUTIONS & COMPANY */}
+                        {(item.name === 'Solutions' || item.name === 'Company') && (
+                          <div className="p-6">
+                            <div className="flex min-w-[640px]">
+                              {/* Left Pane (categories) */}
+                              <div className="w-56 pr-8 border-r border-gray-100">
+                                <h4 className="text-sm font-semibold text-indigo-600 uppercase mb-3 tracking-wide">Categories</h4>
+                                <ul className="space-y-2">
+                                  {item.dropdown.map((cat, catIndex) => {
+                                    const isActive = (activeCategoryByMenu[index] ?? 0) === catIndex;
+                                    return (
+                                      <li key={catIndex}>
+                                        <button
+                                          onMouseEnter={() => setActiveLeftPane(index, catIndex)}
+                                          className={`w-full text-left text-sm font-medium py-1.5 px-2 rounded-md transition-all duration-200 ${
+                                            isActive 
+                                              ? 'text-indigo-700 bg-indigo-50' 
+                                              : 'text-gray-800 hover:text-indigo-600 hover:bg-gray-50'
+                                          }`}
+                                        >
+                                          {cat.category}
+                                        </button>
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              </div>
+
+                              {/* Right Pane (items) */}
+                              <div className="flex-1 pl-8">
+                                {(() => {
+                                  const activeCatIndex = activeCategoryByMenu[index] ?? 0;
+                                  const activeCat = item.dropdown[activeCatIndex] || item.dropdown[0];
                                   return (
-                                    <li key={catIndex}>
-                                      <button
-                                        onMouseEnter={() =>
-                                          setActiveLeftPane(index, catIndex)
-                                        }
-                                        className={`w-full text-left text-sm font-medium py-1 ${
-                                          isActive
-                                            ? "text-emerald-700"
-                                            : "text-gray-800 hover:text-emerald-600"
-                                        }`}
-                                      >
-                                        {cat.category}
-                                      </button>
-                                    </li>
-                                  );
-                                })}
-                              </ul>
-                            </div>
-
-                            {/* Right Pane (items) */}
-                            <div className="flex-1 pl-8">
-                              {(() => {
-                                const activeCatIndex =
-                                  activeCategoryByMenu[index] ?? 0;
-                                const activeCat =
-                                  item.dropdown[activeCatIndex] ||
-                                  item.dropdown[0];
-                                return (
-                                  <>
-                                    <h4 className="text-sm font-semibold text-gray-500 uppercase mb-3 tracking-wide">
-                                      {activeCat.category}
-                                    </h4>
-                                    <ul className="space-y-2">
-                                      {activeCat.items.map(
-                                        (subItem, subIndex) => (
+                                    <>
+                                      <h4 className="text-sm font-semibold text-indigo-600 uppercase mb-3 tracking-wide flex items-center">
+                                        <span>{activeCat.category}</span>
+                                        <ChevronRight className="h-3 w-3 mx-2" />
+                                        <span className="text-gray-500">Options</span>
+                                      </h4>
+                                      <ul className="grid grid-cols-1 gap-2">
+                                        {activeCat.items.map((subItem, subIndex) => (
                                           <li key={subIndex}>
                                             <Link
                                               to={subItem.href}
-                                              className="block text-gray-800 hover:text-emerald-600 text-sm font-medium whitespace-nowrap"
+                                              className="block text-gray-800 hover:text-indigo-600 hover:bg-gray-50 text-sm font-medium py-1.5 px-3 rounded-md transition-all duration-200 flex items-center"
                                             >
-                                              {subItem.name}
+                                              <span>{subItem.name}</span>
+                                              <ExternalLink className="ml-2 h-3 w-3 text-gray-400" />
                                             </Link>
                                           </li>
-                                        )
-                                      )}
-                                    </ul>
-                                  </>
-                                );
-                              })()}
+                                        ))}
+                                      </ul>
+                                    </>
+                                  );
+                                })()}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ) : null}
+                        )}
 
-                      {/* RESOURCES — simple, but styled same card */}
-                      {item.name === "Resources" ? (
-                        <div className="absolute left-0 mt-3 w-max bg-white rounded-lg shadow-xl ring-1 ring-gray-100 p-6 grid grid-cols-1 gap-x-8 gap-y-4 z-50">
-                          {item.dropdown.map((category, catIndex) => (
-                            <div key={catIndex}>
-                              <h4 className="text-sm font-semibold text-gray-500 uppercase mb-3 tracking-wide">
-                                {category.category}
-                              </h4>
-                              <ul className="space-y-2">
-                                {category.items.map((subItem, subIndex) => (
-                                  <li key={subIndex}>
-                                    <Link
-                                      to={subItem.href}
-                                      className="block text-gray-800 hover:text-emerald-600 text-sm font-medium"
-                                    >
-                                      {subItem.name}
-                                    </Link>
-                                  </li>
-                                ))}
-                              </ul>
+                        {/* RESOURCES */}
+                        {item.name === 'Resources' && (
+                          <div className="p-6">
+                            <div className="w-64">
+                              {item.dropdown.map((category, catIndex) => (
+                                <div key={catIndex}>
+                                  <h4 className="text-sm font-semibold text-indigo-600 uppercase mb-3 tracking-wide">{category.category}</h4>
+                                  <ul className="space-y-2">
+                                    {category.items.map((subItem, subIndex) => (
+                                      <li key={subIndex}>
+                                        <Link 
+                                          to={subItem.href} 
+                                          className="block text-gray-800 hover:text-indigo-600 hover:bg-gray-50 text-sm font-medium py-1.5 px-3 rounded-md transition-all duration-200"
+                                        >
+                                          {subItem.name}
+                                        </Link>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      ) : null}
-                    </>
-                  )}
-                </div>
-              ))}
-            </nav>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </nav>
+            </div>
 
             {/* Right Section */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4">
+              {/* Search */}
+              <div className="relative" ref={searchInputRef}>
+                {searchOpen ? (
+                  <form 
+                    className="relative"
+                    onSubmit={handleSearchSubmit}
+                  >
+                    <input
+                      type="text"
+                      placeholder="Search services..."
+                      className="w-64 py-2 pl-4 pr-10 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      value={search}
+                      onChange={handleSearch}
+                      autoFocus
+                    />
+                    <button 
+                      type="submit" 
+                      className="absolute right-3 top-2 text-gray-400 hover:text-indigo-600 transition-colors"
+                    >
+                      <Search size={18} />
+                    </button>
+                  </form>
+                ) : (
+                  <button 
+                    onClick={() => setSearchOpen(true)} 
+                    className="p-2 text-gray-500 hover:text-indigo-600 transition-colors rounded-full hover:bg-gray-100"
+                  >
+                    <Search size={18} />
+                  </button>
+                )}
+              </div>
+
+              <NotificationBell />
+
               {isAuthenticated ? (
                 <>
-                  <Link
-                    to="/dashboard"
-                    className="bg-cyan-600 text-white border border-cyan-600 px-4 py-2 rounded-lg hover:bg-cyan-800 transition-colors flex gap-2"
+                  <Link 
+                    to="/dashboard" 
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
                   >
-                    <GoArrowSwitch className="mt-1 h-5 text-lg" />
-                    Dashboard
+                    <span>Dashboard</span>
                   </Link>
 
-                  <div className="relative flex justify-center">
-                    <div
-                      className="text-3xl cursor-pointer relative flex justify-center"
-                      onClick={() => setMenuDisplay((prev) => !prev)}
+                  <div className='relative flex justify-center'>
+                    <button 
+                      onClick={() => setMenuDisplay(prev => !prev)} 
+                      className='cursor-pointer relative flex justify-center items-center'
                     >
                       {user?.profilePic ? (
-                        <img
-                          src={user?.profilePic}
-                          className="w-10 h-10 rounded-full object-cover"
-                          alt={user?.name}
-                        />
+                        <div className="relative">
+                          <img 
+                            src={user?.profilePic} 
+                            className='w-10 h-10 rounded-full object-cover border-2 border-indigo-100 shadow-sm' 
+                            alt={user?.name} 
+                          />
+                          <span className="absolute -bottom-1 -right-1 bg-green-500 border-2 border-white w-3.5 h-3.5 rounded-full"></span>
+                        </div>
                       ) : (
-                        <FaRegCircleUser className="w-10 h-10 text-gray-700" />
+                        <div className="p-2 bg-indigo-100 rounded-full text-indigo-700 hover:bg-indigo-200 transition-colors">
+                          <User className="w-5 h-5" />
+                        </div>
                       )}
-                    </div>
+                    </button>
 
                     {menuDisplay && (
-                      <div
-                        className="absolute bg-white bottom-0 w-44 top-11 h-fit p-2 shadow-lg rounded"
+                      <div 
+                        className='absolute bg-white top-12 right-0 w-64 rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50' 
                         ref={userMenuRef}
                       >
-                        <nav>
+                        <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-blue-50">
+                          <div className="font-medium text-gray-900">{user?.name || 'User'}</div>
+                          <div className="text-sm text-gray-500 truncate">{user?.email || 'user@example.com'}</div>
+                        </div>
+                        
+                        <nav className="py-2">
                           {user?.role === ROLE.ADMIN && (
-                            <Link
-                              to={"/admin-panel/all-products"}
-                              className="whitespace-nowrap block hover:bg-slate-100 p-2"
-                              onClick={() => setMenuDisplay((prev) => !prev)}
-                            >
-                              Admin Panel
+                            <Link to="/admin-panel/all-products" className='flex items-center gap-2 hover:bg-gray-50 p-3 text-gray-700 transition-colors' onClick={() => setMenuDisplay(false)}>
+                              <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+                                <Settings className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium">Admin Panel</div>
+                                <div className="text-xs text-gray-500">Manage all products</div>
+                              </div>
                             </Link>
                           )}
+                          
                           {user?.role === ROLE.MANAGER && (
-                            <Link
-                              to={"/manager-panel/dashboard"}
-                              className="whitespace-nowrap block hover:bg-slate-100 p-2"
-                              onClick={() => setMenuDisplay((prev) => !prev)}
-                            >
-                              Manager Panel
+                            <Link to="/manager-panel/dashboard" className='flex items-center gap-2 hover:bg-gray-50 p-3 text-gray-700 transition-colors' onClick={() => setMenuDisplay(false)}>
+                              <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                                <Settings className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium">Manager Panel</div>
+                                <div className="text-xs text-gray-500">View dashboard</div>
+                              </div>
                             </Link>
                           )}
+                          
                           {user?.role === ROLE.PARTNER && (
-                            <Link
-                              to={"/partner-panel/dashboard"}
-                              className="whitespace-nowrap block hover:bg-slate-100 p-2"
-                              onClick={() => setMenuDisplay((prev) => !prev)}
-                            >
-                              Partner Panel
+                            <Link to="/partner-panel/dashboard" className='flex items-center gap-2 hover:bg-gray-50 p-3 text-gray-700 transition-colors' onClick={() => setMenuDisplay(false)}>
+                              <div className="w-8 h-8 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">
+                                <Settings className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium">Partner Panel</div>
+                                <div className="text-xs text-gray-500">View dashboard</div>
+                              </div>
                             </Link>
                           )}
+                          
                           {user?.role === ROLE.DEVELOPER && (
-                            <Link
-                              to={"/developer-panel"}
-                              className="whitespace-nowrap block hover:bg-slate-100 p-2"
-                              onClick={() => setMenuDisplay((prev) => !prev)}
-                            >
-                              Developer Panel
+                            <Link to="/developer-panel" className='flex items-center gap-2 hover:bg-gray-50 p-3 text-gray-700 transition-colors' onClick={() => setMenuDisplay(false)}>
+                              <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+                                <Settings className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium">Developer Panel</div>
+                                <div className="text-xs text-gray-500">Access development tools</div>
+                              </div>
                             </Link>
                           )}
-                          <Link
-                            to={"/order"}
-                            className="whitespace-nowrap block hover:bg-slate-100 p-2"
-                            onClick={() => setMenuDisplay((prev) => !prev)}
-                          >
-                            Settings
+                          
+                          <Link to='/order' className='flex items-center gap-2 hover:bg-gray-50 p-3 text-gray-700 transition-colors' onClick={() => setMenuDisplay(false)}>
+                            <div className="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center">
+                              <Settings className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium">Settings</div>
+                              <div className="text-xs text-gray-500">Manage your account</div>
+                            </div>
                           </Link>
-                          <div className="p-2 hover:bg-slate-100 flex items-center gap-2">
-                            <IoWalletOutline />
-                            <span>
-                              Balance: {displayCurrency(context.walletBalance)}
-                            </span>
+                          
+                          <div className='flex items-center gap-2 hover:bg-gray-50 p-3 text-gray-700 transition-colors'>
+                            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                              <Wallet className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium">Wallet Balance</div>
+                              <div className="text-xs font-medium text-emerald-600">{displayCurrency(context.walletBalance)}</div>
+                            </div>
                           </div>
-                          <button
-                            onClick={handleLogout}
-                            className="w-full text-left hover:bg-slate-100 p-2"
+                          
+                          <button 
+                            onClick={handleLogout} 
+                            className='w-full text-left flex items-center gap-2 hover:bg-gray-50 p-3 text-gray-700 transition-colors border-t border-gray-100 mt-2'
                           >
-                            Logout
+                            <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+                              <LogOut className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium">Logout</div>
+                              <div className="text-xs text-gray-500">Sign out of your account</div>
+                            </div>
                           </button>
                         </nav>
                       </div>
@@ -775,15 +767,15 @@ const Header = () => {
                 </>
               ) : (
                 <>
-                  <Link
-                    to="/staff-login"
-                    className="bg-white text-cyan-600 border border-cyan-600 px-4 py-2 rounded-lg hover:bg-cyan-50 transition-colors"
+                  <Link 
+                    to="/staff-login" 
+                    className="bg-white text-indigo-600 border border-indigo-200 px-4 py-2 rounded-full hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-200"
                   >
                     Staff Login
                   </Link>
-                  <Link
-                    to="/login"
-                    className="bg-cyan-600 text-white px-6 py-2 rounded-lg hover:bg-cyan-700 transition-colors"
+                  <Link 
+                    to="/login" 
+                    className="bg-indigo-600 text-white px-6 py-2 rounded-full hover:bg-indigo-700 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
                   >
                     Login
                   </Link>
@@ -795,259 +787,310 @@ const Header = () => {
       </header>
 
       {/* Mobile Header */}
-      <header className="lg:hidden bg-white shadow-sm px-4 py-3 sticky top-0 z-50">
-        <div className="flex items-center justify-between">
-          <Link to={"/"}>
-            <div className="flex items-center">
-              <div className="w-8 h-8 flex items-center justify-center bg-blue-600 text-white font-bold rounded-md mr-2">
+      <header className="lg:hidden bg-white sticky top-0 z-50 border-b border-gray-100">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <Link to="/" className="flex items-center">
+              <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 text-white w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow-md">
                 M
               </div>
-              <span className="font-bold text-lg">MeraSoftware</span>
-            </div>
-          </Link>
+              <span className="ml-2 text-lg font-bold bg-gradient-to-r from-indigo-700 to-indigo-900 bg-clip-text text-transparent">
+                MeraSoftware
+              </span>
+            </Link>
 
-          <div className="flex items-center space-x-3">
-            <NotificationBell />
-            {isAuthenticated ? (
-              <div className="relative flex justify-center">
-                <div
-                  className="text-3xl cursor-pointer relative flex justify-center"
-                  onClick={() => setMenuDisplay((prev) => !prev)}
-                >
-                  {user?.profilePic ? (
-                    <img
-                      src={user?.profilePic}
-                      className="w-8 h-8 rounded-full object-cover"
-                      alt={user?.name}
-                    />
-                  ) : (
-                    <FaRegCircleUser className="w-8 h-8 text-gray-700" />
+            {/* Actions */}
+            <div className="flex items-center space-x-3">
+              <button 
+                onClick={() => setSearchOpen(!searchOpen)} 
+                className="p-2 text-gray-500 hover:text-indigo-600 transition-colors rounded-full"
+              >
+                <Search size={20} />
+              </button>
+              
+              <NotificationBell />
+              
+              {isAuthenticated ? (
+                <div className='relative'>
+                  <button 
+                    onClick={() => setMenuDisplay(prev => !prev)} 
+                    className='cursor-pointer relative flex justify-center items-center'
+                  >
+                    {user?.profilePic ? (
+                      <div className="relative">
+                        <img 
+                          src={user?.profilePic} 
+                          className='w-8 h-8 rounded-full object-cover border-2 border-indigo-100' 
+                          alt={user?.name} 
+                        />
+                        <span className="absolute -bottom-0.5 -right-0.5 bg-green-500 border-2 border-white w-2.5 h-2.5 rounded-full"></span>
+                      </div>
+                    ) : (
+                      <div className="p-1.5 bg-indigo-100 rounded-full text-indigo-700">
+                        <User className="w-5 h-5" />
+                      </div>
+                    )}
+                  </button>
+                  
+                  {menuDisplay && (
+                    <div className='absolute bg-white top-10 right-0 w-64 rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50' ref={userMenuRef}>
+                      <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-blue-50">
+                        <div className="font-medium text-gray-900">{user?.name || 'User'}</div>
+                        <div className="text-sm text-gray-500 truncate">{user?.email || 'user@example.com'}</div>
+                      </div>
+                      
+                      <nav className="py-2">
+                        {user?.role === ROLE.ADMIN && (
+                          <Link to="/admin-panel/all-products" className='flex items-center gap-2 hover:bg-gray-50 p-3 text-gray-700 transition-colors' onClick={() => setMenuDisplay(false)}>
+                            <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+                              <Settings className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium">Admin Panel</div>
+                              <div className="text-xs text-gray-500">Manage all products</div>
+                            </div>
+                          </Link>
+                        )}
+                        
+                        {/* Other roles similar to desktop */}
+                        {user?.role === ROLE.MANAGER && (
+                          <Link to="/manager-panel/dashboard" className='flex items-center gap-2 hover:bg-gray-50 p-3 text-gray-700 transition-colors' onClick={() => setMenuDisplay(false)}>
+                            <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                              <Settings className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium">Manager Panel</div>
+                            </div>
+                          </Link>
+                        )}
+                        
+                        {user?.role === ROLE.PARTNER && (
+                          <Link to="/partner-panel/dashboard" className='flex items-center gap-2 hover:bg-gray-50 p-3 text-gray-700 transition-colors' onClick={() => setMenuDisplay(false)}>
+                            <div className="w-8 h-8 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">
+                              <Settings className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium">Partner Panel</div>
+                            </div>
+                          </Link>
+                        )}
+                        
+                        {user?.role === ROLE.DEVELOPER && (
+                          <Link to="/developer-panel" className='flex items-center gap-2 hover:bg-gray-50 p-3 text-gray-700 transition-colors' onClick={() => setMenuDisplay(false)}>
+                            <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+                              <Settings className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium">Developer Panel</div>
+                            </div>
+                          </Link>
+                        )}
+                        
+                        <Link to='/order' className='flex items-center gap-2 hover:bg-gray-50 p-3 text-gray-700 transition-colors' onClick={() => setMenuDisplay(false)}>
+                          <div className="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center">
+                            <Settings className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium">Settings</div>
+                          </div>
+                        </Link>
+                        
+                        <div className='flex items-center gap-2 hover:bg-gray-50 p-3 text-gray-700 transition-colors'>
+                          <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                            <Wallet className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium">Balance: {displayCurrency(context.walletBalance)}</div>
+                          </div>
+                        </div>
+                        
+                        <button 
+                          onClick={handleLogout} 
+                          className='w-full text-left flex items-center gap-2 hover:bg-gray-50 p-3 text-gray-700 transition-colors border-t border-gray-100 mt-2'
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+                            <LogOut className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium">Logout</div>
+                          </div>
+                        </button>
+                      </nav>
+                    </div>
                   )}
                 </div>
-
-                {menuDisplay && (
-                  <div
-                    className="absolute bg-white bottom-0 w-44 top-11 h-fit p-2 shadow-lg rounded right-0"
-                    ref={userMenuRef}
-                  >
-                    <nav>
-                      {user?.role === ROLE.ADMIN && (
-                        <Link
-                          to={"/admin-panel/all-products"}
-                          className="whitespace-nowrap block hover:bg-slate-100 p-2"
-                          onClick={() => setMenuDisplay((prev) => !prev)}
-                        >
-                          Admin Panel
-                        </Link>
-                      )}
-                      {user?.role === ROLE.MANAGER && (
-                        <Link
-                          to={"/manager-panel/dashboard"}
-                          className="whitespace-nowrap block hover:bg-slate-100 p-2"
-                          onClick={() => setMenuDisplay((prev) => !prev)}
-                        >
-                          Manager Panel
-                        </Link>
-                      )}
-                      {user?.role === ROLE.PARTNER && (
-                        <Link
-                          to={"/partner-panel/dashboard"}
-                          className="whitespace-nowrap block hover:bg-slate-100 p-2"
-                          onClick={() => setMenuDisplay((prev) => !prev)}
-                        >
-                          Partner Panel
-                        </Link>
-                      )}
-                      {user?.role === ROLE.DEVELOPER && (
-                        <Link
-                          to={"/developer-panel"}
-                          className="whitespace-nowrap block hover:bg-slate-100 p-2"
-                          onClick={() => setMenuDisplay((prev) => !prev)}
-                        >
-                          Developer Panel
-                        </Link>
-                      )}
-                      <Link
-                        to={"/order"}
-                        className="whitespace-nowrap block hover:bg-slate-100 p-2"
-                        onClick={() => setMenuDisplay((prev) => !prev)}
-                      >
-                        Settings
-                      </Link>
-                      <div className="p-2 hover:bg-slate-100 flex items-center gap-2">
-                        <IoWalletOutline />
-                        <span>
-                          Balance: {displayCurrency(context.walletBalance)}
-                        </span>
-                      </div>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left hover:bg-slate-100 p-2"
-                      >
-                        Logout
-                      </button>
-                    </nav>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-cyan-700 transition-colors"
+              ) : (
+                <Link 
+                  to="/login" 
+                  className="bg-indigo-600 text-white px-4 py-1.5 rounded-full text-sm hover:bg-indigo-700 shadow-md"
+                >
+                  Login
+                </Link>
+              )}
+              
+              <button 
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+                className="p-2 text-gray-700 focus:outline-none hover:bg-gray-100 rounded-lg transition-colors"
               >
-                Login
-              </Link>
-            )}
-
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-gray-700 focus:outline-none"
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
           </div>
-        </div>
-
-        {/* Mobile Search Bar */}
-        <div className="mt-3 relative">
-          <input
-            type="text"
-            placeholder="Search for services..."
-            className="w-full py-2 px-4 pr-10 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-            onChange={handleSearch}
-            value={search}
-          />
-          <div className="absolute right-3 top-2.5 text-gray-400">
-            <GrSearch size={16} />
-          </div>
+          
+          {/* Mobile Search Bar - Expandable */}
+          {searchOpen && (
+            <div className="mt-3">
+              <form onSubmit={handleSearchSubmit} className="relative">
+                <input
+                  type="text"
+                  placeholder="Search for services..."
+                  className="w-full py-2 px-4 pr-10 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  onChange={handleSearch}
+                  value={search}
+                  autoFocus
+                />
+                <button 
+                  type="submit"
+                  className="absolute right-3 top-2 text-gray-400"
+                >
+                  <Search size={18} />
+                </button>
+              </form>
+            </div>
+          )}
         </div>
 
         {/* Mobile Navigation Menu */}
         {mobileMenuOpen && (
-          <div className="bg-white shadow-lg py-4 px-4 sm:px-6 mt-3">
-            <nav className="flex flex-col space-y-2">
+          <div className="bg-white border-t border-gray-100 overflow-hidden">
+            <nav className="max-h-[70vh] overflow-y-auto py-4 px-4">
               {menuItems.map((item, index) => (
-                <div key={index}>
+                <div key={index} className="py-1">
                   {item.href ? (
-                    <Link
-                      to={item.href}
-                      className="block text-gray-700 hover:text-emerald-600 py-2 px-3 rounded-lg flex items-center"
+                    <Link 
+                      to={item.href} 
+                      className="block text-gray-700 hover:text-indigo-600 py-2 px-3 rounded-lg flex items-center" 
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      {item.icon && <span className="mr-2">{item.icon}</span>}
-                      {item.name}
+                      {item.icon && <span className="mr-3">{item.icon}</span>}
+                      <span className="font-medium">{item.name}</span>
                     </Link>
                   ) : (
                     <>
                       <button
                         onClick={() => handleMobileMenuItemClick(index, true)}
-                        className="w-full text-left text-gray-700 hover:text-emerald-600 py-2 px-3 rounded-lg flex items-center justify-between"
+                        className="w-full text-left text-gray-700 hover:text-indigo-600 py-2 px-3 rounded-lg flex items-center justify-between"
                       >
-                        {item.name}
-                        <ChevronRight
-                          className={`w-4 h-4 transform ${
-                            activeDropdown === index ? "rotate-90" : ""
-                          } transition-transform`}
-                        />
+                        <span className="font-medium">{item.name}</span>
+                        <ChevronDown className={`w-5 h-5 transform transition-transform ${activeDropdown === index ? 'rotate-180' : ''}`} />
                       </button>
+                      
                       {activeDropdown === index && (
-                        <div className="ml-4 mt-2 space-y-2">
+                        <div className="ml-4 mt-2 space-y-2 overflow-hidden">
                           {/* Mobile Services Dropdown - Simplified for mobile */}
-                          {item.name === "Services"
-                            ? item.dropdown.map(
-                                (mainCategory, mainCatIndex) => (
-                                  <div key={mainCatIndex}>
-                                    <h4 className="text-xs font-semibold text-gray-500 uppercase mb-1">
-                                      {mainCategory.category}
-                                    </h4>
-                                    <ul className="space-y-1">
-                                      {mainCategory.items.map(
-                                        (serviceItem, serviceItemIndex) => (
-                                          <li key={serviceItemIndex}>
-                                            <Link
-                                              to={serviceItem.href}
-                                              className="block text-gray-800 hover:text-emerald-600 text-sm py-1 px-2 rounded-md"
-                                              onClick={() =>
-                                                setMobileMenuOpen(false)
-                                              }
-                                            >
-                                              {serviceItem.name}
-                                            </Link>
-                                            {/* Optionally show sub-categories directly here for mobile if desired */}
-                                            {serviceItem.subCategories && (
-                                              <ul className="ml-4 mt-1 space-y-0.5">
-                                                {serviceItem.subCategories.map(
-                                                  (subCat, subCatIndex) => (
-                                                    <li key={subCatIndex}>
-                                                      <Link
-                                                        to={subCat.href}
-                                                        className="block text-gray-600 hover:text-emerald-500 text-xs py-0.5 px-1 rounded-md"
-                                                        onClick={() =>
-                                                          setMobileMenuOpen(
-                                                            false
-                                                          )
-                                                        }
-                                                      >
-                                                        {subCat.name}
-                                                      </Link>
-                                                    </li>
-                                                  )
-                                                )}
-                                              </ul>
-                                            )}
-                                          </li>
-                                        )
+                          {item.name === 'Services' ? (
+                            item.dropdown.map((mainCategory, mainCatIndex) => (
+                              <div key={mainCatIndex} className="mb-4">
+                                <h4 className="text-xs font-semibold text-indigo-600 uppercase mb-2 px-2">{mainCategory.category}</h4>
+                                <ul className="space-y-1">
+                                  {mainCategory.items.map((serviceItem, serviceItemIndex) => (
+                                    <li key={serviceItemIndex}>
+                                      <Link 
+                                        to={serviceItem.href} 
+                                        className="block text-gray-800 hover:text-indigo-600 hover:bg-gray-50 text-sm py-2 px-3 rounded-md transition-colors" 
+                                        onClick={() => setMobileMenuOpen(false)}
+                                      >
+                                        <div className="font-medium">{serviceItem.name}</div>
+                                        <div className="text-xs text-gray-500 mt-0.5">{serviceItem.desc}</div>
+                                      </Link>
+                                      
+                                      {serviceItem.subCategories && (
+                                        <ul className="ml-4 mt-1 space-y-0.5 border-l-2 border-indigo-100 pl-2 my-2">
+                                          {serviceItem.subCategories.map((subCat, subCatIndex) => (
+                                            <li key={subCatIndex}>
+                                              <Link 
+                                                to={subCat.href} 
+                                                className="block text-gray-600 hover:text-indigo-500 text-xs py-1.5 px-2 rounded-md transition-colors" 
+                                                onClick={() => setMobileMenuOpen(false)}
+                                              >
+                                                {subCat.name}
+                                              </Link>
+                                            </li>
+                                          ))}
+                                        </ul>
                                       )}
-                                    </ul>
-                                  </div>
-                                )
-                              )
-                            : // Original mobile dropdown logic for Solutions, Resources, Company
-                              item.dropdown.map((category, catIndex) => (
-                                <div key={catIndex}>
-                                  <h4 className="text-xs font-semibold text-gray-500 uppercase mb-1">
-                                    {category.category}
-                                  </h4>
-                                  <ul className="space-y-1">
-                                    {category.items.map((subItem, subIndex) => (
-                                      <li key={subIndex}>
-                                        <Link
-                                          to={subItem.href}
-                                          className="block text-gray-800 hover:text-emerald-600 text-sm py-1 px-2 rounded-md"
-                                          onClick={() =>
-                                            setMobileMenuOpen(false)
-                                          }
-                                        >
-                                          {subItem.name}
-                                        </Link>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              ))}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))
+                          ) : (
+                            item.dropdown.map((category, catIndex) => (
+                              <div key={catIndex} className="mb-4">
+                                <h4 className="text-xs font-semibold text-indigo-600 uppercase mb-2 px-2">{category.category}</h4>
+                                <ul className="space-y-1">
+                                  {category.items.map((subItem, subIndex) => (
+                                    <li key={subIndex}>
+                                      <Link 
+                                        to={subItem.href} 
+                                        className="block text-gray-800 hover:text-indigo-600 hover:bg-gray-50 text-sm py-2 px-3 rounded-md transition-colors" 
+                                        onClick={() => setMobileMenuOpen(false)}
+                                      >
+                                        {subItem.name}
+                                      </Link>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))
+                          )}
                         </div>
                       )}
                     </>
                   )}
                 </div>
               ))}
+              
+              {/* Login/Staff Login buttons for mobile when not authenticated */}
+              {!isAuthenticated && (
+                <div className="flex flex-col space-y-2 mt-4 px-3">
+                  <Link 
+                    to="/staff-login" 
+                    className="bg-white text-indigo-600 border border-indigo-200 py-2 rounded-lg text-center font-medium hover:bg-indigo-50 transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Staff Login
+                  </Link>
+                  <Link 
+                    to="/login" 
+                    className="bg-indigo-600 text-white py-2 rounded-lg text-center font-medium hover:bg-indigo-700 transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
+                </div>
+              )}
+              
+              {/* Dashboard link for mobile when authenticated */}
               {isAuthenticated && (
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left text-gray-700 hover:text-emerald-600 py-2 px-3 rounded-lg flex items-center"
-                >
-                  Logout
-                </button>
+                <div className="mt-4 px-3">
+                  <Link 
+                    to="/dashboard" 
+                    className="bg-indigo-600 text-white py-2 rounded-lg text-center font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Settings className="w-4 h-4" />
+                    Dashboard
+                  </Link>
+                </div>
               )}
             </nav>
           </div>
         )}
       </header>
 
-      <LoginPopup
-        isOpen={showLoginPopup}
-        onClose={() => setShowLoginPopup(false)}
-      />
+      <LoginPopup isOpen={showLoginPopup} onClose={() => setShowLoginPopup(false)} />
     </>
   );
 };
