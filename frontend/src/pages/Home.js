@@ -599,10 +599,10 @@ Use our interactive price calculator — it’s absolutely free
           </div>
 
           {/* Services Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
             
             {/* Website Development Service */}
-            <div className="group relative bg-white rounded-2xl p-8 border-2 border-blue-200 hover:border-blue-600 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
+            <div className="group relative bg-white rounded-2xl p-8 flex flex-col items-center text-center gap-4 hover:border-blue-600 hover:border-2 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
               {/* Arrow Icon */}
               <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -611,8 +611,8 @@ Use our interactive price calculator — it’s absolutely free
               </div>
 
               {/* Icon */}
-              <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 rotate-3">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
@@ -622,7 +622,7 @@ Use our interactive price calculator — it’s absolutely free
                 Dynamic Web Applications
               </h3>
               
-              <p className="text-lg text-slate-600 leading-relaxed mb-6">
+              <p className="text-lg text-slate-600 max-w-lg leading-relaxed mb-6">
                 Custom portals, Interactive platforms, E-commerce, Blogs, Online booking.
               </p>
               
@@ -639,7 +639,7 @@ Use our interactive price calculator — it’s absolutely free
             </div>
 
             {/* Cloud Software Development Service */}
-            <div className="group relative bg-white rounded-2xl p-8 border-2 border-pink-200 hover:border-pink-600 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
+            <div className="group relative flex flex-col items-center text-center gap-4 bg-white rounded-2xl p-8 hover:border-2 hover:border-pink-600 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
               {/* Arrow Icon */}
               <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
                 <svg className="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -648,8 +648,8 @@ Use our interactive price calculator — it’s absolutely free
               </div>
 
               {/* Icon */}
-              <div className="w-16 h-16 bg-pink-100 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <svg className="w-8 h-8 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-pink-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 -rotate-3">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
                 </svg>
               </div>
@@ -659,7 +659,7 @@ Use our interactive price calculator — it’s absolutely free
                 Cloud-Based Management Software
               </h3>
               
-              <p className="text-lg text-slate-600 leading-relaxed mb-6">
+              <p className="text-lg text-slate-600 max-w-lg leading-relaxed mb-6">
                 CRM, CMS, LMS, Inventory Management, Staff Management, Sales Monitoring.
               </p>
               
@@ -710,8 +710,218 @@ Use our interactive price calculator — it’s absolutely free
             </div> */}
 
           </div>
+
+           {/* Bridge Section */}
+   <div className="mt-20 text-center">
+            <div className="inline-block bg-slate-800 border border-slate-600 rounded-xl px-8 py-5 shadow-xl">
+              <h3 className="text-3xl font-semibold text-slate-200">
+               What after {' '} {' '}
+                
+                <span className="text-cyan-300"> Development ?</span>
+              </h3>
+            </div>
+          </div>
+
         </div>
       </section>
+
+
+{/* Portal Section - Calculator Style with Grid + CTA */}
+ <section className="py-20 lg:py-24 bg-gradient-to-br from-cyan-50 via-blue-50 to-white relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        
+        {/* Section Header */}
+        <div className="text-center mb-14">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 mb-4 uppercase">
+            Delivery is Just the <span className="text-blue-600">Beginning</span>
+          </h2>
+          <p className="text-lg sm:text-2xl text-blue-600 font-semibold leading-relaxed">
+            Stay Connected With Your Personal Development Portal
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">     
+          
+          {/* Left - Image */}
+          <div className="relative order-1 lg:order-1">
+            <div className="relative">
+              <div className="absolute -inset-4 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-3xl opacity-20 blur-xl"></div>
+              <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border-2 border-blue-200">
+                <img 
+                  src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop&auto=format" 
+                  alt="Development Portal Dashboard"
+                  className="w-full"
+                />
+              </div>
+            </div>
+
+            {/* Floating Stats Card - Top Right */}
+            <div className="absolute -top-6 -right-6 bg-white rounded-xl shadow-xl p-4 border border-slate-200 z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-xs text-slate-500 font-medium">Real-Time</div>
+                  <div className="text-sm font-bold text-slate-900">Live Updates</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 24/7 Badge - Bottom Left */}
+            <div className="absolute -bottom-6 -left-6 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl shadow-2xl p-5 z-10">
+              <div className="text-center">
+                <div className="text-2xl font-black text-white">24/7</div>
+                <div className="text-xs text-blue-100 font-semibold mt-1">Portal Access</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right - Content */}
+          <div className="space-y-8 order-2 lg:order-2">
+            
+            {/* Header */}
+            <div className="space-y-4">
+              <div className="mb-8">
+                <h3 className="text-5xl font-bold text-slate-800 mb-2 capitalize">
+                  Built for Long-Term Success
+                </h3>
+                <div className="w-24 h-1 bg-blue-600 rounded-full"></div>
+              </div>
+
+              <p className="text-lg text-slate-700 leading-relaxed">
+                Our business is built on after-service support — because in this field, nobody stops at just development. Everyone needs regular updates and new features. That's why we've designed a dedicated portal that puts complete control in your hands.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        {/* What You Get Heading */}
+        <div className="text-center mt-16 mb-12">
+          <h3 className="text-3xl sm:text-4xl font-bold text-slate-900 uppercase">
+            What You Get In Our <span className="text-blue-600">Portal</span>
+          </h3>
+          <div className="w-24 h-1 bg-blue-600 rounded-full mx-auto mt-4"></div>
+        </div>
+
+        {/* Grid - 2x2 + 1 Full Width with CTA */}
+        <div className="max-w-6xl mx-auto">
+          
+          {/* First 4 Boxes - 2x2 Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            
+            {/* Box 1 */}
+            <div className="bg-cyan-200/5 backdrop-blur-sm rounded-xl p-6 border border-slate-200 hover:border-blue-600 hover:shadow-lg transition-all duration-300">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-xl font-semibold text-slate-900 mb-2">
+                    1. Direct Access to Developer
+                  </h4>
+                  <p className="text-slate-700 leading-relaxed text-lg">
+                    Chat directly with your developer. <span className="text-blue-600 font-semibold">No middlemen, no delays.</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Box 2 */}
+            <div className="bg-cyan-200/5 backdrop-blur-sm rounded-xl p-6 border border-slate-200 hover:border-emerald-600 hover:shadow-lg transition-all duration-300">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-emerald-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-6 h-6 text-emerald-600" strokeWidth={2.5} />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-xl font-semibold text-slate-900 mb-2">
+                    2. Track Your Progress
+                  </h4>
+                  <p className="text-slate-700 leading-relaxed text-lg">
+                    Watch your project come to life in real-time — <span className="text-emerald-600 font-semibold">see what's being built, when, and by whom.</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Box 3 */}
+            <div className="bg-cyan-200/5 backdrop-blur-sm rounded-xl p-6 border border-slate-200 hover:border-orange-600 hover:shadow-lg transition-all duration-300">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-orange-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-xl font-semibold text-slate-900 mb-2">
+                    3. Instant Support
+                  </h4>
+                  <p className="text-slate-700 leading-relaxed text-lg">
+                    Report issues and get real-time solutions with <span className="text-orange-600 font-semibold">complete transparency.</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Box 4 */}
+            <div className="bg-cyan-200/5 backdrop-blur-sm rounded-xl p-6 border border-slate-200 hover:border-purple-600 hover:shadow-lg transition-all duration-300">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-purple-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-xl font-semibold text-slate-900 mb-2">
+                    4. Easy Data Sharing
+                  </h4>
+                  <p className="text-slate-700 leading-relaxed text-lg">
+                    Share files and requirements <span className="text-purple-600 font-semibold">faster than WhatsApp — organized and secure.</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Box 5 - Full Width with CTA */}
+          <div className="bg-gradient-to-br from-pink-50 to-white rounded-xl p-6 border-2 border-pink-200 shadow-lg">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="flex items-start gap-4 flex-1">
+                <div className="w-12 h-12 bg-pink-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-xl font-semibold text-slate-900 mb-3">
+                    5. Need More Features or Updates?
+                  </h4>
+                  <p className="text-slate-700 leading-relaxed text-lg mb-4">
+                    Visit our <span className="text-pink-600 font-bold">Feature Store & Maintenance</span> page to add new capabilities or get regular updates for your software.
+                  </p>
+                </div>
+              </div>
+              <button className="group bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg transition-all duration-300 flex-shrink-0">
+                <span className="flex items-center gap-2">
+                  Explore Options
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+      
     </div>
   );
 };
